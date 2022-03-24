@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
-
+// Pour pouvoir le faire compiler avec make install, il faudra enlever le main() de ce fichier
+// C'est pour ça que je l'ai commenté, mais tu peux décommenter pour faire tes bails, juste le make marchera pas
+/*
 int main()
 {
     int n;
@@ -31,3 +33,4 @@ int main()
 
     return(0);
 }
+ */

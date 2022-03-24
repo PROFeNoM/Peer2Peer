@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
-#include "tracker.h"
+#include "include/tracker.h"
 
 void error(char* msg)
 {
@@ -85,10 +85,10 @@ int main(int argc, char* argv[])
 		{
 			error("Error creating client's thread\n");
 		}
+		printf("Handler assigned\n");
 
 		// Now join the thread, so that we don't terminate before the thread
-		pthread_join(sniffer_thread, NULL);
-		printf("Handler assigned\n");
+		// pthread_join(sniffer_thread, NULL);
 	}
 
 	if (client_sock < 0) error("Error accepting the incoming connection\n");
@@ -101,7 +101,7 @@ void *connection_handler(void *socket_desc)
 	//Get the socket descriptor
 	int sock = *(int*)socket_desc;
 	int read_size;
-	//char *message , client_message[2000];
+	char /* *message , */client_message[2000];
 
 	//Send some messages to the client
 	//message = "Greetings! I am your connection handler\n";
