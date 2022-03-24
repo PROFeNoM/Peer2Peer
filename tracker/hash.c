@@ -13,7 +13,7 @@ int main()
 
     printf("début\n");
     MD5_Init(&c);
-    printf("test\n");
+    printf("temp_tst\n");
     bytes=read(STDIN_FILENO, buf, 512);
     printf("test2\n");
     while(bytes > 0)
