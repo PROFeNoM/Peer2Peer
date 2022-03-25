@@ -8,6 +8,7 @@
 #define ANNOUNCE_REQUEST_REGEX "^announce listen [0-9]*\\( seed \\[\\(.* [0-9]\\+ [0-9]\\+ \\w\\+\\s\\?\\)\\+\\]\\)\\?\\( leech \\[.*\\]\\)\\?\\s*$"
 #define LOOK_REQUEST_REGEX "^look \\[.*\\]\\s*$"
 #define GETFILE_REQUEST_REGEX "^getfile \\w\\+\\s*$"
+#define UPDATE_REQUEST_REGEX "^update seed \\[.*\\] leech \\[.*\\]\\s*$"
 
 void error_tmp(char *msg) {
     perror(msg);
@@ -62,12 +63,12 @@ int is_request_valid(char *request, enum REQUEST_T request_t) {
             reti = regcomp(&regex, GETFILE_REQUEST_REGEX, 0);
             break;
         case UPDATE:
+            reti = regcomp(&regex, UPDATE_REQUEST_REGEX, 0);
             break;
         case INVALID:
         case UNKNOWN:
             regfree(&regex);
             return 0;
-            break;
     }
     if (reti) error_tmp("Error compiling regex\n");
 

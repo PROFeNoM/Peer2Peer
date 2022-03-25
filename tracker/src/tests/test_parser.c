@@ -138,6 +138,16 @@ int test__get_request_type_invalid_getfile_request()
     return 1;
 }
 
+int test__get_request_type_valid_update_request()
+{
+    char request[] = "update seed [] leech [8905e92afeb80fc7722ec89eb0bf0966]";
+
+    enum REQUEST_T actual = get_request_type(request);
+    ASSERT_EQUAL(UPDATE, actual)
+
+    return 1;
+}
+
 void test__parser_functions()
 {
 	TEST_FUNCTION(test__get_request_type_with_unknown_request)
@@ -157,4 +167,6 @@ void test__parser_functions()
 
     TEST_FUNCTION(test__get_request_type_valid_getfile_request)
     TEST_FUNCTION(test__get_request_type_invalid_getfile_request)
+
+    TEST_FUNCTION(test__get_request_type_valid_update_request)
 }
