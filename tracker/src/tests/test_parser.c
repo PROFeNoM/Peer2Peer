@@ -98,9 +98,50 @@ int test__get_request_type_with_valid_leech_only_announce_request()
     return 1;
 }
 
+int test__get_request_type_valid_look_request()
+{
+    char request[] = "look [filename=”file_a.dat” filesize>”1048576”]";
+
+    enum REQUEST_T actual = get_request_type(request);
+    ASSERT_EQUAL(LOOK, actual)
+
+    return 1;
+}
+
+int test__get_request_type_invalid_look_request()
+{
+    char request[] = "look (filename=”file_a.dat” filesize>”1048576”)";
+
+    enum REQUEST_T actual = get_request_type(request);
+    ASSERT_EQUAL(INVALID, actual)
+
+    return 1;
+}
+
+int test__get_request_type_valid_getfile_request()
+{
+    char request[] = "getfile 8905e92afeb80fc7722ec89eb0bf0966";
+
+    enum REQUEST_T actual = get_request_type(request);
+    ASSERT_EQUAL(GETFILE, actual)
+
+    return 1;
+}
+
+int test__get_request_type_invalid_getfile_request()
+{
+    char request[] = "getfile [8905e92afeb80fc7722ec89eb0bf0966]";
+
+    enum REQUEST_T actual = get_request_type(request);
+    ASSERT_EQUAL(INVALID, actual)
+
+    return 1;
+}
+
 void test__parser_functions()
 {
 	TEST_FUNCTION(test__get_request_type_with_unknown_request)
+
     TEST_FUNCTION(test__get_request_type_with_valid_seed_only_announce_request)
     TEST_FUNCTION(test__get_request_type_with_valid_seed_only_announce_request_one_file)
     TEST_FUNCTION(test__get_request_type_with_invalid_seed_only_announce_request_incomplete)
@@ -110,4 +151,10 @@ void test__parser_functions()
     TEST_FUNCTION(test__get_request_type_with_invalid_seed_leech_announce_request_double_spaces_between_files)
     TEST_FUNCTION(test__get_request_type_with_invalid_seed_leech_announce_request_double_spaces_between_fields)
     TEST_FUNCTION(test__get_request_type_with_valid_leech_only_announce_request)
+
+    TEST_FUNCTION(test__get_request_type_valid_look_request)
+    TEST_FUNCTION(test__get_request_type_invalid_look_request)
+
+    TEST_FUNCTION(test__get_request_type_valid_getfile_request)
+    TEST_FUNCTION(test__get_request_type_invalid_getfile_request)
 }
