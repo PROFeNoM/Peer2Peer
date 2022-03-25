@@ -49,24 +49,42 @@ public class Peer {
         }
     }
 
-    public String getHash(String fileName) {
+    public String getHash(File file) {
         MessageDigest md;
-        String myHash;
+        StringBuilder myHash;
 
-        try {
-            md = MessageDigest.getInstance("MD5");                  // Static getInstance method is called with hashing MD5
-            byte[] digest = md.digest(fileName.getBytes());         // digest() method is called to calculate message digest of an input digest() return array of byte    
-            BigInteger no = new BigInteger(1, digest);       // Convert byte array into signum representation
-            myHash = no.toString(16);                      // Convert message digest into hex value
-            while (myHash.length() < 32) {
-                myHash = "0" + myHash;
+        try{
+            //Get instance of MD5
+            md = MessageDigest.getInstance("MD5");
+
+            //Get file input stream for reading the file content
+            FileInputStream fis = new FileInputStream(file);
+            
+            //Create byte array to read data in chunks
+            byte[] byteArray = new byte[1024];
+            int bytesCount = 0; 
+                
+            //Read file data and update in md
+            while ((bytesCount = fis.read(byteArray)) != -1) {
+                md.update(byteArray, 0, bytesCount);
+            };
+            
+            fis.close();
+            
+            //Get the hash's bytes
+            byte[] bytes = md.digest();
+            
+            //Convert bytes to hexadecimal format
+            myHash = new StringBuilder();
+            for(int i=0; i< bytes.length ;i++)
+            {
+                myHash.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
             }
-        }catch (NoSuchAlgorithmException e) {
-            myHash= "rien";
+        }catch(Exception e) {
             System.out.println(e.getMessage());
             throw new RuntimeException(e);
         }
 
-        return myHash;
+        return myHash.toString();
     }
 }
