@@ -7,25 +7,34 @@ public class Tracker {
     private PrintWriter out;
     private BufferedReader in;
 
-    public void start(int port) {
+    public Tracker(int port) {
+        startConnection(port);
+    }
+
+    public void startConnection(int port) {
         try {
             serverSocket = new ServerSocket(port);
             clientSocket = serverSocket.accept();
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            System.exit(-1);
+        }
+    }
 
-            String inputLine;
-            // while (true) {
-                // inputLine = in.readLine();
-            while ((inputLine = in.readLine()) != null) {
-                if (inputLine != null)
-                    System.out.println(inputLine);
-                    out.println(inputLine);
-                if (".".equals(inputLine)) {
+    public void run() {
+        String input;
+        try {
+            while ((input = in.readLine()) != null) {
+                if (!input.isEmpty())
+                    System.out.println("> " + input);
+
+                if (input.equals(".")) {
                     out.println("good bye");
                     break;
                 }
-                out.println(inputLine);
+                out.println("200");
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
