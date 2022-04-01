@@ -1,44 +1,53 @@
 import java.net.*;
 import java.io.*;
 
-public class Peer {
+public class Tracker {
+    private ServerSocket serverSocket;
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
 
-    public void startConnection(String ip, int port) {
+    public Tracker(int port) {
+        startConnection(port);
+    }
+
+    public void startConnection(int port) {
         try {
-            clientSocket = new Socket(ip, port);
+            serverSocket = new ServerSocket(port);
+            clientSocket = serverSocket.accept();
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        } catch (UnknownHostException e) {
-            System.out.println(e.getMessage());
-            System.exit(-1);
         } catch (IOException e) {
             System.out.println(e.getMessage());
             System.exit(-1);
         }
-
     }
 
-    public String sendMessage(String msg) {
-        out.println(msg);
-        String response;
+    public void run() {
+        String input;
         try {
-            response = in.readLine();
+            while ((input = in.readLine()) != null) {
+                if (!input.isEmpty())
+                    System.out.println("> " + input);
+
+                if (input.equals(".")) {
+                    out.println("good bye");
+                    break;
+                }
+                out.println("200");
+            }
         } catch (IOException e) {
             System.out.println(e.getMessage());
-            response = "rien";
             System.exit(-1);
         }
-        return response;
     }
 
-    public void stopConnection() {
+    public void stop() {
         try {
             in.close();
             out.close();
             clientSocket.close();
+            serverSocket.close();
         } catch (IOException e) {
             System.out.println(e.getMessage());
             System.exit(-1);

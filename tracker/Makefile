@@ -19,7 +19,7 @@ CFLAGS		=	-Wall -Wextra -std=c99
 CPPFLAGS	=	-I${INCLUDE_DIR}
 TESTSFLAGS	=	-g -O0 -fprofile-arcs -ftest-coverage
 THREADFLAGS	=	-pthread
-HASHFLAGS	=	-lcrypto -lssl
+#HASHFLAGS	=	-lcrypto -lssl
 DEPFLAGS	= 	-MT $@ -MMD -MP -MF $(@D)/$*.d
 
 COLOR				=	"\033["
@@ -68,11 +68,11 @@ include $(wildcard $(DEP))
 
 $(TRACKER_BIN): $(TRACKER_OBJ)
 	@echo $(COLOR)$(ITALIC)$(PURPLE)"\tCompilation Server BINARY"$(NOCOLOR)
-	@$(CC) $(CPPFLAGS) $(CFLAGS) $(TRACKER_OBJ) -o $@ $(THREADFLAGS) $(HASHFLAGS)
+	@$(CC) $(CPPFLAGS) $(CFLAGS) $(TRACKER_OBJ) -o $@ $(THREADFLAGS) 
 
 build/tracker/%.o: src/%.c
 	@echo $(COLOR)$(ITALIC)$(CYAN)"\tCompilation Tracker file :	$*"$(NOCOLOR)
-	@$(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -c $< -o $@ $(THREADFLAGS) $(HASHFLAGS)
+	@$(CC) $(DEPFLAGS) $(CPPFLAGS) $(CFLAGS) -c $< -o $@ $(THREADFLAGS)
 
 ############################## INSTALL RULES ##############################
 
@@ -85,4 +85,4 @@ install/%: build/tests/%
 
 $(TESTS_BIN): $(BUILD_DIR)
 	@echo $(COLOR)$(ITALIC)$(PURPLE)"\tCompilation AllTests BINARY"$(NOCOLOR)
-	@$(CC) $(CFLAGS) -I./src/tests/ $(CPPFLAGS) $(TESTSFLAGS) $(TESTS_SRC) -o $@ $(THREADFLAGS) $(HASHFLAGS)
+	@$(CC) $(CFLAGS) -I./src/tests/ $(CPPFLAGS) $(TESTSFLAGS) $(TESTS_SRC) -o $@ $(THREADFLAGS)
