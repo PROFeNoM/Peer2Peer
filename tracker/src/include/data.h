@@ -1,9 +1,6 @@
 #ifndef _DATA_H
 #define _DATA_H
 
-#include <netinet/in.h>
-#include <stddef.h>
-
 #define MAX_NAME_LEN 100
 #define MAX_KEY_LEN 100
 
