@@ -1,5 +1,6 @@
 JAVAC 	?= javac
 JAVA 	?= java
+PORT 	?= 8080
 
 PEER	= TestPeer
 TRACKER = TestTracker
@@ -52,10 +53,10 @@ build: $(JAVA_FILES)
 ############################## INSTALL RULES ##############################
 
 peer: build
-	$(JAVA) $(EXEC_OPTS) $(PEER) localhost 1234
+	$(JAVA) $(EXEC_OPTS) $(PEER) $(PORT)
 
 tracker: build
-	$(JAVA) $(EXEC_OPTS) $(TRACKER) 1234
+	$(JAVA) $(EXEC_OPTS) $(TRACKER) $(PORT)
 
 
 ############################## TESTS RULES ##############################
