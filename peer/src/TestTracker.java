@@ -1,5 +1,3 @@
-import java.io.IOException;
-import java.util.concurrent.TimeUnit ;
 class TestTracker {
     public static void main(String[] args) {
         if (args.length < 1) {
@@ -7,10 +5,10 @@ class TestTracker {
             System.exit(1);
         }
 
-        Tracker tracker = new Tracker();
         int port = Integer.parseInt(args[0]);
-        tracker.start(port);
-
+        Tracker tracker = new Tracker(port);
+        System.out.println("Tracker started");
+        tracker.run();
         tracker.stop();
         System.out.println("Tracker stopped");
     }
