@@ -4,9 +4,11 @@ import java.nio.charset.StandardCharsets;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.lang.Thread;
 
 public class Peer {
     private Socket clientSocket;
+    private ServerSocket serverSocket;
     private PrintWriter out;
     private BufferedReader in;
 
@@ -87,4 +89,56 @@ public class Peer {
 
         return myHash.toString();
     }
+
+    public void startServer(int port) {
+        try {
+            serverSocket = new ServerSocket(port);
+            clientSocket = serverSocket.accept();
+            out = new PrintWriter(clientSocket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+            String inputLine;
+            // while (true) {
+                // inputLine = in.readLine();
+            while ((inputLine = in.readLine()) != null) {
+                if (inputLine != null)
+                    System.out.println(inputLine);
+                    out.println(inputLine);
+                if (".".equals(inputLine)) {
+                    out.println("good bye");
+                    break;
+                }
+                out.println(inputLine);
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            System.exit(-1);
+        } finally {
+            try {
+                serverSocket.close();
+                clientSocket.close();
+                out.close();
+                in.close();
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }            
+        }
+    }
+
+    // // a function that starts a server on given socket
+    // int startServer(int port) {
+    //     try {
+    //         ServerSocket serverSocket = new ServerSocket(port);
+    //         System.out.println("Server started on port " + port);
+    //         while (true) {
+    //             Socket clientSocket = serverSocket.accept();
+    //             System.out.println("Client connected");
+    //             // new Thread(new ServerThread(clientSocket)).start();
+    //         }
+    //     } catch (IOException e) {
+    //         System.out.println(e.getMessage());
+    //         System.exit(-1);
+    //     }
+    //     return 0;
+    // }
 }

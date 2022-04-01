@@ -1,5 +1,5 @@
 import java.util.concurrent.TimeUnit ;
-
+import java.util.Scanner;
 public class TestPeer {
     public static void main(String[] args) {
 
@@ -20,11 +20,18 @@ public class TestPeer {
         response = peer.sendMessage("hello world");
         System.out.println("Response 2 : " + response);
 
-        try {
-            TimeUnit.SECONDS.sleep(5);
-        } catch (InterruptedException e) {
-            System.out.println(e.getMessage());
+        Scanner scan = new Scanner(System.in);
+        String inputLine;
+        while ((inputLine = scan.nextLine()) != "stop") {
+            System.out.println(inputLine);
         }
+        scan.close();
+
+        // try {
+        //     TimeUnit.SECONDS.sleep(5);
+        // } catch (InterruptedException e) {
+        //     System.out.println(e.getMessage());
+        // }
         peer.stopConnection();
         System.out.println("Peer stopped");
     }

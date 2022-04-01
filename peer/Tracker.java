@@ -15,12 +15,12 @@ public class Tracker {
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
             String inputLine;
-            while (true) {
-            // while ((inputLine = in.readLine()) != null) {
-                inputLine = in.readLine();
-                if (!inputLine.isEmpty())
+            // while (true) {
+                // inputLine = in.readLine();
+            while ((inputLine = in.readLine()) != null) {
+                if (inputLine != null)
                     System.out.println(inputLine);
-                
+                    out.println(inputLine);
                 if (".".equals(inputLine)) {
                     out.println("good bye");
                     break;
@@ -30,6 +30,15 @@ public class Tracker {
         } catch (IOException e) {
             System.out.println(e.getMessage());
             System.exit(-1);
+        } finally {
+            try {
+                serverSocket.close();
+                clientSocket.close();
+                out.close();
+                in.close();
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }            
         }
     }
 
