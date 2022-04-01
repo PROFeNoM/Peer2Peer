@@ -11,7 +11,6 @@
 #define GETFILE_REQUEST_REGEX "^getfile \\w\\+\\s*$"
 #define UPDATE_REQUEST_REGEX "^update seed \\[.*\\] leech \\[.*\\]\\s*$"
 
-#define KNOWN_REQUEST_REGEX "^\b(announce|look|getfile|update)\b"
 
 #define ANNOUNCE_NB_ARGS 4
 #define SIZE_CALLS 3
@@ -122,20 +121,26 @@ enum REQUEST_T get_request_type(char *request) {
 *
 *	@return Port value
 */
-int parse_announce(enum REQUEST_T request_type, char* to_parse[], int size_parse, char* seeder[], char* leech[])
+int parse_announce(char* to_parse[], int size_parse, char* seeder[], char* leech[])
 {
 
 	for(int i=1; i<size_parse; i++)
 	{
 		for(int j=0; j<SIZE_CALLS; j++)
 		{
-			if (strcpy(calls[j], to_parse[i]))
+			if (!strcmp(calls[j], to_parse[i]))
 			{
-				if( !strcmp(calls[j], "seed"))			copy_without_brackets(seeder, to_parse, i);
-				else if (!strcmp(calls[j], "leech"))	copy_without_brackets(leech, to_parse, i);
+				fprintf(stderr, "Special word caught: %s\n", calls[j]);
+				if( !strcmp(calls[j], "seed")) 			copy_without_brackets(seeder, to_parse, i+1);
+				else if (!strcmp(calls[j], "leech"))	copy_without_brackets(leech, to_parse, i+1);
 			}
 		}
 	}
+
+	fprintf(stderr, "========================================\n");
+	print_tokens(seeder, 100);
+	print_tokens(leech, 100);
+	fprintf(stderr, "========================================\n");
 
 	int port = atoi(to_parse[3]);
 
@@ -151,17 +156,19 @@ int copy_without_brackets(char* array[], char* to_parse[], int i)
 		if(to_parse[i][0] == '[')
 		{
 			char* result = to_parse[i] + 1;
+			array[i_array] = malloc(70);
 			strcpy(array[i_array], result);
 		}
 		else if (to_parse[i][strlen(to_parse[i])-1] == ']')
 		{
+			array[i_array] = malloc(70);
 			strncpy(array[i_array], to_parse[i], strlen(to_parse[i])-1);
 			return i;
 		}
 		else
 		{
+			array[i_array] = malloc(70);
 			strcpy(array[i_array], to_parse[i]);
-
 		}
 
 		i_array++;
@@ -186,6 +193,20 @@ int split(char message[], char* separator, char* tokens[], int max_tokens)
         i++;
     }
 
+	print_tokens(tokens, i);
+
     return i;
 }
 
+/*
+*	DEBUG
+*
+*/
+void print_tokens(char* token[], int nb_token)
+{
+	for(int i=0; i<nb_token; i++)
+	{
+		if (token[i] != NULL)
+			fprintf(stderr, "%s\n", token[i]);
+	}
+}

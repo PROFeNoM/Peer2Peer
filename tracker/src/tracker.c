@@ -8,6 +8,11 @@
 #include <pthread.h>
 
 #include "include/tracker.h"
+#include "include/parser.h"
+
+#define MAX_TOKENS 100
+#define MAX_SIZE_TOKEN 100
+
 
 void error(char* msg)
 {
@@ -115,6 +120,21 @@ void *connection_handler(void *socket_desc)
 	{
 		//Send the message back to client
 		write(sock , client_message , strlen(client_message));
+
+		char test[] = "announce listen 2222 seed [file_a.dat 2097152 1024 8905e92afeb80fc7722ec89eb0bf0966 file_b.dat 3145728 1536 330a57722ec8b0bf09669a2b35f88e9e] leech [aaa teeest luktnul godotnaze theotbo alexjtm]";
+
+		char* tokens[MAX_TOKENS];
+		char* seeder[MAX_TOKENS];
+		char* leech[MAX_TOKENS];
+
+		char delim[] = " ";
+
+		int nb_tokens = split(test, delim, tokens, MAX_TOKENS);
+
+		fprintf(stderr, "Start to parse\n");
+		parse_announce(tokens, nb_tokens, seeder, leech);
+
+
 	}
 
 	if(read_size == 0)
