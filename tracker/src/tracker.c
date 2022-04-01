@@ -8,6 +8,7 @@
 #include <pthread.h>
 
 #include "include/tracker.h"
+#include "include/parser.h"
 
 void error(char* msg)
 {
@@ -101,20 +102,42 @@ void *connection_handler(void *socket_desc)
 	//Get the socket descriptor
 	int sock = *(int*)socket_desc;
 	int read_size;
-	char /* *message , */client_message[2000];
-
-	//Send some messages to the client
-	//message = "Greetings! I am your connection handler\n";
-	//write(sock , message , strlen(message));
-
-	//message = "Now type something and i shall repeat what you type \n";
-	//write(sock , message , strlen(message));
+	char client_message[2000];
 
 	//Receive a message from client
 	while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
 	{
-		//Send the message back to client
-		write(sock , client_message , strlen(client_message));
+        printf("Received %s\n", client_message);
+
+        enum REQUEST_T request_t = get_request_type(client_message);
+
+        switch (request_t) {
+            case ANNOUNCE:
+                //announce(sock, client_message);
+                write(sock, "ANNOUNCE", strlen("ANNOUNCE"));
+                break;
+            case LOOK:
+                //look(sock, client_message);
+                write(sock, "LOOK", strlen("LOOK"));
+                break;
+            case GETFILE:
+                //getfile(sock, client_message);
+                write(sock, "GETFILE", strlen("GETFILE"));
+                break;
+            case UPDATE:
+                //update(sock, client_message);
+                write(sock, "UPDATE", strlen("UPDATE"));
+                break;
+            case INVALID:
+                write(sock, "INVALID", strlen("INVALID"));
+                break;
+            case UNKNOWN:
+                write(sock, "UNKNOWN", strlen("UNKNOWN"));
+                break;
+        }
+
+        // clear the buffer of client_message
+        memset(client_message, 0, sizeof(client_message));
 	}
 
 	if(read_size == 0)

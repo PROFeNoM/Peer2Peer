@@ -49,15 +49,15 @@ int main(int argc , char *argv[])
 	while(1)
 	{
 		printf("Enter message : ");
-		scanf("%s" , message);
-
+        scanf ("%[^\n]%*c", message);
+        printf("Sending message: %s\n", message);
 		//Send some data
-		if( send(sock , message , strlen(message) , 0) < 0)
+		if( send(sock , message , strlen(message)+1 , 0) < 0)
 		{
 			puts("Send failed");
 			return 1;
 		}
-
+        memset(server_reply, 0, sizeof(server_reply));
 		//Receive a reply from the server
 		if( recv(sock , server_reply , 2000 , 0) < 0)
 		{
