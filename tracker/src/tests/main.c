@@ -7,6 +7,7 @@ size_t tests_passed = 0;
 void launch_test()
 {
 	TEST_FILE(test__parser_functions);
+	TEST_FILE(test__data_functions);
 }
 
 int main(int argc, char *argv[])

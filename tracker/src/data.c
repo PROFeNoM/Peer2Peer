@@ -74,10 +74,21 @@ void add_peer(char* ip, unsigned int port)
 	struct peer_t* peer = malloc(sizeof(struct peer_t));
 	strcpy(peer->ip, ip);
 	peer->port = port;
-	peers_list_tail->next = malloc(sizeof(struct peers_list_t));
-	peers_list_tail = peers_list_tail->next;
-	peers_list_tail->next = NULL;
-	peers_list_tail->peer = peer;
+
+	if (peers_list == NULL)
+	{
+		peers_list = malloc(sizeof(struct peers_list_t));
+		peers_list->next = NULL;
+		peers_list->peer = peer;
+		peers_list_tail = peers_list;
+	}
+	else
+	{
+		peers_list_tail->next = malloc(sizeof(struct peers_list_t));
+		peers_list_tail->next->next = NULL;
+		peers_list_tail->next->peer = peer;
+		peers_list_tail = peers_list_tail->next;
+	}
 }
 
 void add_leecher(char* ip, unsigned int port)
@@ -86,10 +97,21 @@ void add_leecher(char* ip, unsigned int port)
 	struct leecher_t* leecher = malloc(sizeof(struct leecher_t));
 	strcpy(leecher->ip, ip);
 	leecher->port = port;
-	leechers_list_tail->next = malloc(sizeof(struct leechers_list_t));
-	leechers_list_tail = leechers_list_tail->next;
-	leechers_list_tail->next = NULL;
-	leechers_list_tail->leecher = leecher;
+
+	if (leechers_list == NULL)
+	{
+		leechers_list = malloc(sizeof(struct leechers_list_t));
+		leechers_list->next = NULL;
+		leechers_list->leecher = leecher;
+		leechers_list_tail = leechers_list;
+	}
+	else
+	{
+		leechers_list_tail->next = malloc(sizeof(struct leechers_list_t));
+		leechers_list_tail->next->next = NULL;
+		leechers_list_tail->next->leecher = leecher;
+		leechers_list_tail = leechers_list_tail->next;
+	}
 }
 
 void add_file(char* name, unsigned int size, unsigned int piece_size, char* key)
@@ -100,10 +122,23 @@ void add_file(char* name, unsigned int size, unsigned int piece_size, char* key)
 	file->size = size;
 	file->piece_size = piece_size;
 	strcpy(file->key, key);
-	files_list_tail->next = malloc(sizeof(struct files_list_t));
-	files_list_tail = files_list_tail->next;
-	files_list_tail->next = NULL;
-	files_list_tail->file = file;
+	file->peers = NULL;
+	file->leechers = NULL;
+
+	if (files_list == NULL)
+	{
+		files_list = malloc(sizeof(struct files_list_t));
+		files_list->next = NULL;
+		files_list->file = file;
+		files_list_tail = files_list;
+	}
+	else
+	{
+		files_list_tail->next = malloc(sizeof(struct files_list_t));
+		files_list_tail->next->next = NULL;
+		files_list_tail->next->file = file;
+		files_list_tail = files_list_tail->next;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -128,16 +163,24 @@ struct files_list_t* get_files_by_criteria(int (* criteres)(struct files_t*, voi
 	struct files_list_t* files = malloc(sizeof(struct files_list_t));
 	files->next = NULL;
 	files->file = NULL;
+	struct files_list_t* files_tail = files;
 
 	struct files_list_t* current = files_list;
 	while (current != NULL)
 	{
-		if (criteres(current->file, data))
+		if (current->file && criteres(current->file, data))
 		{
-			files_list_tail->next = malloc(sizeof(struct files_list_t));
-			files_list_tail = files_list_tail->next;
-			files_list_tail->next = NULL;
-			files_list_tail->file = current->file;
+			if (files->file == NULL)
+			{
+				files->file = current->file;
+			}
+			else
+			{
+				files_tail->next = malloc(sizeof(struct files_list_t));
+				files_tail = files_tail->next;
+				files_tail->next = NULL;
+				files_tail->file = current->file;
+			}
 		}
 		current = current->next;
 	}
@@ -165,12 +208,133 @@ char* get_file_key(struct files_t* file)
 	return file->key;
 }
 
-struct peers_list_t* get_file_peers(struct files_t* file)
+void add_peer_to_file(char* key, struct peer_t* peer)
+{
+	struct files_list_t* current = files_list;
+	while (current != NULL)
+	{
+		if (current->file && strcmp(current->file->key, key) == 0)
+		{
+			struct peers_list_t* peers = current->file->peers;
+			while (peers != NULL)
+			{
+				if (strcmp(peers->peer->ip, peer->ip) == 0 && peers->peer->port == peer->port)
+				{
+					return;
+				}
+				peers = peers->next;
+			}
+
+			peers = malloc(sizeof(struct peers_list_t));
+			peers->next = current->file->peers;
+			peers->peer = peer;
+			current->file->peers = peers;
+
+			return;
+		}
+		current = current->next;
+	}
+}
+
+void add_leecher_to_file(char* key, struct leecher_t* leecher)
+{
+	struct files_list_t* current = files_list;
+	while (current != NULL)
+	{
+		if (current->file && strcmp(current->file->key, key) == 0)
+		{
+			struct leechers_list_t* leechers = current->file->leechers;
+			while (leechers != NULL)
+			{
+				if (strcmp(leechers->leecher->ip, leecher->ip) == 0 && leechers->leecher->port == leecher->port)
+				{
+					return;
+				}
+				leechers = leechers->next;
+			}
+
+			leechers = malloc(sizeof(struct leechers_list_t));
+			leechers->next = current->file->leechers;
+			leechers->leecher = leecher;
+			current->file->leechers = leechers;
+			return;
+		}
+		current = current->next;
+	}
+}
+
+void remove_peer_from_file(char* key, struct peer_t* peer)
+{
+	struct files_list_t* current = files_list;
+	while (current != NULL)
+	{
+		if (current->file && strcmp(current->file->key, key) == 0)
+		{
+			struct peers_list_t* peers = current->file->peers;
+			struct peers_list_t* previous = NULL;
+			while (peers != NULL)
+			{
+				if (strcmp(peers->peer->ip, peer->ip) == 0 && peers->peer->port == peer->port)
+				{
+					if (previous == NULL)
+					{
+						current->file->peers = peers->next;
+					}
+					else
+					{
+						previous->next = peers->next;
+					}
+					free(peers);
+					return;
+				}
+				previous = peers;
+				peers = peers->next;
+			}
+			return;
+		}
+		current = current->next;
+	}
+}
+
+void remove_leecher_from_file(char* key, struct leecher_t* leecher)
+{
+	struct files_list_t* current = files_list;
+	while (current != NULL)
+	{
+		if (current->file && strcmp(current->file->key, key) == 0)
+		{
+			struct leechers_list_t* leechers = current->file->leechers;
+			struct leechers_list_t* previous = NULL;
+			while (leechers != NULL)
+			{
+				if (strcmp(leechers->leecher->ip, leecher->ip) == 0 && leechers->leecher->port == leecher->port)
+				{
+					if (previous == NULL)
+					{
+						current->file->leechers = leechers->next;
+					}
+					else
+					{
+						previous->next = leechers->next;
+					}
+					free(leechers);
+					return;
+				}
+				previous = leechers;
+				leechers = leechers->next;
+			}
+			return;
+		}
+		current = current->next;
+	}
+}
+
+struct peers_list_t* get_files_peers(struct files_t* file)
 {
 	return file->peers;
 }
 
-struct leechers_list_t* get_file_leechers(struct files_t* file)
+struct leechers_list_t* get_files_leechers(struct files_t* file)
 {
 	return file->leechers;
 }
@@ -187,6 +351,19 @@ struct peer_t* get_peer(struct peers_list_t* peers)
 	return peers->peer;
 }
 
+struct peer_t* get_peer_from_info(char* ip, unsigned int port)
+{
+	struct peers_list_t* current = peers_list;
+	while (current != NULL)
+	{
+		if (current->peer && strcmp(current->peer->ip, ip) == 0 && current->peer->port == port)
+			return current->peer;
+		current = current->next;
+	}
+
+	return NULL;
+}
+
 struct peers_list_t* get_next_peer(struct peers_list_t* peers)
 {
 	return peers->next;
@@ -200,7 +377,18 @@ int has_key(struct files_t* file, char* key)
 struct peers_list_t* get_peers_having_file(char* key)
 {
 	struct files_list_t* files = get_files_by_criteria((int (*)(struct files_t*, void*))has_key, key);
-	return get_file_peers(get_file(files));
+	if (get_file(files))
+	{
+		struct peers_list_t* peers = get_files_peers(get_file(files));
+		while (files != NULL)
+		{
+			struct files_list_t* tmp = files;
+			files = files->next;
+			free(tmp);
+		}
+		return peers;
+	}
+	return NULL;
 }
 
 char* get_peer_ip(struct peer_t* peer)
@@ -225,6 +413,19 @@ struct leecher_t* get_leecher(struct leechers_list_t* leechers)
 	return leechers->leecher;
 }
 
+struct leecher_t* get_leecher_from_info(char* ip, unsigned int port)
+{
+	struct leechers_list_t* current = leechers_list;
+	while (current != NULL)
+	{
+		if (current->leecher && strcmp(current->leecher->ip, ip) == 0 && current->leecher->port == port)
+			return current->leecher;
+		current = current->next;
+	}
+
+	return NULL;
+}
+
 struct leechers_list_t* get_next_leecher(struct leechers_list_t* leechers)
 {
 	return leechers->next;
@@ -233,7 +434,18 @@ struct leechers_list_t* get_next_leecher(struct leechers_list_t* leechers)
 struct leechers_list_t* get_leechers_having_file(char* key)
 {
 	struct files_list_t* files = get_files_by_criteria((int (*)(struct files_t*, void*))has_key, key);
-	return get_file_leechers(get_file(files));
+	if (get_file(files))
+	{
+		struct leechers_list_t* leechers = get_files_leechers(get_file(files));
+		while (files != NULL)
+		{
+			struct files_list_t* tmp = files;
+			files = files->next;
+			free(tmp);
+		}
+		return leechers;
+	}
+	return NULL;
 }
 
 char* get_leecher_ip(struct leecher_t* leecher)
@@ -244,4 +456,82 @@ char* get_leecher_ip(struct leecher_t* leecher)
 unsigned int get_leecher_port(struct leecher_t* leecher)
 {
 	return leecher->port;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void free_peers_list(struct peers_list_t* peers)
+{
+	struct peers_list_t* current = peers;
+	while (current != NULL)
+	{
+		struct peers_list_t* next = current->next;
+		if (current->peer) free(current->peer);
+		free(current);
+		current = next;
+	}
+	peers = NULL;
+}
+
+void free_leechers_list(struct leechers_list_t* leechers)
+{
+	struct leechers_list_t* current = leechers;
+	while (current != NULL)
+	{
+		struct leechers_list_t* next = current->next;
+		if (current->leecher) free(current->leecher);
+		free(current);
+		current = next;
+	}
+	leechers = NULL;
+}
+
+void free_files_list(struct files_list_t* files)
+{
+	while (files != NULL)
+	{
+		struct files_list_t* tmp = files;
+		files = files->next;
+		free(tmp);
+	}
+	files = NULL;
+}
+
+void free_lists()
+{
+	struct files_list_t* current = files_list;
+	while (current != NULL)
+	{
+		struct files_list_t* next = current->next;
+		// Free peers
+		if (current->file)
+		{
+			struct peers_list_t* peers = current->file->peers;
+			while (peers != NULL)
+			{
+				struct peers_list_t* tmp = peers;
+				peers = peers->next;
+				free(tmp);
+				tmp = NULL;
+			}
+			current->file->peers = NULL;
+
+			struct leechers_list_t* leechers = current->file->leechers;
+			while (leechers != NULL)
+			{
+				struct leechers_list_t* tmp = leechers;
+				leechers = leechers->next;
+				free(tmp);
+				tmp = NULL;
+			}
+			current->file->leechers = NULL;
+		}
+		free(current->file);
+		free(current);
+		current = next;
+	}
+	files_list = NULL;
+
+	free_peers_list(peers_list);
+	free_leechers_list(leechers_list);
 }

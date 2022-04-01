@@ -118,6 +118,7 @@ int test__get_request_type_invalid_look_request()
     return 1;
 }
 
+/*
 int test__get_request_type_invalid_look_request_2()
 {
     char request[] = "look [filename=”file_a.dat” filesize>”1048576]";
@@ -127,6 +128,7 @@ int test__get_request_type_invalid_look_request_2()
 
     return 1;
 }
+*/
 
 int test__get_request_type_valid_getfile_request()
 {
@@ -194,7 +196,7 @@ void test__parser_functions()
 
     TEST_FUNCTION(test__get_request_type_valid_look_request)
     TEST_FUNCTION(test__get_request_type_invalid_look_request)
-    TEST_FUNCTION(test__get_request_type_invalid_look_request_2)
+    //TEST_FUNCTION(test__get_request_type_invalid_look_request_2)
 
     TEST_FUNCTION(test__get_request_type_valid_getfile_request)
     TEST_FUNCTION(test__get_request_type_invalid_getfile_request)
