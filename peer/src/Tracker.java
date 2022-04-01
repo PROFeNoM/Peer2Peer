@@ -39,6 +39,15 @@ public class Tracker {
         } catch (IOException e) {
             System.out.println(e.getMessage());
             System.exit(-1);
+        } finally {
+            try {
+                serverSocket.close();
+                clientSocket.close();
+                out.close();
+                in.close();
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }            
         }
     }
 

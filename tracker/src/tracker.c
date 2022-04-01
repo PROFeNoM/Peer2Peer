@@ -106,36 +106,57 @@ void *connection_handler(void *socket_desc)
 	//Get the socket descriptor
 	int sock = *(int*)socket_desc;
 	int read_size;
-	char /* *message , */client_message[2000];
-
-	//Send some messages to the client
-	//message = "Greetings! I am your connection handler\n";
-	//write(sock , message , strlen(message));
-
-	//message = "Now type something and i shall repeat what you type \n";
-	//write(sock , message , strlen(message));
+	char client_message[2000];
 
 	//Receive a message from client
 	while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
 	{
-		//Send the message back to client
-		write(sock , client_message , strlen(client_message));
+        printf("Received %s\n", client_message);
 
-		char test[] = "announce listen 2222 seed [file_a.dat 2097152 1024 8905e92afeb80fc7722ec89eb0bf0966 file_b.dat 3145728 1536 330a57722ec8b0bf09669a2b35f88e9e] leech [aaa teeest luktnul godotnaze theotbo alexjtm]";
+        enum REQUEST_T request_t = get_request_type(client_message);
 
 		char* tokens[MAX_TOKENS];
-		char* seeder[MAX_TOKENS];
-		char* leech[MAX_TOKENS];
-
 		char delim[] = " ";
 
-		int nb_tokens = split(test, delim, tokens, MAX_TOKENS);
+        switch (request_t) {
+            case ANNOUNCE:
+                //announce(sock, client_message);
+                write(sock, "ANNOUNCE", strlen("ANNOUNCE"));
 
-		fprintf(stderr, "Start to parse\n");
-		parse_announce(tokens, nb_tokens, seeder, leech);
+				//char test[] = "announce listen 2222 seed [file_a.dat 2097152 1024 8905e92afeb80fc7722ec89eb0bf0966 file_b.dat 3145728 1536 330a57722ec8b0bf09669a2b35f88e9e] leech [aaa teeest luktnul godotnaze theotbo alexjtm]";
 
+				char* seeder[MAX_TOKENS];
+				char* leech[MAX_TOKENS];
 
+				int nb_tokens = split(client_message, delim, tokens, MAX_TOKENS);
+
+				fprintf(stderr, "Start to parse\n");
+				parse_announce(tokens, nb_tokens, seeder, leech);
+                break;
+            case LOOK:
+                //look(sock, client_message);
+                write(sock, "LOOK", strlen("LOOK"));
+                break;
+            case GETFILE:
+                //getfile(sock, client_message);
+                write(sock, "GETFILE", strlen("GETFILE"));
+                break;
+            case UPDATE:
+                //update(sock, client_message);
+                write(sock, "UPDATE", strlen("UPDATE"));
+                break;
+            case INVALID:
+                write(sock, "INVALID", strlen("INVALID"));
+                break;
+            case UNKNOWN:
+                write(sock, "UNKNOWN", strlen("UNKNOWN"));
+                break;
+        }
+
+        // clear the buffer of client_message
+        memset(client_message, 0, sizeof(client_message));
 	}
+
 
 	if(read_size == 0)
 	{

@@ -118,6 +118,16 @@ int test__get_request_type_invalid_look_request()
     return 1;
 }
 
+int test__get_request_type_invalid_look_request_2()
+{
+    char request[] = "look [filename=”file_a.dat” filesize>”1048576]";
+
+    enum REQUEST_T actual = get_request_type(request);
+    ASSERT_EQUAL(INVALID, actual)
+
+    return 1;
+}
+
 int test__get_request_type_valid_getfile_request()
 {
     char request[] = "getfile 8905e92afeb80fc7722ec89eb0bf0966";
@@ -138,12 +148,32 @@ int test__get_request_type_invalid_getfile_request()
     return 1;
 }
 
+int test__get_request_type_invalid_getfile_request_2()
+{
+    char request[] = "getfile 8 905e92afeb80fc7722ec89eb0bf0966";
+
+    enum REQUEST_T actual = get_request_type(request);
+    ASSERT_EQUAL(INVALID, actual)
+
+    return 1;
+}
+
 int test__get_request_type_valid_update_request()
 {
     char request[] = "update seed [] leech [8905e92afeb80fc7722ec89eb0bf0966]";
 
     enum REQUEST_T actual = get_request_type(request);
     ASSERT_EQUAL(UPDATE, actual)
+
+    return 1;
+}
+
+int test__get_request_type_invalid_update_request()
+{
+    char request[] = "update seed [] leech (8905e92afeb80fc7722ec89eb0bf0966)";
+
+    enum REQUEST_T actual = get_request_type(request);
+    ASSERT_EQUAL(INVALID, actual)
 
     return 1;
 }
@@ -164,9 +194,12 @@ void test__parser_functions()
 
     TEST_FUNCTION(test__get_request_type_valid_look_request)
     TEST_FUNCTION(test__get_request_type_invalid_look_request)
+    TEST_FUNCTION(test__get_request_type_invalid_look_request_2)
 
     TEST_FUNCTION(test__get_request_type_valid_getfile_request)
     TEST_FUNCTION(test__get_request_type_invalid_getfile_request)
+    TEST_FUNCTION(test__get_request_type_invalid_getfile_request_2)
 
     TEST_FUNCTION(test__get_request_type_valid_update_request)
+    TEST_FUNCTION(test__get_request_type_invalid_update_request)
 }
