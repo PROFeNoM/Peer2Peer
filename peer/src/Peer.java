@@ -15,6 +15,7 @@ public class Peer {
     public void startConnection(String ip, int port) {
         try {
             clientSocket = new Socket(ip, port);
+            
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         } catch (UnknownHostException e) {
@@ -98,12 +99,11 @@ public class Peer {
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
             String inputLine;
-            // while (true) {
-                // inputLine = in.readLine();
             while ((inputLine = in.readLine()) != null) {
-                if (inputLine != null)
+                if (inputLine != null){
                     System.out.println(inputLine);
                     out.println(inputLine);
+                }
                 if (".".equals(inputLine)) {
                     out.println("good bye");
                     break;
@@ -113,15 +113,6 @@ public class Peer {
         } catch (IOException e) {
             System.out.println(e.getMessage());
             System.exit(-1);
-        } finally {
-            try {
-                serverSocket.close();
-                clientSocket.close();
-                out.close();
-                in.close();
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }            
         }
     }
 
