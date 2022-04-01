@@ -1,12 +1,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <regex.h>
+#include <string.h>
 
 #include "include/parser.h"
 
 #define UNUSED(x) (void)(x)
 
 #define KNOWN_REQUEST_REGEX "^\b(announce|look|getfile|update)\b"
+
+#define ANNOUNCE_NB_ARGS 4
+#define SIZE_CALLS 3
+
+char* calls[3] = {"listen", "seed", "leech"};
 
 void error_tmp(char* msg)
 {
@@ -80,4 +86,75 @@ enum REQUEST_T get_request_type(char* request)
 	}
 
 	return is_request_valid(request, potential_request_type) ? potential_request_type : INVALID;
+}
+
+/*
+*
+*	@return Port value
+*/
+int parse_announce(enum REQUEST_T request_type, char* to_parse[], int size_parse, char* seeder[], char* leech[])
+{
+
+	for(int i=1; i<size_parse; i++)
+	{
+		for(int j=0; j<SIZE_CALLS; j++)
+		{
+			if (strcpy(calls[j], to_parse[i]))
+			{
+				if( !strcmp(calls[j], "seed"))			copy_without_brackets(seeder, to_parse, i);
+				else if (!strcmp(calls[j], "leech"))	copy_without_brackets(leech, to_parse, i);
+			}
+		}
+	}
+
+	int port = atoi(to_parse[3]);
+
+	return port;
+}
+
+int copy_without_brackets(char* array[], char* to_parse[], int i)
+{
+	int i_array = 0;
+
+	while(1)
+	{
+		if(to_parse[i][0] == '[')
+		{
+			char* result = to_parse[i] + 1;
+			strcpy(array[i_array], result);
+		}
+		else if (to_parse[i][strlen(to_parse[i])-1] == ']')
+		{
+			strncpy(array[i_array], to_parse[i], strlen(to_parse[i])-1);
+			return i;
+		}
+		else
+		{
+			strcpy(array[i_array], to_parse[i]);
+
+		}
+
+		i_array++;
+		i++;
+	}
+}
+
+/*
+ * Split a message for every blank space
+ * @param message - Message to split
+ * @param spliter - Array to fill
+ */
+int split(char message[], char* separator, char* tokens[], int max_tokens)
+{
+    int i = 0;
+    char* token = strtok(message, separator);
+
+    while (token != NULL && i < max_tokens)
+    {
+        tokens[i] = token;
+        token = strtok(NULL, separator);
+        i++;
+    }
+
+    return i;
 }
