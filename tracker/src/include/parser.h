@@ -20,6 +20,7 @@ int parse_announce(char* to_parse[], int size_parse, char* seeder[], char* leech
 
 char* parse_look(char* request);
 char* parse_getfile(char* request);
+char* parse_update(char* request, char* ip, unsigned int port);
 
 int copy_without_brackets(char* array[], char* argv[], int i);
 

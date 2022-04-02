@@ -258,7 +258,8 @@ int is_file_in_array(struct files_t* files[], unsigned int files_size, struct fi
 	return index_of_file_in_array(files, files_size, file) != -1;
 }
 
-void handle_criteria(struct files_t* files[], unsigned int* files_size, int (* criteria)(struct files_t*, void*), void* data)
+void handle_criteria(struct files_t* files[], unsigned int* files_size, int (* criteria)(struct files_t*, void*),
+		void* data)
 {
 	struct files_list_t* files_criteria = get_files_by_criteria(criteria, data);
 
@@ -395,6 +396,62 @@ char* parse_getfile(char* request)
 	free(peers);
 
 	return message;
+}
+
+char* parse_update(char* request, char* ip, unsigned int port)
+{
+	/*
+	 * Given a request of the form:
+	 * update seed [$key1 $key2 ...] leech [$key1 $key2 ...]
+	 * the file list should be updated so that the peer/leecher with the given ip and port
+	 *
+	 */
+
+	struct peer_t* peer = get_peer_from_info(ip, port);
+	struct leecher_t* leecher = get_leecher_from_info(ip, port);
+	if (peer == NULL && leecher == NULL) return "ok";
+
+	remove_characters(request, "[]");
+	char* tokens[MAX_TOKENS];
+	int size_tokens = split(request, " ", tokens, MAX_TOKENS);
+
+	// Remove the seed/leech from every file
+	struct files_list_t* files = get_files_list();
+	while (files != NULL && get_file(files) != NULL)
+	{
+		struct files_t* current_file = get_file(files);
+		remove_peer_from_file(get_file_key(current_file), peer);
+		remove_leecher_from_file(get_file_key(current_file), leecher);
+		files = get_next_file(files);
+	}
+
+	int processing_seed = 0, processing_leech = 0;
+	for (int i = 0; i < size_tokens; i++)
+	{
+		if (strcmp("seed", tokens[i]) == 0)
+		{
+			processing_seed = 1;
+			processing_leech = 0;
+		}
+		else if (strcmp("leech", tokens[i]) == 0)
+		{
+			processing_seed = 0;
+			processing_leech = 1;
+		}
+		else
+		{
+			if (processing_seed)
+			{
+				add_peer_to_file(tokens[i], peer);
+			}
+			else if (processing_leech)
+			{
+				add_leecher_to_file(tokens[i], leecher);
+			}
+		}
+	}
+
+	return "ok";
 }
 
 int copy_without_brackets(char* array[], char* to_parse[], int i)

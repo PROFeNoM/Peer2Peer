@@ -53,19 +53,13 @@ struct files_list_t* files_list_tail;
 
 void init_lists()
 {
-	peers_list = malloc(sizeof(struct peers_list_t));
-	peers_list->next = NULL;
-	peers_list->peer = NULL;
+	peers_list = NULL;
 	peers_list_tail = peers_list;
 
-	leechers_list = malloc(sizeof(struct leechers_list_t));
-	leechers_list->next = NULL;
-	leechers_list->leecher = NULL;
+	leechers_list = NULL;
 	leechers_list_tail = leechers_list;
 
-	files_list = malloc(sizeof(struct files_list_t));
-	files_list->next = NULL;
-	files_list->file = NULL;
+	files_list = NULL;
 	files_list_tail = files_list;
 }
 
