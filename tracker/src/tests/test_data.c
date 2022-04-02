@@ -158,6 +158,38 @@ int test__remove_leecher_from_file()
 	return 1;
 }
 
+
+int test__add_multiple_peer_to_file()
+{
+	add_peer("0.0.0.1", 2322);
+	add_peer_to_file("test_hash", get_peer_from_info("0.0.0.1", 2322));
+
+	struct files_list_t* files_list = get_files_by_criteria((int (*)(struct files_t*, void*))criteria_filename, "test_file");
+
+	ASSERT_NOT_NULL(files_list)
+	struct peer_t* peer = get_peer(get_files_peers(get_file(files_list)));
+	ASSERT_NOT_NULL(peer)
+	ASSERT_ARRAY_EQUAL("0.0.0.1", get_peer_ip(peer), strlen(get_peer_ip(peer)))
+	ASSERT_EQUAL(2322, get_peer_port(peer))
+
+	free_files_list(files_list);
+
+	add_peer("0.0.0.2", 2222);
+	add_peer_to_file("test_hash", get_peer_from_info("0.0.0.2", 2222));
+
+	files_list = get_files_by_criteria((int (*)(struct files_t*, void*))criteria_filename, "test_file");
+
+	ASSERT_NOT_NULL(files_list)
+	peer = get_peer(get_files_peers(get_file(files_list)));
+	ASSERT_NOT_NULL(peer)
+	ASSERT_ARRAY_EQUAL("0.0.0.2", get_peer_ip(peer), strlen(get_peer_ip(peer)))
+	ASSERT_EQUAL(2222, get_peer_port(peer))
+
+	free_files_list(files_list);
+
+	return 1;
+}
+
 void test__data_functions()
 {
 	init_lists();
@@ -177,6 +209,8 @@ void test__data_functions()
 
 	TEST_FUNCTION(test__remove_peer_from_file)
 	TEST_FUNCTION(test__remove_leecher_from_file)
+
+	TEST_FUNCTION(test__add_multiple_peer_to_file)
 
 	free_lists();
 }

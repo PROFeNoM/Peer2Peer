@@ -38,6 +38,7 @@ struct peers_list_t* get_files_peers(struct files_t* file);
 struct leechers_list_t* get_files_leechers(struct files_t* file);
 
 struct peers_list_t* get_peers_list();
+unsigned int get_peers_list_size(struct peers_list_t* peers);
 struct peer_t* get_peer(struct peers_list_t* peers);
 struct peer_t* get_peer_from_info(char* ip, unsigned int port);
 struct peers_list_t* get_next_peer(struct peers_list_t* peers);
@@ -46,6 +47,7 @@ char* get_peer_ip(struct peer_t* peer);
 unsigned int get_peer_port(struct peer_t* peer);
 
 struct leechers_list_t* get_leechers_list();
+unsigned int get_leechers_list_size(struct leechers_list_t* leechers);
 struct leecher_t* get_leecher(struct leechers_list_t* leechers);
 struct leecher_t* get_leecher_from_info(char* ip, unsigned int port);
 struct leechers_list_t* get_next_leecher(struct leechers_list_t* leechers);

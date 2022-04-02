@@ -1,4 +1,7 @@
+#include <string.h>
+#include <stdlib.h>
 #include "../include/parser.h"
+#include "../include/data.h"
 #include "test.h"
 
 int test__get_request_type_with_unknown_request()
@@ -180,8 +183,57 @@ int test__get_request_type_invalid_update_request()
     return 1;
 }
 
+int test__parse_getfile_without_file()
+{
+	char request[] = "getfile 8905e92afeb80fc7722ec89eb0bf0966";
+
+	char* actual = parse_getfile(request);
+	ASSERT_ARRAY_EQUAL("peers 8905e92afeb80fc7722ec89eb0bf0966 []", actual, strlen("peers 8905e92afeb80fc7722ec89eb0bf0966 []"));
+
+	free(actual);
+
+	return 1;
+}
+
+
+int test__parse_getfile_with_file_and_peer()
+{
+	char request[] = "getfile 8905e92afeb80fc7722ec89eb0bf0966";
+
+	char* actual = parse_getfile(request);
+	ASSERT_ARRAY_EQUAL(
+			"peers 8905e92afeb80fc7722ec89eb0bf0966 [127.0.0.1:8905]",
+			actual,
+			strlen("peers 8905e92afeb80fc7722ec89eb0bf0966 [127.0.0.1:8905]")
+			)
+
+	free(actual);
+
+	return 1;
+}
+
+int test__parse_getfile_with_multiple_peers()
+{
+	char request[] = "getfile 8905e92afeb80fc7722ec89eb0bf0966";
+
+	char* actual = parse_getfile(request);
+	ASSERT_ARRAY_EQUAL(
+			"peers 8905e92afeb80fc7722ec89eb0bf0966 [127.0.0.2:8905 127.0.0.1:8905]",
+			actual,
+			strlen("peers 8905e92afeb80fc7722ec89eb0bf0966 [127.0.0.2:8905 127.0.0.1:8905]")
+	)
+
+	free(actual);
+
+	return 1;
+}
+
 void test__parser_functions()
 {
+	init_lists();
+
+	//////// test for get_request_type ////////
+
 	TEST_FUNCTION(test__get_request_type_with_unknown_request)
 
     TEST_FUNCTION(test__get_request_type_with_valid_seed_only_announce_request)
@@ -204,4 +256,18 @@ void test__parser_functions()
 
     TEST_FUNCTION(test__get_request_type_valid_update_request)
     TEST_FUNCTION(test__get_request_type_invalid_update_request)
+
+
+	//////// test for parse_getfile ////////
+
+	TEST_FUNCTION(test__parse_getfile_without_file)
+	add_peer("127.0.0.1", 8905);
+	add_file("file_a.dat", 1048576, 42, "8905e92afeb80fc7722ec89eb0bf0966");
+	add_peer_to_file("8905e92afeb80fc7722ec89eb0bf0966", get_peer_from_info("127.0.0.1", 8905));
+	TEST_FUNCTION(test__parse_getfile_with_file_and_peer)
+	add_peer("127.0.0.2", 8905);
+	add_peer_to_file("8905e92afeb80fc7722ec89eb0bf0966", get_peer_from_info("127.0.0.2", 8905));
+	TEST_FUNCTION(test__parse_getfile_with_multiple_peers)
+
+	free_lists();
 }

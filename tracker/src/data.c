@@ -347,6 +347,19 @@ struct peers_list_t* get_peers_list()
 	return peers_list;
 }
 
+unsigned int get_peers_list_size(struct peers_list_t* peers)
+{
+	struct peers_list_t* current = peers;
+	unsigned int size = 0;
+	while (current != NULL)
+	{
+		size++;
+		current = current->next;
+	}
+
+	return size;
+}
+
 struct peer_t* get_peer(struct peers_list_t* peers)
 {
 	return peers->peer;
@@ -389,6 +402,9 @@ struct peers_list_t* get_peers_having_file(char* key)
 		}
 		return peers;
 	}
+
+	free(files);
+
 	return NULL;
 }
 
@@ -407,6 +423,19 @@ unsigned int get_peer_port(struct peer_t* peer)
 struct leechers_list_t* get_leechers_list()
 {
 	return leechers_list;
+}
+
+unsigned int get_leechers_list_size(struct leechers_list_t* leechers)
+{
+	struct leechers_list_t* current = leechers;
+	unsigned int size = 0;
+	while (current != NULL)
+	{
+		size++;
+		current = current->next;
+	}
+
+	return size;
 }
 
 struct leecher_t* get_leecher(struct leechers_list_t* leechers)
@@ -446,6 +475,9 @@ struct leechers_list_t* get_leechers_having_file(char* key)
 		}
 		return leechers;
 	}
+
+	free(files);
+
 	return NULL;
 }
 
