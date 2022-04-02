@@ -258,6 +258,35 @@ int is_file_in_array(struct files_t* files[], unsigned int files_size, struct fi
 	return index_of_file_in_array(files, files_size, file) != -1;
 }
 
+void handle_criteria(struct files_t* files[], unsigned int* files_size, int (* criteria)(struct files_t*, void*), void* data)
+{
+	struct files_list_t* files_criteria = get_files_by_criteria(criteria, data);
+
+	if (get_file(files_criteria) == NULL) *files_size = 0;
+
+	struct files_list_t* current = files_criteria;
+	while (current && get_file(current) != NULL)
+	{
+		if (is_file_in_array(files, *files_size, get_file(current)))
+		{
+			if (!criteria(get_file(current), data))
+			{
+				int file_idx = index_of_file_in_array(files, *files_size, get_file(current));
+				for (unsigned int idx = file_idx; idx < *files_size - 1; idx++) files[idx] = files[idx + 1];
+				(*files_size)--;
+			}
+		}
+		else
+		{
+			files[(*files_size)++] = get_file(current);
+		}
+
+		current = get_next_file(current);
+	}
+
+	free_files_list(files_criteria);
+}
+
 char* parse_look(char* request)
 {
 	char* tokens[MAX_TOKENS];
@@ -276,67 +305,13 @@ char* parse_look(char* request)
 		if (strcmp("filename", sub_tokens[0]) == 0 && sub_tokens[1])
 		{
 			char* filename = sub_tokens[1];
-
-			struct files_list_t* files_filename = get_files_by_criteria(
-					(int (*)(struct files_t*, void*))criteria_filename,
-					filename);
-
-			if (get_file(files_filename) == NULL) files_size = 0;
-
-			struct files_list_t* current = files_filename;
-			while (current && get_file(current) != NULL)
-			{
-				if (is_file_in_array(files, files_size, get_file(current)))
-				{
-					if (!criteria_filename(get_file(current), filename))
-					{
-						int file_idx = index_of_file_in_array(files, files_size, get_file(current));
-						for (unsigned int idx = file_idx; idx < files_size - 1; idx++) files[idx] = files[idx + 1];
-						files_size--;
-					}
-				}
-				else
-				{
-					files[files_size++] = get_file(current);
-				}
-
-				current = get_next_file(current);
-			}
-
-			free_files_list(files_filename);
+			handle_criteria(files, &files_size, (int (*)(struct files_t*, void*))criteria_filename, filename);
 		}
 		else if (strcmp("filesize", sub_tokens[0]) == 0 && sub_tokens[1])
 		{
 			char* filesize = sub_tokens[1];
-
 			char* function_tokens[2] = { operator[0], filesize };
-			struct files_list_t* files_filesize = get_files_by_criteria(
-					(int (*)(struct files_t*, void*))criteria_filesize,
-					function_tokens);
-
-			if (get_file(files_filesize) == NULL) files_size = 0;
-
-			struct files_list_t* current = files_filesize;
-			while (current && get_file(current) != NULL)
-			{
-				if (is_file_in_array(files, files_size, get_file(current)))
-				{
-					if (!criteria_filesize(get_file(current), function_tokens))
-					{
-						int file_idx = index_of_file_in_array(files, files_size, get_file(current));
-						for (unsigned int idx = file_idx; idx < files_size - 1; idx++) files[idx] = files[idx + 1];
-						files_size--;
-					}
-				}
-				else
-				{
-					files[files_size++] = get_file(current);
-				}
-
-				current = get_next_file(current);
-			}
-
-			free_files_list(files_filesize);
+			handle_criteria(files, &files_size, (int (*)(struct files_t*, void*))criteria_filesize, function_tokens);
 		}
 
 		// Free strings from sub_tokens
