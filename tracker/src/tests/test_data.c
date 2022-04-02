@@ -69,11 +69,6 @@ int test__get_leecher_from_info()
 	return 1;
 }
 
-int criteria_filename(struct files_t* file, char* filename)
-{
-	return strcmp(get_file_name(file), filename) == 0;
-}
-
 int test__add_peer_to_file()
 {
 	add_peer_to_file("test_hash", get_peer_from_info("0.0.0.0", 80));

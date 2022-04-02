@@ -60,4 +60,7 @@ void free_leechers_list(struct leechers_list_t* leechers);
 void free_files_list(struct files_list_t* files);
 void free_lists();
 
+int criteria_filename(struct files_t* file, char* filename);
+int criteria_filesize(struct files_t* file, char* tokens[2]);
+
 #endif //_DATA_H

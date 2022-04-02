@@ -10,8 +10,6 @@
 #include "include/tracker.h"
 #include "include/parser.h"
 
-#define MAX_TOKENS 100
-#define MAX_SIZE_TOKEN 100
 
 void error(char* msg)
 {

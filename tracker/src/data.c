@@ -340,6 +340,17 @@ struct leechers_list_t* get_files_leechers(struct files_t* file)
 	return file->leechers;
 }
 
+int is_file_in_list(struct files_list_t* files, struct files_t* file)
+{
+	struct files_list_t* current = files;
+	while (current != NULL)
+	{
+		if (current->file == file) return 1;
+		current = current->next;
+	}
+	return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 struct peers_list_t* get_peers_list()
@@ -567,4 +578,46 @@ void free_lists()
 
 	free_peers_list(peers_list);
 	free_leechers_list(leechers_list);
+}
+
+int criteria_filename(struct files_t* file, char* filename)
+{
+	return strcmp(get_file_name(file), filename) == 0;
+}
+
+int compare_size(int size1, int size2, char* operator)
+{
+	if (strcmp(operator, "<") == 0)
+	{
+		return size1 < size2;
+	}
+	else if (strcmp(operator, ">") == 0)
+	{
+		return size1 > size2;
+	}
+	else if (strcmp(operator, "<=") == 0)
+	{
+		return size1 <= size2;
+	}
+	else if (strcmp(operator, ">=") == 0)
+	{
+		return size1 >= size2;
+	}
+	else if (strcmp(operator, "=") == 0)
+	{
+		return size1 == size2;
+	}
+	else
+	{
+		return 1 < 0;
+	}
+}
+
+int criteria_filesize(struct files_t* file, char* tokens[2])
+{
+	int size1 = get_file_size(file);
+	char* operator = tokens[0];
+	int size2 = atoi(tokens[1]);
+
+	return compare_size(size1, size2, operator);
 }

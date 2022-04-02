@@ -228,6 +228,54 @@ int test__parse_getfile_with_multiple_peers()
 	return 1;
 }
 
+int test__parse_look_without_file_two_conditions()
+{
+	char request[] = "look [filename=\"file_a.dat\" filesize>\"1048576\"]";
+
+	char* actual = parse_look(request);
+	ASSERT_ARRAY_EQUAL("list []", actual, strlen("list []"));
+
+	free(actual);
+
+	return 1;
+}
+
+int test__parse_look_without_file_one_condition()
+{
+	char request[] = "look [filesize>\"1048576\"]";
+
+	char* actual = parse_look(request);
+	ASSERT_ARRAY_EQUAL("list []", actual, strlen("list []"));
+
+	free(actual);
+
+	return 1;
+}
+
+int test__parse_look_with_file_two_conditions()
+{
+	char request[] = "look [filename=\"file_a.dat\" filesize>\"0\"]";
+
+	char* actual = parse_look(request);
+	ASSERT_ARRAY_EQUAL("list [file_a.dat 1048576 42 8905e92afeb80fc7722ec89eb0bf0966]", actual, strlen("list [file_a.dat 1048576 42 8905e92afeb80fc7722ec89eb0bf0966]"));
+
+	free(actual);
+
+	return 1;
+}
+
+int test__parse_look_with_file_one_condition()
+{
+	char request[] = "look [filename=\"file_a.dat\"]";
+
+	char* actual = parse_look(request);
+	ASSERT_ARRAY_EQUAL("list [file_a.dat 1048576 42 8905e92afeb80fc7722ec89eb0bf0966]", actual, strlen("list [file_a.dat 1048576 42 8905e92afeb80fc7722ec89eb0bf0966]"));
+
+	free(actual);
+
+	return 1;
+}
+
 void test__parser_functions()
 {
 	init_lists();
@@ -268,6 +316,12 @@ void test__parser_functions()
 	add_peer("127.0.0.2", 8905);
 	add_peer_to_file("8905e92afeb80fc7722ec89eb0bf0966", get_peer_from_info("127.0.0.2", 8905));
 	TEST_FUNCTION(test__parse_getfile_with_multiple_peers)
+
+	//////// test for parse_look ////////
+	TEST_FUNCTION(test__parse_look_without_file_two_conditions)
+	TEST_FUNCTION(test__parse_look_without_file_one_condition)
+	TEST_FUNCTION(test__parse_look_with_file_two_conditions)
+	TEST_FUNCTION(test__parse_look_with_file_one_condition)
 
 	free_lists();
 }
