@@ -75,15 +75,15 @@ public class Peer {
                 String inputLine;
                 System.out.print("< ");
                 if ((inputLine = in.nextLine()) != null) {
-                    if (!inputLine.isEmpty())
-                        System.out.println("> " + inputLine);
-                    else {
+                    if (!inputLine.isEmpty()) {
+                        if (inputLine.equals("exit")) {
+                            System.out.println("Good bye");
+                            break;
+                        }
+                        String response = sendMessage(inputLine);
+                        System.out.println("> " + response);
+                    } else {
                         System.out.print("< ");
-                    }
-
-                    if (inputLine.equals("exit")) {
-                        System.out.println("Good bye");
-                        break;
                     }
                 }
             }
