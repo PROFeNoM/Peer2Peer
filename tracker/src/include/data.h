@@ -1,66 +1,97 @@
 #ifndef _DATA_H
 #define _DATA_H
 
+#include <netinet/in.h>
+#include <sys/queue.h>
+
 #define MAX_NAME_LEN 100
 #define MAX_KEY_LEN 100
 
-struct peer_t;
+struct peer_t {
+	char ip[INET_ADDRSTRLEN];
+	unsigned int port;
+	int sockfd;
+	TAILQ_ENTRY(peer_t) next_peer;
+};
 
-struct peers_list_t;
+struct file_t
+{
+	char name[MAX_NAME_LEN];
+	unsigned int size;
+	unsigned int piece_size;
+	char key[MAX_KEY_LEN];
 
-struct leecher_t;
+	TAILQ_ENTRY(file_t) next_file;
+	TAILQ_HEAD(seed, peer_t) seeders;
+	TAILQ_HEAD(leech, peer_t) leechers;
+};
 
-struct leechers_list_t;
+TAILQ_HEAD(files, file_t) files_list;
 
-struct files_t;
+void init_files_list();
 
-struct files_list_t;
+/*
+ * Tell if a file is in the list.
+ */
+int is_file_in_list(char *key);
 
-void init_lists();
+/*
+ * Add a file to the list.
+ */
+void add_file_to_list(char *name, unsigned int size, unsigned int piece_size, char *key);
 
-void add_peer(char* ip, unsigned int port);
-void add_leecher(char* ip, unsigned int port);
-void add_file(char* name, unsigned int size, unsigned int piece_size, char* key);
+/*
+ * Add a seeder to the list of seeders of the file.
+ * If the file does not exist, it is created.
+ */
+void add_seeder_to_file(char* name, unsigned int size, unsigned int piece_size, char* key, char* ip, unsigned int port, int sockfd);
 
-struct files_list_t* get_files_list();
-struct files_t* get_file(struct files_list_t* files);
-struct files_list_t* get_next_file(struct files_list_t* files);
-struct files_list_t* get_files_by_criteria(int (* criteria)(struct files_t*, void*), void* data);
-char* get_file_name(struct files_t* file);
-unsigned int get_file_size(struct files_t* file);
-unsigned int get_file_piece_size(struct files_t* file);
-char* get_file_key(struct files_t* file);
-void add_peer_to_file(char* key, struct peer_t* peer);
-void add_leecher_to_file(char* key, struct leecher_t* leecher);
-void remove_peer_from_file(char* key, struct peer_t* peer);
-void remove_leecher_from_file(char* key, struct leecher_t* leecher);
-struct peers_list_t* get_files_peers(struct files_t* file);
-struct leechers_list_t* get_files_leechers(struct files_t* file);
+/*
+ * Add a leecher to the list of leechers of the file.
+ * If the file does not exist, it is created.
+ */
+void add_leecher_to_file(char* key, char* ip, unsigned int port, int sockfd);
 
-struct peers_list_t* get_peers_list();
-unsigned int get_peers_list_size(struct peers_list_t* peers);
-struct peer_t* get_peer(struct peers_list_t* peers);
-struct peer_t* get_peer_from_info(char* ip, unsigned int port);
-struct peers_list_t* get_next_peer(struct peers_list_t* peers);
-struct peers_list_t* get_peers_having_file(char* key);
-char* get_peer_ip(struct peer_t* peer);
-unsigned int get_peer_port(struct peer_t* peer);
+/*
+ * Tell if the given peer is a seeder of the file.
+ */
+int is_seeder_of_file(char* key, char* ip, unsigned int port);
 
-struct leechers_list_t* get_leechers_list();
-unsigned int get_leechers_list_size(struct leechers_list_t* leechers);
-struct leecher_t* get_leecher(struct leechers_list_t* leechers);
-struct leecher_t* get_leecher_from_info(char* ip, unsigned int port);
-struct leechers_list_t* get_next_leecher(struct leechers_list_t* leechers);
-struct leechers_list_t* get_leechers_having_file(char* key);
-char* get_leecher_ip(struct leecher_t* leecher);
-unsigned int get_leecher_port(struct leecher_t* leecher);
+/*
+ * Tell if the given peer is a leecher of the file.
+ */
+int is_leecher_of_file(char* key, char* ip, unsigned int port);
 
-void free_peers_list(struct peers_list_t* peers);
-void free_leechers_list(struct leechers_list_t* leechers);
-void free_files_list(struct files_list_t* files);
-void free_lists();
+/*
+ * Remove the given peer from the list of seeders of the file.
+ */
+int remove_seeder_from_file(char* key, char* ip, int sockfd);
 
-int criteria_filename(struct files_t* file, char* filename);
-int criteria_filesize(struct files_t* file, char* tokens[2]);
+/*
+ * Remove the given peer from the list of leechers of the file.
+ */
+int remove_leecher_from_file(char* key, char* ip, int sockfd);
+
+/*
+ * Get the file with the given key.
+ */
+struct file_t* get_file(char* key);
+
+/*
+ * Get all files with a given name.
+ */
+struct file_t** get_files_with_name(char* name, unsigned int* nb_files);
+
+/*
+ * Get all files with a given size.
+ */
+struct file_t** get_files_with_size(unsigned int size, char operator, unsigned int* nb_files);
+
+/*
+ * Get all files with a given name and size.
+ */
+struct file_t** get_files_with_name_and_size(char* name, unsigned int size, char operator, unsigned int* nb_files);
+
+void free_files_list();
 
 #endif //_DATA_H

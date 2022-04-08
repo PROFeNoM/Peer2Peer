@@ -12,11 +12,6 @@
 #define GETFILE_REQUEST_REGEX "^getfile \\w\\+\\s*$"
 #define UPDATE_REQUEST_REGEX "^update seed \\[.*\\] leech \\[.*\\]\\s*$"
 
-#define ANNOUNCE_NB_ARGS 4
-#define SIZE_CALLS 3
-
-char* calls[3] = { "listen", "seed", "leech" };
-
 void error_tmp(char* msg)
 {
 	perror(msg);
@@ -152,82 +147,77 @@ void remove_characters(char* str, char to_remove[])
 	}
 }
 
-char* parse_announce(char* request, char* ip)
+char* parse_announce(char* request, char* ip, int sockfd)
 {
-    remove_characters(request, "[]");
+	remove_characters(request, "[]");
 
-    char* tokens[MAX_TOKENS];
-    int size_tokens = split(request, " ", tokens, MAX_TOKENS);
+	char* tokens[MAX_TOKENS];
+	int size_tokens = split(request, " ", tokens, MAX_TOKENS);
 
-    int processing_listen = 0, processing_seed = 0, processing_leech = 0;
-    int port;
-    int i = 0;
-    while (i < size_tokens)
-    {
-        printf("At token %d: %s\n", i, tokens[i]);
-        if (strcmp("listen", tokens[i]) == 0)
-        {
-            processing_listen = 1;
-            processing_seed = 0;
-            processing_leech = 0;
-            i++;
-        }
-        else if (strcmp("seed", tokens[i]) == 0)
-        {
-            processing_listen = 0;
-            processing_seed = 1;
-            processing_leech = 0;
-            i++;
-        }
-        else if (strcmp("leech", tokens[i]) == 0)
-        {
-            processing_listen = 0;
-            processing_seed = 0;
-            processing_leech = 1;
-            i++;
-        }
-        else if (processing_listen)
-        {
-            port = atoi(tokens[i]);
-            add_peer(ip, port);
-            add_leecher(ip, port);
-            i++;
-        }
-        else if (processing_seed)
-        {
-            char* file_name = tokens[i];
-            unsigned int length = atoi(tokens[i + 1]);
-            unsigned int piece_size = atoi(tokens[i + 2]);
-            char* key = tokens[i + 3];
+	int processing_listen = 0, processing_seed = 0, processing_leech = 0;
+	int port;
+	int i = 0;
+	while (i < size_tokens)
+	{
+		printf("At token %d: %s\n", i, tokens[i]);
+		if (strcmp("listen", tokens[i]) == 0)
+		{
+			processing_listen = 1;
+			processing_seed = 0;
+			processing_leech = 0;
 
-            int is_file_in_list = 0;
-            struct files_list_t* current = get_files_list();
-            while (current != NULL)
-            {
-                if (strcmp(get_file_key(get_file(current)), key) == 0)
-                {
-                    // File is already in list
-                    is_file_in_list = 1;
-                    break;
-                }
-                current = get_next_file(current);
-            }
+			i++;
+		}
+		else if (strcmp("seed", tokens[i]) == 0)
+		{
+			processing_listen = 0;
+			processing_seed = 1;
+			processing_leech = 0;
 
-            if (!is_file_in_list) add_file(file_name, length, piece_size, key);
+			i++;
+		}
+		else if (strcmp("leech", tokens[i]) == 0)
+		{
+			processing_listen = 0;
+			processing_seed = 0;
+			processing_leech = 1;
 
-            add_peer_to_file(key, get_peer_from_info(ip, port));
+			i++;
+		}
+		else if (processing_listen)
+		{
+			port = atoi(tokens[i]);
 
-            i += 4;
-        }
-        else if (processing_leech)
-        {
-            char* key = tokens[i];
-            add_leecher_to_file(key, get_leecher_from_info(ip, port));
-            i++;
-        } else i++;
-    }
+			i++;
+		}
+		else if (processing_seed)
+		{
+			printf("[LOG] Processing seed\n");
+			char* file_name = tokens[i];
+			remove_characters(file_name, "\n");
+			unsigned int size = atoi(tokens[i + 1]);
+			unsigned int piece_size = atoi(tokens[i + 2]);
+			char* key = tokens[i + 3];
+			remove_characters(key, "\n");
 
-    return "ok\n";
+			add_seeder_to_file(file_name, size, piece_size, key, ip, port, sockfd);
+
+			i += 4;
+		}
+		else if (processing_leech)
+		{
+			printf("[LOG] Processing leech\n");
+			char* key = tokens[i];
+			remove_characters(key, "\n");
+			add_leecher_to_file(key, ip, port, sockfd);
+
+			i++;
+		}
+		else
+			i++;
+	}
+
+	return "ok\n";
 }
 
 unsigned int tokenize_criteria(char* str, char delimiters[], char* tokens[], char* used_delimiter[])
@@ -293,74 +283,40 @@ unsigned int tokenize_criteria(char* str, char delimiters[], char* tokens[], cha
 	return current_token;
 }
 
-int index_of_file_in_array(struct files_t* files[], unsigned int files_size, struct files_t* file)
-{
-	for (unsigned int i = 0; i < files_size; i++)
-		if (files[i] == file)
-			return (int)i;
-	return -1;
-}
-
-int is_file_in_array(struct files_t* files[], unsigned int files_size, struct files_t* file)
-{
-	return index_of_file_in_array(files, files_size, file) != -1;
-}
-
-void handle_criteria(struct files_t* files[], unsigned int* files_size, int (* criteria)(struct files_t*, void*),
-		void* data)
-{
-	struct files_list_t* files_criteria = get_files_by_criteria(criteria, data);
-
-	if (get_file(files_criteria) == NULL) *files_size = 0;
-
-	struct files_list_t* current = files_criteria;
-	while (current && get_file(current) != NULL)
-	{
-		if (is_file_in_array(files, *files_size, get_file(current)))
-		{
-			if (!criteria(get_file(current), data))
-			{
-				int file_idx = index_of_file_in_array(files, *files_size, get_file(current));
-				for (unsigned int idx = file_idx; idx < *files_size - 1; idx++) files[idx] = files[idx + 1];
-				(*files_size)--;
-			}
-		}
-		else
-		{
-			files[(*files_size)++] = get_file(current);
-		}
-
-		current = get_next_file(current);
-	}
-
-	free_files_list(files_criteria);
-}
-
 char* parse_look(char* request)
 {
 	char* tokens[MAX_TOKENS];
 	int size_tokens = split(request, " ", tokens, MAX_TOKENS);
 
-	struct files_t* files[100] = { NULL };
+	int filename_on = 0, filesize_on = 0;
+	char* filename;
+	int filesize;
+	char operator;
+
+
+	struct file_t** files;
 	unsigned int files_size = 0;
 
 	for (int i = 0; i < size_tokens; i++)
 	{
 		char* sub_tokens[MAX_TOKENS];
-		char* operator[1] = { NULL };
-		unsigned int size_subt = tokenize_criteria(tokens[i], "><=", sub_tokens, operator);
+		char* _op[1] = { NULL };
+		unsigned int size_subt = tokenize_criteria(tokens[i], "><=", sub_tokens, _op);
 
 		// Check if sub_tokens[0] is either filename or filesize
 		if (strcmp("filename", sub_tokens[0]) == 0 && sub_tokens[1])
 		{
-			char* filename = sub_tokens[1];
-			handle_criteria(files, &files_size, (int (*)(struct files_t*, void*))criteria_filename, filename);
+			printf("[LOG] Analyze filename set to true\n");
+			filename = malloc(sizeof(char) * strlen(sub_tokens[1]));
+			strcpy(filename, sub_tokens[1]);
+			filename_on = 1;
 		}
 		else if (strcmp("filesize", sub_tokens[0]) == 0 && sub_tokens[1])
 		{
-			char* filesize = sub_tokens[1];
-			char* function_tokens[2] = { operator[0], filesize };
-			handle_criteria(files, &files_size, (int (*)(struct files_t*, void*))criteria_filesize, function_tokens);
+			printf("[LOG] Analyze filesize set to true\n");
+			filesize = atoi(sub_tokens[1]);
+			operator = _op[0][0];
+			filesize_on = 1;
 		}
 
 		// Free strings from sub_tokens
@@ -370,36 +326,42 @@ char* parse_look(char* request)
 		}
 
 		// Free strings from operator
-		if (operator[0]) free(operator[0]);
+		if (_op[0]) free(_op[0]);
 	}
+	remove_characters(filename, "\n");
+	if (filename_on && filesize_on) files = get_files_with_name_and_size(filename, filesize, operator, &files_size);
+	else if (filename_on && !filesize_on) files = get_files_with_name(filename, &files_size);
+	else if (!filename_on && filesize_on) files = get_files_with_size(filesize, operator, &files_size);
 
 	char* message = malloc(sizeof(char) * MAX_MESSAGE_SIZE);
 	strcpy(message, "list [");
 
 	for (unsigned int i = 0; i < files_size; i++)
 	{
-		struct files_t* current_file = files[i];
+		struct file_t* current_file = files[i];
 
-		strcat(message, get_file_name(current_file));
+		strcat(message, current_file->name);
 		strcat(message, " ");
 
-		unsigned int size = get_file_size(current_file);
+		unsigned int size = current_file->size;
 		char size_str[64];
 		sprintf(size_str, "%d", size);
 		strcat(message, size_str);
 		strcat(message, " ");
 
-		unsigned int piece_size = get_file_piece_size(current_file);
+		unsigned int piece_size = current_file->piece_size;
 		char piece_size_str[64];
 		sprintf(piece_size_str, "%d", piece_size);
 		strcat(message, piece_size_str);
 		strcat(message, " ");
 
-		strcat(message, get_file_key(current_file));
+		strcat(message, current_file->key);
 		if (i != files_size - 1) strcat(message, " ");
 	}
 
 	strcat(message, "]\n");
+
+	free(filename);
 	return message;
 }
 
@@ -409,67 +371,60 @@ char* parse_getfile(char* request)
 	 * Given a request of the form:
 	 * getfile $file_key
 	 * return a message of the form:
-	 * peers $file_key [$ip1:$port1 $ip2:$port2 ...]
+	 * seeders $file_key [$ip1:$port1 $ip2:$port2 ...]
 	 */
 
 	// Get the file key
 	char* file_key = strtok(request, " ");
 	file_key = strtok(NULL, " ");
-
-	// Get the list of peers having the file represented by file_key
-	struct peers_list_t* peers = get_peers_having_file(file_key);
+	remove_characters(file_key, "\n");
+	struct file_t* file = get_file(file_key);
 
 	char* message = malloc(sizeof(char) * MAX_MESSAGE_SIZE);
 	strcpy(message, "peers ");
 	strcat(message, file_key);
 	strcat(message, " [");
 
-	while (peers != NULL)
+	if (file)
 	{
-		strcat(message, get_peer_ip(get_peer(peers)));
-		strcat(message, ":");
+		struct peer_t* seeder;
+		TAILQ_FOREACH(seeder, &file->seeders, next_peer)
+		{
+			strcat(message, seeder->ip);
+			strcat(message, ":");
 
-		unsigned int port = get_peer_port(get_peer(peers));
-		char port_str[6];
-		sprintf(port_str, "%d", port);
-		strcat(message, port_str);
+			unsigned int port = seeder->port;
+			char port_str[6];
+			sprintf(port_str, "%d", port);
+			strcat(message, port_str);
 
-		peers = get_next_peer(peers);
-		if (peers != NULL) strcat(message, " ");
+			if (seeder->next_peer.tqe_next != NULL) strcat(message, " ");
+		}
 	}
 
 	strcat(message, "]\n");
 
-	free(peers);
-
 	return message;
 }
 
-char* parse_update(char* request, char* ip, unsigned int port)
+char* parse_update(char* request, char* ip, int sockfd)
 {
 	/*
 	 * Given a request of the form:
 	 * update seed [$key1 $key2 ...] leech [$key1 $key2 ...]
-	 * the file list should be updated so that the peer/leecher with the given ip and port
-	 *
 	 */
-
-	struct peer_t* peer = get_peer_from_info(ip, port);
-	struct leecher_t* leecher = get_leecher_from_info(ip, port);
-	if (peer == NULL && leecher == NULL) return "ok";
 
 	remove_characters(request, "[]");
 	char* tokens[MAX_TOKENS];
 	int size_tokens = split(request, " ", tokens, MAX_TOKENS);
 
-	// Remove the seed/leech from every file
-	struct files_list_t* files = get_files_list();
-	while (files != NULL && get_file(files) != NULL)
+	// Remove the seeder/leecher with given ip and sockfd from every files in the file list
+	int port;
+	for (struct file_t* file = files_list.tqh_first; file != NULL; file = file->next_file.tqe_next)
 	{
-		struct files_t* current_file = get_file(files);
-		remove_peer_from_file(get_file_key(current_file), peer);
-		remove_leecher_from_file(get_file_key(current_file), leecher);
-		files = get_next_file(files);
+		port = remove_seeder_from_file(file->key, ip, sockfd);
+		if (port == -1) return "nok\n";
+		remove_leecher_from_file(file->key, ip, sockfd);
 	}
 
 	int processing_seed = 0, processing_leech = 0;
@@ -489,45 +444,18 @@ char* parse_update(char* request, char* ip, unsigned int port)
 		{
 			if (processing_seed)
 			{
-				add_peer_to_file(tokens[i], peer);
+				struct file_t* file = get_file(tokens[i]);
+				if (file) add_seeder_to_file(file->name, file->size, file->piece_size, file->key, ip, port, sockfd);
 			}
 			else if (processing_leech)
 			{
-				add_leecher_to_file(tokens[i], leecher);
+				struct file_t* file = get_file(tokens[i]);
+				if (file) add_leecher_to_file(file->key, ip, port, sockfd);
 			}
 		}
 	}
 
 	return "ok\n";
-}
-
-int copy_without_brackets(char* array[], char* to_parse[], int i)
-{
-	int i_array = 0;
-
-	while (1)
-	{
-		if (to_parse[i][0] == '[')
-		{
-			char* result = to_parse[i] + 1;
-			array[i_array] = malloc(70);
-			strcpy(array[i_array], result);
-		}
-		else if (to_parse[i][strlen(to_parse[i]) - 1] == ']')
-		{
-			array[i_array] = malloc(70);
-			strncpy(array[i_array], to_parse[i], strlen(to_parse[i]) - 1);
-			return i;
-		}
-		else
-		{
-			array[i_array] = malloc(70);
-			strcpy(array[i_array], to_parse[i]);
-		}
-
-		i_array++;
-		i++;
-	}
 }
 
 /*
@@ -547,20 +475,5 @@ int split(char message[], char* separator, char* tokens[], int max_tokens)
 		i++;
 	}
 
-	//print_tokens(tokens, i);
-
 	return i;
-}
-
-/*
-*	DEBUG
-*
-*/
-void print_tokens(char* token[], int nb_token)
-{
-	for (int i = 0; i < nb_token; i++)
-	{
-		if (token[i] != NULL)
-			fprintf(stderr, "%s\n", token[i]);
-	}
 }

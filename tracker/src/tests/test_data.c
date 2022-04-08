@@ -2,7 +2,7 @@
 #include "../include/data.h"
 #include "test.h"
 
-
+/*
 int test__add_peer()
 {
 	add_peer("0.0.0.0", 80);
@@ -184,9 +184,10 @@ int test__add_multiple_peer_to_file()
 
 	return 1;
 }
-
+*/
 void test__data_functions()
 {
+	/*
 	init_lists();
 
 	TEST_FUNCTION(test__add_peer)
@@ -208,4 +209,5 @@ void test__data_functions()
 	TEST_FUNCTION(test__add_multiple_peer_to_file)
 
 	free_lists();
+	 */
 }
