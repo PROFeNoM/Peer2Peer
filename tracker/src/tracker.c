@@ -9,6 +9,7 @@
 
 #include "include/tracker.h"
 #include "include/parser.h"
+#include "include/data.h"
 
 struct args {
     int newsockfd;
@@ -24,6 +25,8 @@ void error(char* msg)
 
 int main(int argc, char* argv[])
 {
+	init_files_list();
+
 	int socket_fd, client_sock, c, * new_sock;
 	int port;
 	struct sockaddr_in server, client;
@@ -118,7 +121,7 @@ void* connection_handler(void* args)
     int sock = arg->newsockfd;
     printf("CLeient's socket: %d\n", sock);
     char* ip = arg->ip;
-    unsigned int port = arg->port;
+    //unsigned int port = arg->port;
 	ssize_t read_size;
 	char client_message[2000];
     char* result;
@@ -134,24 +137,27 @@ void* connection_handler(void* args)
 		{
 		case ANNOUNCE:
             printf("[LOG] Announce request\n");
-			result = parse_announce(client_message, ip);
+			result = parse_announce(client_message, ip, sock);
             printf("[LOG] Announce response: %s\n", result);
             write(sock, result, strlen(result));
-            printf("Wrote\n");
+            printf("[LOG] Sent %s\n", result);
 			break;
 		case LOOK:
             result = parse_look(client_message);
 			write(sock, result, strlen(result));
+			printf("[LOG] Sent %s\n", result);
             free(result);
 			break;
 		case GETFILE:
             result = parse_getfile(client_message);
             write(sock, result, strlen(result));
+			printf("[LOG] Sent %s\n", result);
             free(result);
 			break;
 		case UPDATE:
-			result = parse_update(client_message, ip, port);
+			result = parse_update(client_message, ip, sock);
             write(sock, result, strlen(result));
+			printf("[LOG] Sent %s\n", result);
 			break;
 		case INVALID:
 			write(sock, "INVALID\n", strlen("INVALID\n"));
@@ -168,18 +174,19 @@ void* connection_handler(void* args)
 
 	if (read_size == 0)
 	{
+		// TODO: Disconnecting the client should remove it from the files' list
 		puts("Client disconnected");
 		fflush(stdout);
 	}
 	else if (read_size == -1)
 	{
-		perror("recv failed");
+		//perror("recv failed");
 	}
 
 	//Free the socket pointer
 	//free(socket_desc);
-    printf("Free args\n");
-    free(args);
+    //printf("Free args\n");
+    //free(args);
 
 	return 0;
 }

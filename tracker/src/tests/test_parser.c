@@ -3,7 +3,7 @@
 #include "../include/parser.h"
 #include "../include/data.h"
 #include "test.h"
-
+/*
 int test__get_request_type_with_unknown_request()
 {
 	ASSERT_EQUAL(UNKNOWN, get_request_type(""))
@@ -132,7 +132,7 @@ int test__get_request_type_invalid_look_request_2()
     return 1;
 }
 */
-
+/*
 int test__get_request_type_valid_getfile_request()
 {
 	char request[] = "getfile 8905e92afeb80fc7722ec89eb0bf0966";
@@ -359,9 +359,10 @@ int test__parse_update_with_keys()
 
 	return 1;
 }
-
+*/
 void test__parser_functions()
 {
+	/*
 	init_lists();
 
 	//////// test for get_request_type ////////
@@ -412,4 +413,5 @@ void test__parser_functions()
 	TEST_FUNCTION(test__parse_update_with_keys)
 
 	free_lists();
+	*/
 }
