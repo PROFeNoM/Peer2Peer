@@ -1,4 +1,6 @@
-public class TestPeer {
+package peer.src.main;
+
+public class Main {
     public static void main(String[] args) {
         String trackerIp;
         int trackerPort;
@@ -6,7 +8,6 @@ public class TestPeer {
 
         if (args.length > 1) {
             try {
-                // System.out.println("Test in args : "+System.getProperty("test"));
                 trackerIp = args[0];
                 trackerPort = Integer.parseInt(args[1]);
                 peerPort = Integer.parseInt(args[2]);

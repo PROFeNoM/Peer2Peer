@@ -1,3 +1,5 @@
+package peer.src.main;
+
 import java.io.*;
 import java.net.*;
 import java.security.MessageDigest;
@@ -13,9 +15,6 @@ public class Peer {
     private BufferedReader trackerIn;
     private PeerServer peerServer;
     Parser parser;
-
-    public Peer() {
-    }
 
     // Connect to the tracker and start the peer server
     public void start(String trackerIp, int trackerPort, int peerPort) {
