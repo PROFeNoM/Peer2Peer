@@ -1,25 +1,33 @@
 import java.io.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 class Parser {
-    boolean parse(String command) {
-        return true;
+    String method;
+    List<String> args;
+    private boolean toTracker = false;
+
+    void parse(String command) {
+        String delimiter = " ";
+        String[] toparse = command.split(delimiter);
+
+        this.args = new ArrayList<>(Arrays.asList(toparse));
+        
+        this.method = this.args.get(0);
+        this.args.remove(0);
     }
 
-    public static void main(String args[]) {
-        Scanner in = new Scanner(System.in);
-        String delimiter = " ";
+    void redirectSending() {
+        List<String> trackerMethods = new ArrayList<String>();
+        trackerMethods.add("announce"); 
+        trackerMethods.add("look");
+        trackerMethods.add("getfiles");
 
-        String input;
-        System.out.print("< ");
-        while (!(input = in.nextLine()).equals("exit")) {
-            String[] command = input.split(delimiter);
-            System.out.print("> ");
-            System.out.println(Arrays.toString(command));
-            System.out.print("< ");
+        if (trackerMethods.contains(this.method)) {
+            this.toTracker = true;
         }
-
-        in.close();
     }
 }

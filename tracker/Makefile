@@ -15,7 +15,7 @@ INSTALL_BIN	=	$(TRACKER_BIN:./build/tracker/%=$(INSTALL_DIR)/%) $(TESTS_BIN:./bu
 DEP			=	$(TRACKER_OBJ:%.o=%.d)
 
 CC			=	gcc
-CFLAGS		=	-Wall -Wextra -std=c99
+CFLAGS		=	-Wall -Wextra -std=c99 -g
 CPPFLAGS	=	-I${INCLUDE_DIR}
 TESTSFLAGS	=	-g -O0 -fprofile-arcs -ftest-coverage
 THREADFLAGS	=	-pthread

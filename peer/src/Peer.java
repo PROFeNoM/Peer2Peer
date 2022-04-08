@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.security.MessageDigest;
+import java.util.List;
 import java.util.Scanner;
 
 // Peer class
@@ -11,6 +12,7 @@ public class Peer {
     private PrintWriter trackerOut;
     private BufferedReader trackerIn;
     private PeerServer peerServer;
+    Parser parser;
 
     public Peer() {
     }
@@ -165,5 +167,45 @@ public class Peer {
         }
 
         return myHash.toString();
+    }
+
+    void ProcessResponse() {
+        java.lang.reflect.Method method;
+        try {
+            method = this.getClass().getMethod(parser.method);
+            method.invoke(parser.method, parser.args);
+        }   
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    void interested(List<String> args) {
+        
+    }
+
+    void have(List<String> args) {
+        
+    }
+
+    void getpieces(List<String> args) {
+        
+    }
+
+    void data(List<String> args) {
+        
+    }
+
+    void ok(List<String> args) {
+       //do nothing 
+    }
+
+    void peers(List<String> args) {
+        
+    }
+
+    void list(List<String> args) {
+        
     }
 }
