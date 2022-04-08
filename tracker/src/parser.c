@@ -132,36 +132,6 @@ enum REQUEST_T get_request_type(char* request)
 	return is_request_valid(request, potential_request_type) ? potential_request_type : INVALID;
 }
 
-/*
-*
-*	@return Port value
-*/
-int parse_announce(char* to_parse[], int size_parse, char* seeder[], char* leech[])
-{
-
-	for (int i = 1; i < size_parse; i++)
-	{
-		for (int j = 0; j < SIZE_CALLS; j++)
-		{
-			if (!strcmp(calls[j], to_parse[i]))
-			{
-				fprintf(stderr, "Special word caught: %s\n", calls[j]);
-				if (!strcmp(calls[j], "seed")) copy_without_brackets(seeder, to_parse, i + 1);
-				else if (!strcmp(calls[j], "leech")) copy_without_brackets(leech, to_parse, i + 1);
-			}
-		}
-	}
-
-	fprintf(stderr, "========================================\n");
-	print_tokens(seeder, 100);
-	print_tokens(leech, 100);
-	fprintf(stderr, "========================================\n");
-
-	int port = atoi(to_parse[3]);
-
-	return port;
-}
-
 void remove_characters(char* str, char to_remove[])
 {
 	// Remove every character that are in to_remove from str
@@ -180,6 +150,84 @@ void remove_characters(char* str, char to_remove[])
 			}
 		}
 	}
+}
+
+char* parse_announce(char* request, char* ip)
+{
+    remove_characters(request, "[]");
+
+    char* tokens[MAX_TOKENS];
+    int size_tokens = split(request, " ", tokens, MAX_TOKENS);
+
+    int processing_listen = 0, processing_seed = 0, processing_leech = 0;
+    int port;
+    int i = 0;
+    while (i < size_tokens)
+    {
+        printf("At token %d: %s\n", i, tokens[i]);
+        if (strcmp("listen", tokens[i]) == 0)
+        {
+            processing_listen = 1;
+            processing_seed = 0;
+            processing_leech = 0;
+            i++;
+        }
+        else if (strcmp("seed", tokens[i]) == 0)
+        {
+            processing_listen = 0;
+            processing_seed = 1;
+            processing_leech = 0;
+            i++;
+        }
+        else if (strcmp("leech", tokens[i]) == 0)
+        {
+            processing_listen = 0;
+            processing_seed = 0;
+            processing_leech = 1;
+            i++;
+        }
+        else if (processing_listen)
+        {
+            port = atoi(tokens[i]);
+            add_peer(ip, port);
+            add_leecher(ip, port);
+            i++;
+        }
+        else if (processing_seed)
+        {
+            char* file_name = tokens[i];
+            unsigned int length = atoi(tokens[i + 1]);
+            unsigned int piece_size = atoi(tokens[i + 2]);
+            char* key = tokens[i + 3];
+
+            int is_file_in_list = 0;
+            struct files_list_t* current = get_files_list();
+            while (current != NULL)
+            {
+                if (strcmp(get_file_key(get_file(current)), key) == 0)
+                {
+                    // File is already in list
+                    is_file_in_list = 1;
+                    break;
+                }
+                current = get_next_file(current);
+            }
+
+            if (!is_file_in_list) add_file(file_name, length, piece_size, key);
+
+            add_peer_to_file(key, get_peer_from_info(ip, port));
+
+            i += 4;
+        }
+        else if (processing_leech)
+        {
+            char* key = tokens[i];
+            add_leecher_to_file(key, get_leecher_from_info(ip, port));
+            i++;
+        } else i++;
+    }
+
+    return "ok";
 }
 
 unsigned int tokenize_criteria(char* str, char delimiters[], char* tokens[], char* used_delimiter[])
