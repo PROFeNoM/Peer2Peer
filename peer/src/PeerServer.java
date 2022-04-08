@@ -9,12 +9,13 @@ public class PeerServer extends Thread {
         this.socket = socket;
     }
 
+    @Override
     public void run() {
         try {
             while (true) {
                 Socket clientSocket = socket.accept();
                 System.out.println("Connected to a peer");
-                new PeerThread(clientSocket).start();
+                new ClientHandler(clientSocket).start();
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());

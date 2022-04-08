@@ -10,6 +10,7 @@ public class Peer {
     private ServerSocket serverSocket;
     private PrintWriter trackerOut;
     private BufferedReader trackerIn;
+    private PeerServer peerServer;
 
     public Peer() {
     }
@@ -54,22 +55,21 @@ public class Peer {
 
     // Start a server on given port
     void startServer(int port) {
-        System.out.println("Starting server on port " + port);
-        if (serverSocket != null) {
+        if (peerServer != null) {
             System.out.println("Server already started");
             return;
         }
 
         try {
             serverSocket = new ServerSocket(port);
-            new PeerServer(serverSocket).start();
+            peerServer = new PeerServer(serverSocket);
+            peerServer.start();
             System.out.println("Server started on port " + port);
         } catch (IOException e) {
             System.out.println("Cannot start server: " + e.getMessage());
             System.exit(1);
         }
     }
-
 
     public void run() {
         Scanner in = new Scanner(System.in);
@@ -83,7 +83,7 @@ public class Peer {
                             System.out.println("Good bye");
                             break;
                         }
-                        String response = sendMessage(inputLine);
+                        String response = sendMessageToTracker(inputLine);
                         System.out.println("> " + response);
                     } else {
                         System.out.print("< ");
@@ -115,14 +115,13 @@ public class Peer {
     }
 
     // Send a message to the tracker and return the response
-    public String sendMessage(String msg) {
+    public String sendMessageToTracker(String msg) {
         trackerOut.println(msg);
-        String response;
+        String response = "";
         try {
             response = trackerIn.readLine();
         } catch (IOException e) {
             System.out.println(e.getMessage());
-            response = "rien";
             System.exit(1);
         }
         return response;
