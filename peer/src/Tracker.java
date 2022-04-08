@@ -14,7 +14,9 @@ public class Tracker {
     public void startConnection(int port) {
         try {
             serverSocket = new ServerSocket(port);
+            System.out.print("Waiting for connection...");
             clientSocket = serverSocket.accept();
+            System.out.println("Connected");
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         } catch (IOException e) {
