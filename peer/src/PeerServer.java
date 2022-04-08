@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 
+// Class for starting the peer server and listen for connections
 public class PeerServer extends Thread {
     private ServerSocket socket;
 
@@ -12,7 +13,8 @@ public class PeerServer extends Thread {
         try {
             while (true) {
                 Socket clientSocket = socket.accept();
-                new ClientHandler(clientSocket).start();
+                System.out.println("Connected to a peer");
+                new PeerThread(clientSocket).start();
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());

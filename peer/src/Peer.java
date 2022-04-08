@@ -3,6 +3,7 @@ import java.net.*;
 import java.security.MessageDigest;
 import java.util.Scanner;
 
+// Peer class
 public class Peer {
     private Socket clientSocket;
     private Socket trackerSocket;
@@ -13,12 +14,13 @@ public class Peer {
     public Peer() {
     }
 
+    // Connect to the tracker and start the peer server
     public void start(String trackerIp, int trackerPort, int peerPort) {
         connectToTracker(trackerIp, trackerPort);
         startServer(peerPort);
     }
 
-    // Connect to the tracker
+    // Connect to the tracker on the given ip and port
     public void connectToTracker(String ip, int port) {
         try {
             trackerSocket = new Socket(ip, port);
@@ -34,7 +36,7 @@ public class Peer {
         System.out.println("Connected to tracker on port " + port);
     }
 
-    // Connect to a peer
+    // Connect to a peer on the given ip and port
     public void connectToPeer(String ip, int port) {
         try {
             clientSocket = new Socket(ip, port);
@@ -68,6 +70,7 @@ public class Peer {
         }
     }
 
+
     public void run() {
         Scanner in = new Scanner(System.in);
         try {
@@ -98,6 +101,7 @@ public class Peer {
         }
     }
 
+    // Close the connection to the tracker and stop the server
     public void stop() {
         try {
             trackerIn.close();
@@ -110,6 +114,7 @@ public class Peer {
         }
     }
 
+    // Send a message to the tracker and return the response
     public String sendMessage(String msg) {
         trackerOut.println(msg);
         String response;
@@ -123,6 +128,7 @@ public class Peer {
         return response;
     }
 
+    // Get the MD5 hash of the given file
     public String getHash(File file) {
         MessageDigest md;
         StringBuilder myHash;

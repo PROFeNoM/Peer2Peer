@@ -1,17 +1,25 @@
 import java.io.*;
 import java.net.*;
 
-public class ClientHandler extends Thread {
+// Class for communicate with another peer
+public class PeerThread extends Thread {
     private Socket socket;
+    private BufferedReader in;
+    private PrintWriter out;
 
-    public ClientHandler(Socket socket) {
+    public PeerThread(Socket socket) {
         this.socket = socket;
+        try {
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        out = new PrintWriter(socket.getOutputStream(), true);
+        } catch (IOException e) {
+            System.out.println("Cannot connect to peer: " + e.getMessage());
+            System.exit(1);
+        }
     }
-    
+
     public void run() {
         try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
                 if (!inputLine.isEmpty())
