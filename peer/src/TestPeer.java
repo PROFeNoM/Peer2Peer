@@ -6,6 +6,7 @@ public class TestPeer {
 
         if (args.length > 1) {
             try {
+                // System.out.println("Test in args : "+System.getProperty("test"));
                 trackerIp = args[0];
                 trackerPort = Integer.parseInt(args[1]);
                 peerPort = Integer.parseInt(args[2]);
@@ -14,9 +15,9 @@ public class TestPeer {
                 return;
             }
         } else {
-            trackerIp = Configuration.getInstance().getTrackerIp();
-            trackerPort = Configuration.getInstance().getTrackerPort();
-            peerPort = Configuration.getInstance().getPeerPort();
+            trackerIp = System.getProperty("trackerIp") == null ? Configuration.getInstance().getTrackerIp() : System.getProperty("trackerIp");
+            trackerPort = System.getProperty("trackerPort") == null ? Configuration.getInstance().getTrackerPort() : Integer.parseInt(System.getProperty("trackerPort"));
+            peerPort = System.getProperty("peerPort") == null ? Configuration.getInstance().getPeerPort() : Integer.parseInt(System.getProperty("peerPort"));
         }
 
         Peer peer = new Peer();
