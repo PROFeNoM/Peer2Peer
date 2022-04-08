@@ -16,8 +16,9 @@ enum REQUEST_T get_request_type(char* request);
 #endif //_PARSER_H
 
 
-int parse_announce(char* to_parse[], int size_parse, char* seeder[], char* leech[]);
+//int parse_announce(char* to_parse[], int size_parse, char* seeder[], char* leech[]);
 
+char* parse_announce(char* request, char* ip);
 char* parse_look(char* request);
 char* parse_getfile(char* request);
 char* parse_update(char* request, char* ip, unsigned int port);
