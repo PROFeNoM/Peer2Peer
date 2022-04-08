@@ -21,7 +21,7 @@ public class TestPeer {
 
         Peer peer = new Peer();
         peer.start(trackerIp, trackerPort, peerPort);
-        peer.start(trackerIp, trackerPort, peerPort);
+        peer.run();
         peer.stop();
     }
 }

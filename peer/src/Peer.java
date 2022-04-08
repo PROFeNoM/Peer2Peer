@@ -1,20 +1,19 @@
 import java.io.*;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.math.BigInteger;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.Scanner;
 
 public class Peer {
     private Socket clientSocket;
     private Socket trackerSocket;
     private ServerSocket serverSocket;
-    private PrintWriter out;
-    private BufferedReader in;
+    private PrintWriter trackerOut;
+    private BufferedReader trackerIn;
 
-    public Peer() {}
+    public Peer() {
+    }
 
-    public void start(String trackerIp, int trackerPort, int peerPort) {  
+    public void start(String trackerIp, int trackerPort, int peerPort) {
         connectToTracker(trackerIp, trackerPort);
         startServer(peerPort);
     }
@@ -23,8 +22,8 @@ public class Peer {
     public void connectToTracker(String ip, int port) {
         try {
             trackerSocket = new Socket(ip, port);
-            out = new PrintWriter(trackerSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(trackerSocket.getInputStream()));
+            trackerOut = new PrintWriter(trackerSocket.getOutputStream(), true);
+            trackerIn = new BufferedReader(new InputStreamReader(trackerSocket.getInputStream()));
         } catch (UnknownHostException e) {
             System.out.println("Cannot connect to tracker: " + e.getMessage());
             System.exit(1);
@@ -39,8 +38,8 @@ public class Peer {
     public void connectToPeer(String ip, int port) {
         try {
             clientSocket = new Socket(ip, port);
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         } catch (UnknownHostException e) {
             System.out.println("Cannot connect to peer: " + e.getMessage());
             System.exit(1);
@@ -51,8 +50,9 @@ public class Peer {
         System.out.println("Connected to peer on port " + port);
     }
 
-    // a function that starts a server on given port
+    // Start a server on given port
     void startServer(int port) {
+        System.out.println("Starting server on port " + port);
         if (serverSocket != null) {
             System.out.println("Server already started");
             return;
@@ -60,35 +60,61 @@ public class Peer {
 
         try {
             serverSocket = new ServerSocket(port);
+            new PeerServer(serverSocket).start();
             System.out.println("Server started on port " + port);
-            while (true) {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Client connected");
-                new ClientHandler(clientSocket).start();
-            }
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            System.out.println("Cannot start server: " + e.getMessage());
             System.exit(1);
+        }
+    }
+
+    public void run() {
+        Scanner in = new Scanner(System.in);
+        try {
+            while (true) {
+                String inputLine;
+                System.out.print("< ");
+                if ((inputLine = in.nextLine()) != null) {
+                    if (!inputLine.isEmpty())
+                        System.out.println("> " + inputLine);
+                    else {
+                        System.out.print("< ");
+                    }
+
+                    if (inputLine.equals("exit")) {
+                        System.out.println("Good bye");
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        } finally {
+            try {
+                in.close();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 
     public void stop() {
         try {
-            in.close();
-            out.close();
-            clientSocket.close();
+            trackerIn.close();
+            trackerOut.close();
+            trackerSocket.close();
             serverSocket.close();
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error while stopping peer: " + e.getMessage());
             System.exit(1);
         }
     }
 
     public String sendMessage(String msg) {
-        out.println(msg);
+        trackerOut.println(msg);
         String response;
         try {
-            response = in.readLine();
+            response = trackerIn.readLine();
         } catch (IOException e) {
             System.out.println(e.getMessage());
             response = "rien";
