@@ -2,7 +2,6 @@ package peer.src.main;
 
 import java.io.*;
 import java.net.*;
-import java.security.MessageDigest;
 import java.util.List;
 import java.util.Scanner;
 
@@ -36,22 +35,6 @@ public class Peer {
             System.exit(1);
         }
         System.out.println("Connected to tracker on port " + port);
-    }
-
-    // Connect to a peer on the given ip and port
-    public void connectToPeer(String ip, int port) {
-        try {
-            clientSocket = new Socket(ip, port);
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        } catch (UnknownHostException e) {
-            System.out.println("Cannot connect to peer: " + e.getMessage());
-            System.exit(1);
-        } catch (IOException e) {
-            System.out.println("Cannot connect to peer: " + e.getMessage());
-            System.exit(1);
-        }
-        System.out.println("Connected to peer on port " + port);
     }
 
     // Start a server on given port
@@ -128,45 +111,21 @@ public class Peer {
         return response;
     }
 
-    // Get the MD5 hash of the given file
-    public String getHash(File file) {
-        MessageDigest md;
-        StringBuilder myHash;
-
-        try {
-            // Get instance of MD5
-            md = MessageDigest.getInstance("MD5");
-
-            // Get file input stream for reading the file content
-            FileInputStream fis = new FileInputStream(file);
-
-            // Create byte array to read data in chunks
-            byte[] byteArray = new byte[1024];
-            int bytesCount = 0;
-
-            // Read file data and update in md
-            while ((bytesCount = fis.read(byteArray)) != -1) {
-                md.update(byteArray, 0, bytesCount);
+        // Connect to a peer on the given ip and port
+        public void connectToPeer(String ip, int port) {
+            try {
+                clientSocket = new Socket(ip, port);
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            } catch (UnknownHostException e) {
+                System.out.println("Cannot connect to peer: " + e.getMessage());
+                System.exit(1);
+            } catch (IOException e) {
+                System.out.println("Cannot connect to peer: " + e.getMessage());
+                System.exit(1);
             }
-            ;
-
-            fis.close();
-
-            // Get the hash's bytes
-            byte[] bytes = md.digest();
-
-            // Convert bytes to hexadecimal format
-            myHash = new StringBuilder();
-            for (int i = 0; i < bytes.length; i++) {
-                myHash.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw new RuntimeException(e);
+            System.out.println("Connected to peer on port " + port);
         }
-
-        return myHash.toString();
-    }
 
     void ProcessResponse() {
         java.lang.reflect.Method method;

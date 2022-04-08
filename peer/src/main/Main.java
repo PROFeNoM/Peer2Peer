@@ -1,5 +1,7 @@
 package peer.src.main;
 
+import peer.src.main.util.Configuration;
+
 public class Main {
     public static void main(String[] args) {
         String trackerIp;

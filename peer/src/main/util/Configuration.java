@@ -1,4 +1,4 @@
-package peer.src.main;
+package peer.src.main.util;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

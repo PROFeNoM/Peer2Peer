@@ -12,8 +12,8 @@ SRC_DIR		= src/main
 TST_DIR		= src/test
 BUILD_DIR 	= build
 
-JAVA_FILES			=	$(wildcard ./$(SRC_DIR)/*.java)
-JAVA_TEST_FILES		=	$(wildcard ./$(TST_DIR)/*.java)
+JAVA_FILES			=	$(shell find ./$(SRC_DIR) -type f -name "*.java")
+JAVA_TEST_FILES		=	$(shell find ./$(TST_DIR) -type f -name "*.java")
 JAVA_TEST_CLASSES	=   $(addprefix $(TEST_PACKAGE)., $(shell find ./$(TST_DIR) -type f -name "Test*" -exec basename {} .java ';'))
 
 COMPILE_OPTS = -d ./build -cp build
