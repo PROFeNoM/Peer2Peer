@@ -227,7 +227,7 @@ char* parse_announce(char* request, char* ip)
         } else i++;
     }
 
-    return "ok";
+    return "ok\n";
 }
 
 unsigned int tokenize_criteria(char* str, char delimiters[], char* tokens[], char* used_delimiter[])
@@ -399,8 +399,7 @@ char* parse_look(char* request)
 		if (i != files_size - 1) strcat(message, " ");
 	}
 
-	strcat(message, "]");
-
+	strcat(message, "]\n");
 	return message;
 }
 
@@ -439,7 +438,7 @@ char* parse_getfile(char* request)
 		if (peers != NULL) strcat(message, " ");
 	}
 
-	strcat(message, "]");
+	strcat(message, "]\n");
 
 	free(peers);
 
@@ -499,7 +498,7 @@ char* parse_update(char* request, char* ip, unsigned int port)
 		}
 	}
 
-	return "ok";
+	return "ok\n";
 }
 
 int copy_without_brackets(char* array[], char* to_parse[], int i)

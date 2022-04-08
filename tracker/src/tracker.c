@@ -135,7 +135,9 @@ void* connection_handler(void* args)
 		case ANNOUNCE:
             printf("[LOG] Announce request\n");
 			result = parse_announce(client_message, ip);
+            printf("[LOG] Announce response: %s\n", result);
             write(sock, result, strlen(result));
+            printf("Wrote\n");
 			break;
 		case LOOK:
             result = parse_look(client_message);
@@ -152,12 +154,13 @@ void* connection_handler(void* args)
             write(sock, result, strlen(result));
 			break;
 		case INVALID:
-			write(sock, "INVALID", strlen("INVALID"));
+			write(sock, "INVALID\n", strlen("INVALID\n"));
 			break;
 		default:
-			write(sock, "UNKNOWN", strlen("UNKNOWN"));
+			write(sock, "UNKNOWN\n", strlen("UNKNOWN\n"));
 			break;
 		}
+        printf("[LOG] Response sent\n");
 
 		// clear the buffer of client_message
 		memset(client_message, 0, sizeof(client_message));
