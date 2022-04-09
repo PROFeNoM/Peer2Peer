@@ -25,7 +25,7 @@ void error(char* msg)
 
 int main(int argc, char* argv[])
 {
-	init_files_list();
+	init_lists();
 
 	int socket_fd, client_sock, c, * new_sock;
 	int port;

@@ -12,6 +12,8 @@ struct peer_t {
 	unsigned int port;
 	int sockfd;
 	TAILQ_ENTRY(peer_t) next_peer;
+
+	TAILQ_ENTRY(peer_t) entry;
 };
 
 struct file_t
@@ -27,13 +29,20 @@ struct file_t
 };
 
 TAILQ_HEAD(files, file_t) files_list;
+TAILQ_HEAD(peers, peer_t) peers_list;
 
-void init_files_list();
+void init_lists();
 
 /*
  * Tell if a file is in the list.
  */
 int is_file_in_list(char *key);
+
+/*
+ * Return a port of the peer with the given ip and sockfd, -1 if not found.
+ * If a peer has multiple ports, returns the first one.
+ */
+int get_peer_port(char *ip, int sockfd);
 
 /*
  * Add a file to the list.
@@ -65,12 +74,12 @@ int is_leecher_of_file(char* key, char* ip, unsigned int port);
 /*
  * Remove the given peer from the list of seeders of the file.
  */
-int remove_seeder_from_file(char* key, char* ip, int sockfd);
+void remove_seeder_from_file(char* key, char* ip, int sockfd);
 
 /*
  * Remove the given peer from the list of leechers of the file.
  */
-int remove_leecher_from_file(char* key, char* ip, int sockfd);
+void remove_leecher_from_file(char* key, char* ip, int sockfd);
 
 /*
  * Get the file with the given key.
@@ -92,6 +101,6 @@ struct file_t** get_files_with_size(unsigned int size, char operator, unsigned i
  */
 struct file_t** get_files_with_name_and_size(char* name, unsigned int size, char operator, unsigned int* nb_files);
 
-void free_files_list();
+void free_lists();
 
 #endif //_DATA_H

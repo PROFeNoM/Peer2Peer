@@ -413,17 +413,18 @@ char* parse_update(char* request, char* ip, int sockfd)
 	 * Given a request of the form:
 	 * update seed [$key1 $key2 ...] leech [$key1 $key2 ...]
 	 */
+	int port = get_peer_port(ip, sockfd);
+	if (port == -1) return "nok\n";
+
 
 	remove_characters(request, "[]");
 	char* tokens[MAX_TOKENS];
 	int size_tokens = split(request, " ", tokens, MAX_TOKENS);
 
 	// Remove the seeder/leecher with given ip and sockfd from every files in the file list
-	int port;
 	for (struct file_t* file = files_list.tqh_first; file != NULL; file = file->next_file.tqe_next)
 	{
-		port = remove_seeder_from_file(file->key, ip, sockfd);
-		if (port == -1) return "nok\n";
+		remove_seeder_from_file(file->key, ip, sockfd);
 		remove_leecher_from_file(file->key, ip, sockfd);
 	}
 

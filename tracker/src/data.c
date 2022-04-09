@@ -4,11 +4,15 @@
 
 #include "include/data.h"
 
-void init_files_list()
+void init_lists()
 {
 	printf("[LOG] Initializing files list...\n");
 	TAILQ_INIT(&files_list);
 	printf("[LOG] Files list initialized.\n");
+
+	printf("[LOG] Initializing peers list...\n");
+	TAILQ_INIT(&peers_list);
+	printf("[LOG] Peers list initialized.\n");
 }
 
 int is_file_in_list(char* key)
@@ -23,7 +27,43 @@ int is_file_in_list(char* key)
 	return 0;
 }
 
-void add_file_to_list(char *name, unsigned int size, unsigned int piece_size, char *key)
+int is_peer_in_list(char* ip, int sockfd)
+{
+	for (struct peer_t* peer = peers_list.tqh_first; peer != NULL; peer = peer->entry.tqe_next)
+	{
+		if (strcmp(peer->ip, ip) == 0 && peer->sockfd == sockfd)
+		{
+			printf("[LOG] Peer %s:%d already in list.\n", ip, sockfd);
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int get_peer_port(char* ip, int sockfd)
+{
+	for (struct peer_t* peer = peers_list.tqh_first; peer != NULL; peer = peer->entry.tqe_next)
+	{
+		if (strcmp(peer->ip, ip) == 0 && peer->sockfd == sockfd)
+		{
+			return (int)peer->port;
+		}
+	}
+	return -1;
+}
+
+void add_peer_to_list(char* ip, unsigned int port, int sockfd)
+{
+	struct peer_t* peer = malloc(sizeof(struct peer_t));
+	strcpy(peer->ip, ip);
+	peer->port = port;
+	peer->sockfd = sockfd;
+
+	// Add the peer to the list
+	TAILQ_INSERT_TAIL(&peers_list, peer, entry);
+}
+
+void add_file_to_list(char* name, unsigned int size, unsigned int piece_size, char* key)
 {
 	struct file_t* file = malloc(sizeof(struct file_t));
 	strcpy(file->key, key);
@@ -40,6 +80,12 @@ void add_file_to_list(char *name, unsigned int size, unsigned int piece_size, ch
 void add_seeder_to_file(char* name, unsigned int size, unsigned int piece_size, char* key, char* ip,
 		unsigned int port, int sockfd)
 {
+	if (!is_peer_in_list(ip, sockfd))
+	{
+		printf("[LOG] Adding peer %s:%d to list.\n", ip, sockfd);
+		add_peer_to_list(ip, port, sockfd);
+	}
+
 	if (!is_file_in_list(key))
 	{
 		printf("[LOG] Adding file to list...\n");
@@ -56,6 +102,7 @@ void add_seeder_to_file(char* name, unsigned int size, unsigned int piece_size, 
 	}
 	else
 	{
+		printf("[LOG] Adding seeder %s %d %d to file %s...\n", ip, port, sockfd, key);
 		struct peer_t* seeder = malloc(sizeof(struct peer_t));
 		strcpy(seeder->ip, ip);
 		seeder->port = port;
@@ -66,6 +113,12 @@ void add_seeder_to_file(char* name, unsigned int size, unsigned int piece_size, 
 
 void add_leecher_to_file(char* key, char* ip, unsigned int port, int sockfd)
 {
+	if (!is_peer_in_list(ip, sockfd))
+	{
+		printf("[LOG] Adding peer %s:%d to list.\n", ip, sockfd);
+		add_peer_to_list(ip, port, sockfd);
+	}
+
 	if (!is_file_in_list(key))
 	{
 		return;
@@ -102,7 +155,8 @@ int is_seeder_of_file(char* key, char* ip, unsigned int port)
 		file = get_file(key);
 	}
 
-	if (TAILQ_EMPTY(&file->seeders)) {
+	if (TAILQ_EMPTY(&file->seeders))
+	{
 		printf("[LOG] The list is empty.\n");
 		return 0;
 	}
@@ -146,13 +200,12 @@ int is_leecher_of_file(char* key, char* ip, unsigned int port)
 	return 0;
 }
 
-int remove_seeder_from_file(char* key, char* ip, int sockfd)
+void remove_seeder_from_file(char* key, char* ip, int sockfd)
 {
-	int port = -1;
 	struct file_t* file;
 	if (!is_file_in_list(key))
 	{
-		return port;
+		return;
 	}
 	else
 	{
@@ -164,25 +217,22 @@ int remove_seeder_from_file(char* key, char* ip, int sockfd)
 	struct peer_t* seeder;
 	TAILQ_FOREACH(seeder, &file->seeders, next_peer)
 	{
+		printf("[LOG] Comparing ip %s with %s, and socket %d with %d\n", seeder->ip, ip, seeder->sockfd, sockfd);
 		if (strcmp(seeder->ip, ip) == 0 && seeder->sockfd == sockfd)
 		{
-			port = (int)seeder->port;
+			printf("[LOG] Removing seeder %s %d %d from file %s\n", seeder->ip, seeder->port, seeder->sockfd, key);
 			TAILQ_REMOVE(&file->seeders, seeder, next_peer);
 			free(seeder);
-			return port;
 		}
 	}
-
-	return port;
 }
 
-int remove_leecher_from_file(char* key, char* ip, int sockfd)
+void remove_leecher_from_file(char* key, char* ip, int sockfd)
 {
-	int port = -1;
 	struct file_t* file;
 	if (!is_file_in_list(key))
 	{
-		return port;
+		return;
 	}
 	else
 	{
@@ -194,16 +244,13 @@ int remove_leecher_from_file(char* key, char* ip, int sockfd)
 	struct peer_t* leecher;
 	TAILQ_FOREACH(leecher, &file->leechers, next_peer)
 	{
+		printf("[LOG] Comparing ip %s with %s, and socket %d with %d\n", leecher->ip, ip, leecher->sockfd, sockfd);
 		if (strcmp(leecher->ip, ip) == 0 && leecher->sockfd == sockfd)
 		{
-			port = (int)leecher->port;
+			printf("[LOG] Removing leecher %s %d %d from file %s\n", leecher->ip, leecher->port, leecher->sockfd, key);
 			TAILQ_REMOVE(&file->leechers, leecher, next_peer);
-			free(leecher);
-			return port;
 		}
 	}
-
-	return port;
 }
 
 struct file_t* get_file(char* key)
@@ -221,7 +268,8 @@ int count_files_with_name(char* name)
 	int count = 0;
 	for (struct file_t* file = files_list.tqh_first; file != NULL; file = file->next_file.tqe_next)
 	{
-		printf("[LOG] [Counting files with name] File name %s and comparing with %s => %s\n", file->name, name, strcmp(file->name, name) == 0 ? "yes": "no");
+		printf("[LOG] [Counting files with name] File name %s and comparing with %s => %s\n", file->name, name,
+				strcmp(file->name, name) == 0 ? "yes" : "no");
 		count += strcmp(file->name, name) == 0;
 	}
 	return count;
@@ -251,10 +299,17 @@ int count_files_with_size(unsigned int size, char operator)
 	{
 		switch (operator)
 		{
-		case '=': count += file->size == size; break;
-		case '>': count += file->size > size; break;
-		case '<': count += file->size < size; break;
-		default: return 0;
+		case '=':
+			count += file->size == size;
+			break;
+		case '>':
+			count += file->size > size;
+			break;
+		case '<':
+			count += file->size < size;
+			break;
+		default:
+			return 0;
 		}
 	}
 
@@ -298,10 +353,17 @@ int count_files_with_name_and_size(char* name, unsigned int size, char operator)
 	{
 		switch (operator)
 		{
-		case '=': count += file->size == size && (strcmp(file->name, name) == 0); break;
-		case '>': count += file->size > size && (strcmp(file->name, name) == 0); break;
-		case '<': count += file->size < size && (strcmp(file->name, name) == 0); break;
-		default: return 0;
+		case '=':
+			count += file->size == size && (strcmp(file->name, name) == 0);
+			break;
+		case '>':
+			count += file->size > size && (strcmp(file->name, name) == 0);
+			break;
+		case '<':
+			count += file->size < size && (strcmp(file->name, name) == 0);
+			break;
+		default:
+			return 0;
 		}
 	}
 
@@ -338,7 +400,7 @@ struct file_t** get_files_with_name_and_size(char* name, unsigned int size, char
 	return files;
 }
 
-void free_files_list()
+void free_lists()
 {
 	struct file_t* file = files_list.tqh_first;
 	while (file != NULL)
@@ -363,4 +425,14 @@ void free_files_list()
 		free(file);
 		file = next_file;
 	}
+
+	// Free the peers list
+	struct peer_t* peer = TAILQ_FIRST(&peers_list);
+	while (peer != NULL)
+	{
+		struct peer_t* next_peer = TAILQ_NEXT(peer, next_peer);
+		free(peer);
+		peer = next_peer;
+	}
+
 }
