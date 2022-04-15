@@ -42,4 +42,12 @@ public class Configuration {
     public int getPeerPort() {
         return Integer.parseInt(prop.getProperty("peer-port"));
     }
+
+    public int getMaxPeerToConnect() {
+        return Integer.parseInt(prop.getProperty("peer-max"));
+    }
+
+    public int getMaxPieces() {
+        return Integer.parseInt(prop.getProperty("pieces-max"));
+    }
 }
