@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -29,7 +30,43 @@ int main(int argc, char* argv[])
 
 	int socket_fd, client_sock, c, * new_sock;
 	int port;
+	char address[INET6_ADDRSTRLEN];
 	struct sockaddr_in server, client;
+
+	// Read file config.ini
+
+	FILE* fptr;
+	fptr = fopen("./install/config.ini", "r");
+	if (fptr == NULL)
+	{
+		error("Couldn't open config.ini");
+	}
+
+	char* str = NULL;
+	char* tokens[2][MAX_TOKENS];
+	ssize_t read;
+	size_t len = 50;
+	int i = 0;
+
+	while ((read = getline(&str, &len, fptr)) != -1) {
+		split(str, " ", tokens[i], MAX_TOKENS);
+
+		if (!strcmp("tracker-port", tokens[i][0]))
+		{
+			port = atoi(tokens[i][2]);
+			printf("token: %d\n", port);
+		}
+		else if (!strcmp("tracker-address", tokens[i][0]))
+		{
+			strcpy(address, tokens[i][2]);
+			printf("adresse: %s\n", address);
+		}
+
+		i++;
+    }
+
+	fclose(fptr);
+
 
 	// Retrieve port number
 	if (argc < 2)
