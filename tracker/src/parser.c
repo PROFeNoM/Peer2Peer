@@ -307,13 +307,15 @@ char* parse_look(char* request)
 		if (strcmp("filename", sub_tokens[0]) == 0 && sub_tokens[1])
 		{
 			printf("[LOG] Analyze filename set to true\n");
-			filename = malloc(sizeof(char) * strlen(sub_tokens[1]));
+            printf("[LOG] filename: %s\n", sub_tokens[1]);
+			filename = malloc(sizeof(char) * strlen(sub_tokens[1]) + 1);
 			strcpy(filename, sub_tokens[1]);
 			filename_on = 1;
 		}
 		else if (strcmp("filesize", sub_tokens[0]) == 0 && sub_tokens[1])
 		{
 			printf("[LOG] Analyze filesize set to true\n");
+            printf("[LOG] filesize: %s\n", sub_tokens[1]);
 			filesize = atoi(sub_tokens[1]);
 			operator = _op[0][0];
 			filesize_on = 1;
@@ -328,7 +330,7 @@ char* parse_look(char* request)
 		// Free strings from operator
 		if (_op[0]) free(_op[0]);
 	}
-	remove_characters(filename, "\n");
+	if (filename_on) remove_characters(filename, "\n");
 	if (filename_on && filesize_on) files = get_files_with_name_and_size(filename, filesize, operator, &files_size);
 	else if (filename_on && !filesize_on) files = get_files_with_name(filename, &files_size);
 	else if (!filename_on && filesize_on) files = get_files_with_size(filesize, operator, &files_size);
@@ -361,7 +363,8 @@ char* parse_look(char* request)
 
 	strcat(message, "]\n");
 
-	free(filename);
+	if (filename_on) free(filename);
+    free(files);
 	return message;
 }
 
