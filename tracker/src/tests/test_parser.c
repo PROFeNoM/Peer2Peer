@@ -3,7 +3,7 @@
 #include "../include/parser.h"
 #include "../include/data.h"
 #include "test.h"
-/*
+
 int test__get_request_type_with_unknown_request()
 {
 	ASSERT_EQUAL(UNKNOWN, get_request_type(""))
@@ -132,7 +132,7 @@ int test__get_request_type_invalid_look_request_2()
     return 1;
 }
 */
-/*
+
 int test__get_request_type_valid_getfile_request()
 {
 	char request[] = "getfile 8905e92afeb80fc7722ec89eb0bf0966";
@@ -185,186 +185,165 @@ int test__get_request_type_invalid_update_request()
 
 int test__parse_getfile_without_file()
 {
+    init_lists();
+
 	char request[] = "getfile 8905e92afeb80fc7722ec89eb0bf0966";
 
 	char* actual = parse_getfile(request);
 	ASSERT_ARRAY_EQUAL("peers 8905e92afeb80fc7722ec89eb0bf0966 []", actual,
-			strlen("peers 8905e92afeb80fc7722ec89eb0bf0966 []"));
+			strlen("peers 8905e92afeb80fc7722ec89eb0bf0966 []"))
 
 	free(actual);
+
+    free_lists();
 
 	return 1;
 }
 
 int test__parse_getfile_with_file_and_peer()
 {
-	char request[] = "getfile 8905e92afeb80fc7722ec89eb0bf0966";
+    init_lists();
+    add_seeder_to_file("file_a.dat", 42, 1, "8905e92afeb80fc7722ec89eb0bf0966", "127.0.0.1", 8080, 4);
+
+    char request[] = "getfile 8905e92afeb80fc7722ec89eb0bf0966";
 
 	char* actual = parse_getfile(request);
+
 	ASSERT_ARRAY_EQUAL(
-			"peers 8905e92afeb80fc7722ec89eb0bf0966 [127.0.0.1:8905]",
+			"peers 8905e92afeb80fc7722ec89eb0bf0966 [127.0.0.1:8080]",
 			actual,
-			strlen("peers 8905e92afeb80fc7722ec89eb0bf0966 [127.0.0.1:8905]")
+			strlen("peers 8905e92afeb80fc7722ec89eb0bf0966 [127.0.0.1:8080]")
 	)
 
 	free(actual);
+    free_lists();
 
 	return 1;
 }
+
 
 int test__parse_getfile_with_multiple_peers()
 {
+    init_lists();
+
 	char request[] = "getfile 8905e92afeb80fc7722ec89eb0bf0966";
+
+    add_seeder_to_file("file_a.dat", 42, 1, "8905e92afeb80fc7722ec89eb0bf0966", "127.0.0.1", 8905, 4);
+    add_seeder_to_file("file_a.dat", 42, 1, "8905e92afeb80fc7722ec89eb0bf0966", "127.0.0.2", 8905, 5);
 
 	char* actual = parse_getfile(request);
 	ASSERT_ARRAY_EQUAL(
-			"peers 8905e92afeb80fc7722ec89eb0bf0966 [127.0.0.2:8905 127.0.0.1:8905]",
+			"peers 8905e92afeb80fc7722ec89eb0bf0966 [127.0.0.1:8905 127.0.0.2:8905]",
 			actual,
-			strlen("peers 8905e92afeb80fc7722ec89eb0bf0966 [127.0.0.2:8905 127.0.0.1:8905]")
+			strlen("peers 8905e92afeb80fc7722ec89eb0bf0966 [127.0.0.1:8905 127.0.0.2:8905]")
 	)
 
 	free(actual);
+    free_lists();
 
 	return 1;
 }
 
+
 int test__parse_look_without_file_two_conditions()
 {
+    init_lists();
 	char request[] = "look [filename=\"file_a.dat\" filesize>\"1048576\"]";
 
 	char* actual = parse_look(request);
 	ASSERT_ARRAY_EQUAL("list []", actual, strlen("list []"));
 
 	free(actual);
-
+    free_lists();
 	return 1;
 }
 
 int test__parse_look_without_file_one_condition()
 {
+    init_lists();
 	char request[] = "look [filesize>\"1048576\"]";
 
 	char* actual = parse_look(request);
 	ASSERT_ARRAY_EQUAL("list []", actual, strlen("list []"));
 
 	free(actual);
-
+    free_lists();
 	return 1;
 }
 
 int test__parse_look_with_file_two_conditions()
 {
+    init_lists();
 	char request[] = "look [filename=\"file_a.dat\" filesize>\"0\"]";
-
+    add_file_to_list("file_a.dat", 1048576, 42, "8905e92afeb80fc7722ec89eb0bf0966");
 	char* actual = parse_look(request);
 	ASSERT_ARRAY_EQUAL("list [file_a.dat 1048576 42 8905e92afeb80fc7722ec89eb0bf0966]", actual,
-			strlen("list [file_a.dat 1048576 42 8905e92afeb80fc7722ec89eb0bf0966]"));
+			strlen("list [file_a.dat 1048576 42 8905e92afeb80fc7722ec89eb0bf0966]"))
 
 	free(actual);
+    free_lists();
 
 	return 1;
 }
 
 int test__parse_look_with_file_one_condition()
 {
+    init_lists();
 	char request[] = "look [filename=\"file_a.dat\"]";
-
+    add_file_to_list("file_a.dat", 1048576, 42, "8905e92afeb80fc7722ec89eb0bf0966");
 	char* actual = parse_look(request);
 	ASSERT_ARRAY_EQUAL("list [file_a.dat 1048576 42 8905e92afeb80fc7722ec89eb0bf0966]", actual,
-			strlen("list [file_a.dat 1048576 42 8905e92afeb80fc7722ec89eb0bf0966]"));
+			strlen("list [file_a.dat 1048576 42 8905e92afeb80fc7722ec89eb0bf0966]"))
 
 	free(actual);
+    free_lists();
 
 	return 1;
 }
 
 int test__parse_update_without_keys()
 {
+    init_lists();
 	char request[] = "update seed [] leech []";
 
-	char* actual = parse_update(request, "127.0.0.1", 8905);
+    add_seeder_to_file("file_a.dat", 42, 1, "8905e92afeb80fc7722ec89eb0bf0966", "127.0.0.1", 8905, 4);
+    add_leecher_to_file("8905e92afeb80fc7722ec89eb0bf0966", "127.0.0.1", 8905, 4);
+
+	char* actual = parse_update(request, "127.0.0.1", 4);
 	ASSERT_ARRAY_EQUAL("ok", actual, strlen("ok"))
 
-	struct peer_t* peer = get_peer_from_info("127.0.0.1", 8905);
-	struct leecher_t* leecher = get_leecher_from_info("127.0.0.1", 8905);
+    ASSERT_FALSE(is_seeder_of_file("8905e92afeb80fc7722ec89eb0bf0966", "127.0.0.1", 8905))
+    ASSERT_FALSE(is_leecher_of_file("8905e92afeb80fc7722ec89eb0bf0966", "127.0.0.1", 8905))
 
-	int found_peer = 0;
-	struct peers_list_t* peers = get_peers_having_file("8905e92afeb80fc7722ec89eb0bf0966");
-	while (peers != NULL)
-	{
-		struct peer_t* current_peer = get_peer(peers);
-		if (current_peer == peer)
-		{
-			found_peer = 1;
-			break;
-		}
-		peers = get_next_peer(peers);
-	}
-	ASSERT_EQUAL(0, found_peer)
-
-	int found_leecher = 0;
-	struct leechers_list_t* leechers = get_leechers_having_file("8905e92afeb80fc7722ec89eb0bf0966");
-	while (leechers != NULL)
-	{
-		struct leecher_t* current_leecher = get_leecher(leechers);
-		if (current_leecher == leecher)
-		{
-			found_leecher = 1;
-			break;
-		}
-		leechers = get_next_leecher(leechers);
-	}
-	ASSERT_EQUAL(0, found_leecher)
+    free_lists();
 
 	return 1;
 }
 
 int test__parse_update_with_keys()
 {
+    init_lists();
+    add_file_to_list("file_a.dat", 1048576, 42, "8905e92afeb80fc7722ec89eb0bf0966");
+    add_file_to_list("file_b.dat", 1048576, 42, "8905e92a");
 	char request[] = "update seed [8905e92afeb80fc7722ec89eb0bf0966 8905e92a] leech [8905e92afeb80fc7722ec89eb0bf0966]";
 
-	char* actual = parse_update(request, "127.0.0.1", 8905);
+
+    add_seeder_to_file("file_a.dat", 1048576, 42, "8905e92afeb80fc7722ec89eb0bf0966", "127.0.0.1", 8905, 4);
+
+	char* actual = parse_update(request, "127.0.0.1", 4);
 	ASSERT_ARRAY_EQUAL("ok", actual, strlen("ok"))
 
-	struct peer_t* peer = get_peer_from_info("127.0.0.1", 8905);
-	struct leecher_t* leecher = get_leecher_from_info("127.0.0.1", 8905);
+    ASSERT_TRUE(is_seeder_of_file("8905e92afeb80fc7722ec89eb0bf0966", "127.0.0.1", 8905))
+    ASSERT_TRUE(is_seeder_of_file("8905e92a", "127.0.0.1", 8905))
 
-	int found_peer = 0;
-	struct peers_list_t* peers = get_peers_having_file("8905e92afeb80fc7722ec89eb0bf0966");
-	while (peers != NULL)
-	{
-		struct peer_t* current_peer = get_peer(peers);
-		if (current_peer == peer)
-		{
-			found_peer = 1;
-			break;
-		}
-		peers = get_next_peer(peers);
-	}
-	ASSERT_EQUAL(1, found_peer)
-
-	int found_leecher = 0;
-	struct leechers_list_t* leechers = get_leechers_having_file("8905e92afeb80fc7722ec89eb0bf0966");
-	while (leechers != NULL)
-	{
-		struct leecher_t* current_leecher = get_leecher(leechers);
-		if (current_leecher == leecher)
-		{
-			found_leecher = 1;
-			break;
-		}
-		leechers = get_next_leecher(leechers);
-	}
-	ASSERT_EQUAL(1, found_leecher)
+    free_lists();
 
 	return 1;
 }
-*/
+
+
 void test__parser_functions()
 {
-	/*
-	init_lists();
-
 	//////// test for get_request_type ////////
 
 	TEST_FUNCTION(test__get_request_type_with_unknown_request)
@@ -394,13 +373,8 @@ void test__parser_functions()
 	//////// test for parse_getfile ////////
 
 	TEST_FUNCTION(test__parse_getfile_without_file)
-	add_peer("127.0.0.1", 8905);
-	add_file("file_a.dat", 1048576, 42, "8905e92afeb80fc7722ec89eb0bf0966");
-	add_peer_to_file("8905e92afeb80fc7722ec89eb0bf0966", get_peer_from_info("127.0.0.1", 8905));
 	TEST_FUNCTION(test__parse_getfile_with_file_and_peer)
-	add_peer("127.0.0.2", 8905);
-	add_peer_to_file("8905e92afeb80fc7722ec89eb0bf0966", get_peer_from_info("127.0.0.2", 8905));
-	TEST_FUNCTION(test__parse_getfile_with_multiple_peers)
+    TEST_FUNCTION(test__parse_getfile_with_multiple_peers)
 
 	//////// test for parse_look ////////
 	TEST_FUNCTION(test__parse_look_without_file_two_conditions)
@@ -411,7 +385,4 @@ void test__parser_functions()
 	//////// test for parse_update ////////
 	TEST_FUNCTION(test__parse_update_without_keys)
 	TEST_FUNCTION(test__parse_update_with_keys)
-
-	free_lists();
-	*/
 }
