@@ -4,7 +4,7 @@ import java.security.MessageDigest;
 import java.io.*;
 
 public class FileHandler {
-    public String getHash(File file) {
+    public static String getHash(File file) {
         MessageDigest md = null;
         StringBuilder hash = new StringBuilder();
 
