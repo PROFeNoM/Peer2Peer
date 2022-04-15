@@ -30,4 +30,8 @@ public class Seed {
     public String computeBufferMap() {
         return "";
     }
+
+    public String toString() {
+        return getName() + " " + file.length() + " " + getKey();
+    }
 }
