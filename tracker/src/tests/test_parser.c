@@ -341,6 +341,29 @@ int test__parse_update_with_keys()
 	return 1;
 }
 
+int test__parse_announce()
+{
+	init_lists();
+
+	char request[] = "announce listen 2222 seed [file_a.dat 2097152 1024 8905e92afeb80fc7722ec89eb0bf0966 file_b.dat 3145728 1536 330a57722ec8b0bf09669a2b35f88e9e] leech [8905e92afeb80fc7722ec89eb0bf0966]";
+
+	char * actual = parse_announce(request, "138.90.17.75", 5);
+	ASSERT_ARRAY_EQUAL("ok", actual, strlen("ok"))
+
+	ASSERT_TRUE(is_file_in_list("8905e92afeb80fc7722ec89eb0bf0966"))
+	ASSERT_TRUE(is_file_in_list("330a57722ec8b0bf09669a2b35f88e9e"))
+
+	ASSERT_EQUAL(2222, get_peer_port("138.90.17.75", 5))
+
+	ASSERT_TRUE(is_seeder_of_file("8905e92afeb80fc7722ec89eb0bf0966", "138.90.17.75", 2222))
+	ASSERT_TRUE(is_seeder_of_file("330a57722ec8b0bf09669a2b35f88e9e", "138.90.17.75", 2222))
+	ASSERT_TRUE(is_leecher_of_file("8905e92afeb80fc7722ec89eb0bf0966", "138.90.17.75", 2222))
+
+	free_lists();
+
+	return 1;
+}
+
 
 void test__parser_functions()
 {
@@ -385,4 +408,7 @@ void test__parser_functions()
 	//////// test for parse_update ////////
 	TEST_FUNCTION(test__parse_update_without_keys)
 	TEST_FUNCTION(test__parse_update_with_keys)
+
+	//////// test for parse_announce ////////
+	TEST_FUNCTION(test__parse_announce)
 }
