@@ -7,22 +7,25 @@ public class Main {
         String trackerIp;
         int trackerPort;
         int peerPort;
-
-        if (args.length > 1) {
-            try {
-                trackerIp = args[0];
-                trackerPort = Integer.parseInt(args[1]);
-                peerPort = Integer.parseInt(args[2]);
-            } catch (NumberFormatException e) {
-                System.out.println("Usage: java TestPeer <tracker-ip> <tracker-port> <peer-port>");
-                return;
+        for (String arg : args) {
+            System.out.println(arg);
+            if (arg.equals("-h")) {
+                System.out.println("Usage: java [-D trackerIp=<trackerIp>] [-D trackerPort=<trackerPort>] [-D peerPort=<peerPort>] peer.src.main.Main [-h]");
+                System.exit(0);
             }
-        } else {
-            trackerIp = System.getProperty("trackerIp") == null ? Configuration.getInstance().getTrackerIp() : System.getProperty("trackerIp");
-            trackerPort = System.getProperty("trackerPort") == null ? Configuration.getInstance().getTrackerPort() : Integer.parseInt(System.getProperty("trackerPort"));
-            peerPort = System.getProperty("peerPort") == null ? Configuration.getInstance().getPeerPort() : Integer.parseInt(System.getProperty("peerPort"));
         }
 
+        trackerIp = System.getProperty("trackerIp") == null
+                ? Configuration.getInstance().getTrackerIp()
+                : System.getProperty("trackerIp");
+        trackerPort = System.getProperty("trackerPort") == null
+                ? Configuration.getInstance().getTrackerPort()
+                : Integer.parseInt(System.getProperty("trackerPort"));
+        peerPort = System.getProperty("peerPort") == null
+                ? Configuration.getInstance().getPeerPort()
+                : Integer.parseInt(System.getProperty("peerPort"));
+
+        System.out.println("port " + System.getProperty("trackerPort"));
         Peer peer = new Peer();
         peer.start(trackerIp, trackerPort, peerPort);
         peer.run();
