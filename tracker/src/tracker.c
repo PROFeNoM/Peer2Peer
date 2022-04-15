@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 	init_lists();
 
 	int socket_fd, client_sock, c, * new_sock;
-	int port;
+	int port, verbose;
 	char address[INET6_ADDRSTRLEN];
 	struct sockaddr_in server, client;
 
@@ -61,6 +61,10 @@ int main(int argc, char* argv[])
 			strcpy(address, tokens[i][2]);
 			printf("adresse: %s\n", address);
 		}
+		else if (!strcmp("verbose", tokens[i][0]))
+		{
+			verbose = atoi(tokens[i][2]);
+		}
 
 		i++;
     }
@@ -69,6 +73,7 @@ int main(int argc, char* argv[])
 
 
 	// Retrieve port number
+	/*
 	if (argc < 2)
 	{
 		printf("Usage: Missing port number\n");
@@ -78,6 +83,7 @@ int main(int argc, char* argv[])
 	{
 		port = atoi(argv[1]);
 	}
+	*/
 
 	// Create a socket
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
