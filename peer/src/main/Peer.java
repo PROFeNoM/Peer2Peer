@@ -14,11 +14,13 @@ public class Peer {
     private PrintWriter trackerOut;
     private BufferedReader trackerIn;
     private PeerServer peerServer;
+    private ArrayList<Seed> seeds;
     Parser parser;
     private Seed[] files;
 
     // Connect to the tracker and start the peer server
-    public void start(String trackerIp, int trackerPort, int peerPort) {
+    public void start(String trackerIp, int trackerPort, int peerPort, String seedFolder) {
+        seeds = findSeeds(seedFolder);
         connectToTracker(trackerIp, trackerPort);
         startServer(peerPort);
         announceToTracker(peerPort);
@@ -43,7 +45,7 @@ public class Peer {
     public void announceToTracker(int peerPort) {
         String message = "announce";
         message += " listen " + peerPort;
-        message += " seed " + getSeed();
+        message += " seed " + getSeeds();
         message += " leech " + getLeech();
         trackerOut.println(message);
 
@@ -60,8 +62,40 @@ public class Peer {
         }
     }
 
-    public String getSeed() {
-        return "[]";
+    // Find seeded files from the given folder
+    public ArrayList<Seed> findSeeds(String seedFolder) {
+        seeds = new ArrayList<Seed>();
+        File folder = new File(seedFolder);
+        File[] listOfFiles = folder.listFiles();
+        
+        if (listOfFiles == null) {
+            System.out.println("No seeds found");
+            return seeds;
+        }
+
+        for (File file : listOfFiles) {
+            if (file.isFile()) {
+                seeds.add(new Seed(file.getAbsolutePath()));
+            }
+        }
+
+        System.out.println("Seeds found: " + seeds.size());
+
+        return seeds;
+    }
+
+    public String getSeeds() {
+        String message = "[";
+
+        for (Seed seed : seeds) {
+            message += seed.toString();
+            message += " ";
+        }
+
+        message = message.trim();
+        message += "]";
+
+        return message;
     }
 
     public String getLeech() {
@@ -74,7 +108,6 @@ public class Peer {
             System.out.println("Server already started");
             return;
         }
-        System.out.println("Starting server on port " + port);
 
         try {
             serverSocket = new ServerSocket(port);

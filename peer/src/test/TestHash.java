@@ -8,7 +8,6 @@ import java.io.IOException;
 class TestHash {
     // Test the hash function
     public void testHash() {
-        FileHandler fileHandler = new FileHandler();
         String expectedHash = "d41d8cd98f00b204e9800998ecf8427e";
         File file = new File("test.txt");
 
@@ -18,7 +17,7 @@ class TestHash {
             System.out.println("Error creating file " + e);
         }
 
-        String hash = fileHandler.getHash(file);
+        String hash = FileHandler.getHash(file);
         file.delete();
 
         assert hash.equals(expectedHash) : "Hash is not correct";

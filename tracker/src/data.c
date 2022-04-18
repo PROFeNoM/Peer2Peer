@@ -58,7 +58,6 @@ void add_peer_to_list(char* ip, unsigned int port, int sockfd)
 	strcpy(peer->ip, ip);
 	peer->port = port;
 	peer->sockfd = sockfd;
-
 	// Add the peer to the list
 	TAILQ_INSERT_TAIL(&peers_list, peer, entry);
 }
@@ -223,6 +222,7 @@ void remove_seeder_from_file(char* key, char* ip, int sockfd)
 			printf("[LOG] Removing seeder %s %d %d from file %s\n", seeder->ip, seeder->port, seeder->sockfd, key);
 			TAILQ_REMOVE(&file->seeders, seeder, next_peer);
 			free(seeder);
+            return;
 		}
 	}
 }
@@ -249,6 +249,8 @@ void remove_leecher_from_file(char* key, char* ip, int sockfd)
 		{
 			printf("[LOG] Removing leecher %s %d %d from file %s\n", leecher->ip, leecher->port, leecher->sockfd, key);
 			TAILQ_REMOVE(&file->leechers, leecher, next_peer);
+            free(leecher);
+            return;
 		}
 	}
 }
@@ -427,10 +429,10 @@ void free_lists()
 	}
 
 	// Free the peers list
-	struct peer_t* peer = TAILQ_FIRST(&peers_list);
+	struct peer_t* peer = TAILQ_FIRST(&peers_list), * next_peer;
 	while (peer != NULL)
 	{
-		struct peer_t* next_peer = TAILQ_NEXT(peer, next_peer);
+		next_peer = TAILQ_NEXT(peer, entry);
 		free(peer);
 		peer = next_peer;
 	}

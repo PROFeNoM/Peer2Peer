@@ -1,213 +1,371 @@
 #include <string.h>
+#include <stdlib.h>
 #include "../include/data.h"
 #include "test.h"
 
-/*
-int test__add_peer()
+
+int test__is_file_in_list_without_file()
 {
-	add_peer("0.0.0.0", 80);
+    init_lists();
 
-	struct peers_list_t* peers_list = get_peers_list();
-	while (get_next_peer(peers_list)) peers_list = get_next_peer(peers_list);
-	struct peer_t* added_peer = get_peer(peers_list);
+    ASSERT_FALSE(is_file_in_list("random_key"))
 
-	ASSERT_ARRAY_EQUAL("0.0.0.0", get_peer_ip(added_peer), strlen(get_peer_ip(added_peer)))
-	ASSERT_EQUAL(80, get_peer_port(added_peer))
+    free_lists();
 
-	return 1;
+    return 1;
 }
 
-int test__add_leecher()
+int test__is_file_in_list_with_file()
 {
-	add_leecher("0.0.0.0", 80);
+    init_lists();
 
-	struct leechers_list_t* leechers_list = get_leechers_list();
-	while (get_next_leecher(leechers_list)) leechers_list = get_next_leecher(leechers_list);
-	struct leecher_t* added_leecher = get_leecher(leechers_list);
+    add_file_to_list("test_file", 42, 1, "test_hash");
+    add_file_to_list("test_file2", 42, 1, "test_hash2");
 
-	ASSERT_ARRAY_EQUAL("0.0.0.0", get_leecher_ip(added_leecher), strlen(get_leecher_ip(added_leecher)))
-	ASSERT_EQUAL(80, get_leecher_port(added_leecher))
+    ASSERT_TRUE(is_file_in_list("test_hash"))
+    ASSERT_TRUE(is_file_in_list("test_hash2"))
 
-	return 1;
+    free_lists();
+
+    return 1;
 }
 
-int test__add_file()
+int test__get_peer_port_without_peer()
 {
-	add_file("test_file", 42, 3, "test_hash");
+    init_lists();
 
-	struct files_list_t* files_list = get_files_list();
-	while (get_next_file(files_list)) files_list = get_next_file(files_list);
-	struct files_t* added_file = get_file(files_list);
+    ASSERT_EQUAL(-1, get_peer_port("192.16.17.232", 2))
 
-	ASSERT_ARRAY_EQUAL("test_file", get_file_name(added_file), strlen(get_file_name(added_file)))
-	ASSERT_EQUAL(42, get_file_size(added_file))
-	ASSERT_EQUAL(3, get_file_piece_size(added_file))
-	ASSERT_ARRAY_EQUAL("test_hash", get_file_key(added_file), strlen(get_file_key(added_file)))
+    free_lists();
 
-	return 1;
-}
-
-int test__get_peer_from_info()
-{
-	struct peer_t* peer = get_peer_from_info("0.0.0.0", 80);
-
-	ASSERT_NOT_NULL(peer)
-	ASSERT_ARRAY_EQUAL("0.0.0.0", get_peer_ip(peer), strlen(get_peer_ip(peer)))
-	ASSERT_EQUAL(80, get_peer_port(peer))
-
-	return 1;
-}
-
-int test__get_leecher_from_info()
-{
-	struct leecher_t* leecher = get_leecher_from_info("0.0.0.0", 80);
-
-	ASSERT_NOT_NULL(leecher)
-	ASSERT_ARRAY_EQUAL("0.0.0.0", get_leecher_ip(leecher), strlen(get_leecher_ip(leecher)))
-	ASSERT_EQUAL(80, get_leecher_port(leecher))
-
-	return 1;
-}
-
-int test__add_peer_to_file()
-{
-	add_peer_to_file("test_hash", get_peer_from_info("0.0.0.0", 80));
-
-	struct files_list_t* files_list = get_files_by_criteria((int (*)(struct files_t*, void*))criteria_filename, "test_file");
-
-	ASSERT_NOT_NULL(files_list)
-	struct peer_t* peer = get_peer(get_files_peers(get_file(files_list)));
-	ASSERT_NOT_NULL(peer)
-	ASSERT_ARRAY_EQUAL("0.0.0.0", get_peer_ip(peer), strlen(get_peer_ip(peer)))
-	ASSERT_EQUAL(80, get_peer_port(peer))
-
-	free_files_list(files_list);
-
-	return 1;
-}
-
-int test__add_leecher_to_file()
-{
-	add_leecher_to_file("test_hash", get_leecher_from_info("0.0.0.0", 80));
-
-	struct files_list_t* files_list = get_files_by_criteria((int (*)(struct files_t*, void*))criteria_filename, "test_file");
-
-	ASSERT_NOT_NULL(files_list)
-	struct leecher_t* leecher = get_leecher(get_files_leechers(get_file(files_list)));
-	ASSERT_NOT_NULL(leecher)
-	ASSERT_ARRAY_EQUAL("0.0.0.0", get_leecher_ip(leecher), strlen(get_leecher_ip(leecher)))
-	ASSERT_EQUAL(80, get_leecher_port(leecher))
-
-	free_files_list(files_list);
-
-	return 1;
-}
-
-int test__get_peers_having_file()
-{
-	struct peers_list_t* peers_list = get_peers_having_file("test_hash");
-
-	ASSERT_NOT_NULL(peers_list)
-	ASSERT_ARRAY_EQUAL("0.0.0.0", get_peer_ip(get_peer(peers_list)), strlen(get_peer_ip(get_peer(peers_list))))
-	ASSERT_EQUAL(80, get_peer_port(get_peer(peers_list)))
-	ASSERT_NULL(get_next_peer(peers_list))
-
-	return 1;
-}
-
-int test__get_leechers_having_file()
-{
-	struct leechers_list_t* leechers_list = get_leechers_having_file("test_hash");
-
-	ASSERT_NOT_NULL(leechers_list)
-	ASSERT_ARRAY_EQUAL("0.0.0.0", get_leecher_ip(get_leecher(leechers_list)), strlen(get_leecher_ip(get_leecher(leechers_list))))
-	ASSERT_EQUAL(80, get_leecher_port(get_leecher(leechers_list)))
-	ASSERT_NULL(get_next_leecher(leechers_list))
-
-	return 1;
-}
-
-int test__remove_peer_from_file()
-{
-	struct peer_t* peer = get_peer_from_info("0.0.0.0", 80);
-
-	remove_peer_from_file("test_hash", peer);
-
-	struct peers_list_t* peers_list = get_peers_having_file("test_hash");
-
-	ASSERT_NULL(peers_list)
-
-	return 1;
-}
-
-int test__remove_leecher_from_file()
-{
-	struct leecher_t* leecher = get_leecher_from_info("0.0.0.0", 80);
-
-	remove_leecher_from_file("test_hash", leecher);
-
-	struct leechers_list_t* leechers_list = get_leechers_having_file("test_hash");
-
-	ASSERT_NULL(leechers_list)
-
-	return 1;
+    return 1;
 }
 
 
-int test__add_multiple_peer_to_file()
+int test__get_peer_port_with_leecher()
 {
-	add_peer("0.0.0.1", 2322);
-	add_peer_to_file("test_hash", get_peer_from_info("0.0.0.1", 2322));
+    init_lists();
 
-	struct files_list_t* files_list = get_files_by_criteria((int (*)(struct files_t*, void*))criteria_filename, "test_file");
+    add_file_to_list("test_file", 42, 1, "test_hash");
+    add_leecher_to_file("test_hash", "127.0.0.1", 2222, 4);
+    add_leecher_to_file("test_hash", "127.0.0.2", 2222, 4);
 
-	ASSERT_NOT_NULL(files_list)
-	struct peer_t* peer = get_peer(get_files_peers(get_file(files_list)));
-	ASSERT_NOT_NULL(peer)
-	ASSERT_ARRAY_EQUAL("0.0.0.1", get_peer_ip(peer), strlen(get_peer_ip(peer)))
-	ASSERT_EQUAL(2322, get_peer_port(peer))
+    ASSERT_EQUAL(2222, get_peer_port("127.0.0.1", 4))
+    ASSERT_EQUAL(2222, get_peer_port("127.0.0.2", 4))
 
-	free_files_list(files_list);
+    free_lists();
 
-	add_peer("0.0.0.2", 2222);
-	add_peer_to_file("test_hash", get_peer_from_info("0.0.0.2", 2222));
-
-	files_list = get_files_by_criteria((int (*)(struct files_t*, void*))criteria_filename, "test_file");
-
-	ASSERT_NOT_NULL(files_list)
-	peer = get_peer(get_files_peers(get_file(files_list)));
-	ASSERT_NOT_NULL(peer)
-	ASSERT_ARRAY_EQUAL("0.0.0.2", get_peer_ip(peer), strlen(get_peer_ip(peer)))
-	ASSERT_EQUAL(2222, get_peer_port(peer))
-
-	free_files_list(files_list);
-
-	return 1;
+    return 1;
 }
-*/
+
+
+
+int test__get_peer_port_with_seeder()
+{
+    init_lists();
+
+    add_file_to_list("test_file", 42, 1, "test_hash");
+    add_seeder_to_file("test_hash", 42, 1, "test_hash2", "127.0.0.1", 2222, 4);
+
+    ASSERT_EQUAL(2222, get_peer_port("127.0.0.1", 4))
+    ASSERT_TRUE(is_file_in_list("test_hash2"))
+
+    free_lists();
+
+    return 1;
+}
+
+int test__is_seeder_of_file_without_seeder()
+{
+    init_lists();
+
+    add_file_to_list("test_file", 42, 1, "test_hash");
+
+    ASSERT_FALSE(is_seeder_of_file("test_hash", "218.0.0.1", 2222))
+
+    free_lists();
+
+    return 1;
+}
+
+int test__is_seeder_of_file_with_seeder()
+{
+    init_lists();
+
+    add_seeder_to_file("test_file", 42, 1, "test_hash", "127.0.0.1", 2222, 4);
+
+    ASSERT_TRUE(is_seeder_of_file("test_hash", "127.0.0.1", 2222))
+
+    free_lists();
+
+    return 1;
+}
+
+int test__is_leecher_of_file_without_leecher()
+{
+    init_lists();
+
+    add_file_to_list("test_file", 42, 1, "test_hash");
+
+    ASSERT_FALSE(is_leecher_of_file("test_hash", "127.0.0.1", 2222))
+
+    free_lists();
+
+    return 1;
+}
+
+int test__is_leecher_of_file_with_leecher()
+{
+    init_lists();
+
+    add_file_to_list("test_file", 42, 1, "test_hash");
+    add_leecher_to_file("test_hash", "127.0.0.1", 2222, 4);
+
+    ASSERT_TRUE(is_leecher_of_file("test_hash", "127.0.0.1", 2222))
+
+    free_lists();
+
+    return 1;
+}
+
+int test__remove_seeder_from_file_without_seeder()
+{
+    init_lists();
+
+    add_file_to_list("test_file", 42, 1, "test_hash");
+
+    remove_seeder_from_file("test_hash", "127.0.0.1", 4);
+
+    free_lists();
+
+    return 1;
+}
+
+int test__remove_seeder_from_file_with_seeder()
+{
+    init_lists();
+
+    add_seeder_to_file("test_file", 42, 1, "test_hash", "127.0.0.1", 2222, 4);
+    remove_seeder_from_file("test_hash", "127.0.0.1", 4);
+
+    ASSERT_FALSE(is_seeder_of_file("test_hash", "127.0.0.1", 2222))
+
+    free_lists();
+
+    return 1;
+}
+
+int test__remove_leecher_from_file_without_leecher()
+{
+    init_lists();
+
+    //add_file_to_list("test_file", 42, 1, "test_hash");
+
+    remove_leecher_from_file("test_hash", "127.0.0.1", 4);
+
+    free_lists();
+
+    return 1;
+}
+
+int test__remove_leecher_from_file_with_leecher()
+{
+    init_lists();
+
+    add_file_to_list("test_file", 42, 1, "test_hash");
+    add_leecher_to_file("test_hash", "127.0.0.1", 2222, 4);
+    remove_seeder_from_file("test_hash", "127.0.0.1", 4);
+
+    free_lists();
+
+    return 1;
+}
+
+int test__get_files_with_name_without_file()
+{
+    init_lists();
+
+    unsigned int nb_files = 0;
+    struct file_t** files = get_files_with_name("test_file", &nb_files);
+    ASSERT_EQUAL(0, nb_files)
+
+    free(files);
+    free_lists();
+
+    return 1;
+}
+
+int test__get_files_with_name_with_files()
+{
+    init_lists();
+
+    unsigned int nb_files = 0;
+    add_file_to_list("test_file", 42, 1, "test_hash");
+    add_file_to_list("test_file", 42, 1, "test_hash2");
+    add_file_to_list("test_file2", 42, 1, "test_hash23");
+    struct file_t** files = get_files_with_name("test_file", &nb_files);
+
+    ASSERT_EQUAL(2, nb_files)
+    ASSERT_EQUAL(get_file("test_hash"), files[0])
+    ASSERT_EQUAL(get_file("test_hash2"), files[1])
+
+    free(files);
+    free_lists();
+
+    return 1;
+}
+
+int test__get_files_with_size_equal()
+{
+    init_lists();
+
+    unsigned int nb_files = 0;
+    add_file_to_list("test_file", 42, 1, "test_hash");
+    add_file_to_list("test_file", 42, 1, "test_hash2");
+    add_file_to_list("test_file2", 42, 1, "test_hash23");
+    add_file_to_list("test_file2", 22, 1, "test_hash4");
+    struct file_t** files = get_files_with_size(42, '=', &nb_files);
+
+    ASSERT_EQUAL(3, nb_files)
+    ASSERT_EQUAL(get_file("test_hash"), files[0])
+    ASSERT_EQUAL(get_file("test_hash2"), files[1])
+    ASSERT_EQUAL(get_file("test_hash23"), files[2])
+
+    free(files);
+    free_lists();
+
+    return 1;
+}
+
+int test__get_files_with_size_superior()
+{
+    init_lists();
+
+    unsigned int nb_files = 0;
+    add_file_to_list("test_file", 42, 1, "test_hash");
+    add_file_to_list("test_file", 42, 1, "test_hash2");
+    add_file_to_list("test_file2", 43, 1, "test_hash23");
+    add_file_to_list("test_file2", 22, 1, "test_hash4");
+    struct file_t** files = get_files_with_size(42, '>', &nb_files);
+
+    ASSERT_EQUAL(1, nb_files)
+    ASSERT_EQUAL(get_file("test_hash23"), files[0])
+
+    free(files);
+    free_lists();
+
+    return 1;
+}
+
+int test__get_files_with_size_inferior()
+{
+    init_lists();
+
+    unsigned int nb_files = 0;
+    add_file_to_list("test_file", 42, 1, "test_hash");
+    add_file_to_list("test_file", 42, 1, "test_hash2");
+    add_file_to_list("test_file2", 43, 1, "test_hash23");
+    add_file_to_list("test_file2", 22, 1, "test_hash4");
+    struct file_t** files = get_files_with_size(42, '<', &nb_files);
+
+    ASSERT_EQUAL(1, nb_files)
+    ASSERT_EQUAL(get_file("test_hash4"), files[0])
+
+    free(files);
+    free_lists();
+
+    return 1;
+}
+
+int test__get_files_with_name_and_size_equal()
+{
+    init_lists();
+
+    unsigned int nb_files = 0;
+    add_file_to_list("test_file", 42, 1, "test_hash");
+    add_file_to_list("test_file", 42, 1, "test_hash2");
+    add_file_to_list("test_file2", 42, 1, "test_hash23");
+
+    struct file_t** files = get_files_with_name_and_size("test_file", 42, '=', &nb_files);
+
+    ASSERT_EQUAL(2, nb_files)
+    ASSERT_EQUAL(get_file("test_hash"), files[0])
+    ASSERT_EQUAL(get_file("test_hash2"), files[1])
+
+    free(files);
+    free_lists();
+
+    return 1;
+}
+
+int test__get_files_with_name_and_size_superior()
+{
+    init_lists();
+
+    unsigned int nb_files = 0;
+    add_file_to_list("test_file", 42, 1, "test_hash");
+    add_file_to_list("test_file", 42, 1, "test_hash2");
+    add_file_to_list("test_file2", 43, 1, "test_hash23");
+
+    struct file_t** files = get_files_with_name_and_size("test_file", 42, '>', &nb_files);
+
+    ASSERT_EQUAL(0, nb_files)
+
+    free(files);
+    free_lists();
+
+    return 1;
+}
+
+int test__get_files_with_name_and_size_inferior()
+{
+    init_lists();
+
+    unsigned int nb_files = 0;
+    add_file_to_list("test_file", 41, 1, "test_hash");
+    add_file_to_list("test_file", 42, 1, "test_hash2");
+    add_file_to_list("test_file2", 43, 1, "test_hash23");
+
+    struct file_t** files = get_files_with_name_and_size("test_file", 42, '<', &nb_files);
+
+    ASSERT_EQUAL(1, nb_files)
+    ASSERT_EQUAL(get_file("test_hash"), files[0])
+
+    free(files);
+    free_lists();
+
+    return 1;
+}
+
 void test__data_functions()
 {
-	/*
-	init_lists();
+    TEST_FUNCTION(test__is_file_in_list_without_file)
+    TEST_FUNCTION(test__is_file_in_list_with_file)
 
-	TEST_FUNCTION(test__add_peer)
-	TEST_FUNCTION(test__add_leecher)
-	TEST_FUNCTION(test__add_file)
+    TEST_FUNCTION(test__get_peer_port_without_peer)
+    TEST_FUNCTION(test__get_peer_port_with_leecher)
+    TEST_FUNCTION(test__get_peer_port_with_seeder)
 
-	TEST_FUNCTION(test__get_peer_from_info)
-	TEST_FUNCTION(test__get_leecher_from_info)
+    TEST_FUNCTION(test__is_seeder_of_file_without_seeder)
+    TEST_FUNCTION(test__is_seeder_of_file_with_seeder)
 
-	TEST_FUNCTION(test__add_peer_to_file)
-	TEST_FUNCTION(test__add_leecher_to_file)
+    TEST_FUNCTION(test__is_leecher_of_file_without_leecher)
+    TEST_FUNCTION(test__is_leecher_of_file_with_leecher)
 
-	TEST_FUNCTION(test__get_peers_having_file)
-	TEST_FUNCTION(test__get_leechers_having_file)
+    TEST_FUNCTION(test__remove_seeder_from_file_without_seeder)
+    TEST_FUNCTION(test__remove_seeder_from_file_with_seeder)
 
-	TEST_FUNCTION(test__remove_peer_from_file)
-	TEST_FUNCTION(test__remove_leecher_from_file)
+    TEST_FUNCTION(test__remove_leecher_from_file_without_leecher)
+    TEST_FUNCTION(test__remove_leecher_from_file_with_leecher)
 
-	TEST_FUNCTION(test__add_multiple_peer_to_file)
+    TEST_FUNCTION(test__get_files_with_name_without_file)
+    TEST_FUNCTION(test__get_files_with_name_with_files)
 
-	free_lists();
-	 */
+    TEST_FUNCTION(test__get_files_with_size_equal)
+    TEST_FUNCTION(test__get_files_with_size_superior)
+    TEST_FUNCTION(test__get_files_with_size_inferior)
+
+    TEST_FUNCTION(test__get_files_with_name_and_size_equal)
+    TEST_FUNCTION(test__get_files_with_name_and_size_superior)
+    TEST_FUNCTION(test__get_files_with_name_and_size_inferior)
 }
