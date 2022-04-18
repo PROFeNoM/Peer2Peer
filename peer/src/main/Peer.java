@@ -5,6 +5,7 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 // Peer class
 public class Peer {
@@ -16,7 +17,6 @@ public class Peer {
     private PeerServer peerServer;
     private ArrayList<Seed> seeds;
     Parser parser;
-    private Seed[] files;
 
     // Connect to the tracker and start the peer server
     public void start(String trackerIp, int trackerPort, int peerPort, String seedFolder) {
@@ -210,9 +210,9 @@ public class Peer {
 
     void interested(String key) {
         boolean have = false;
-        for (Seed file : files) {
-            if (file.key.equals(key)) {
-                sendMessageToPeer("have " + file.key + " " + file.buffermap);
+        for (Seed seed : seeds) {
+            if (seed.getKey().equals(key)) {
+                sendMessageToPeer("have " + seed.getKey() + " " + seed.buffermap);
                 have = true;
             }
         }
@@ -222,10 +222,10 @@ public class Peer {
 
     void have(String key, ArrayList<Integer> buffermap) {
         ArrayList<Integer> indexes;
-        for (Seed file : files) {
-            if (file.key.equals(key)) {
-                for (int i ; i < file.buffermap.length ; i++) {
-                    if (file.buffermap[i] == 0 && buffermap.get(i) == 1) {
+        for (Seed seed : seeds) {
+            if (seed.key.equals(key)) {
+                for (int i ; i < seed.buffermap.length ; i++) {
+                    if (seed.buffermap.get(i) == 0 && buffermap.get(i) == 1) {
                         indexes.add(i);
                     }
                 }
@@ -235,27 +235,28 @@ public class Peer {
     }
 
     void getPieces(String key, ArrayList<Integer> indexes) {
-        ArrayList<byte[]> bytes;
-        for (Seed file : files) {
-            if (file.key.equals(key)) {
+        ArrayList<String> bytes = new ArrayList<String>();
+        String seedKey;
+        for (Seed seed : seeds) {
+            if (seed.getKey().equals(key)) {
+                seedKey = seed.getKey();
                 for (int id : indexes)
                     try {
-                        FileInputStream fis = new FileInputStream(file.name);
-                        byte[] byteArray = new byte[file.pieceSize];
-                        int bytesCount = 0;
-        
-                        bytesCount = fis.read(byteArray, file.pieceSize*indexes.get(id));
-                        bytes.add(byteArray);
+                        FileInputStream fis = new FileInputStream(seed.getName());
+                        byte[] byteArray = new byte[seed.pieceSize];
+                        int bytesCount = fis.read(byteArray, seed.pieceSize*indexes.get(id), seed.pieceSize);
+                        bytes.add(id+":"+byteArray);
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
                         throw new RuntimeException(e);
                     }
             }
         }
+        sendMessageToPeer(seedKey+" "+bytes.stream().map(Object::toString).collect(Collectors.joining(" ")));
     }
 
     void data(List<String> args) {
-
+        
     }
 
     void ok(List<String> args) {
