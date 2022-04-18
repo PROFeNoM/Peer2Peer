@@ -224,14 +224,14 @@ public class Peer {
         ArrayList<Integer> indexes;
         for (Seed seed : seeds) {
             if (seed.key.equals(key)) {
-                for (int i ; i < seed.buffermap.length ; i++) {
+                for (int i ; i < seed.buffermap.size() ; i++) {
                     if (seed.buffermap.get(i) == 0 && buffermap.get(i) == 1) {
                         indexes.add(i);
                     }
                 }
             }
         }
-        getPieces(key, indexes);
+        sendMessageToPeer("getpieces"+" "+indexes.stream().map(Object::toString).collect(Collectors.joining(" ")));
     }
 
     void getPieces(String key, ArrayList<Integer> indexes) {
@@ -252,7 +252,7 @@ public class Peer {
                     }
             }
         }
-        sendMessageToPeer(seedKey+" "+bytes.stream().map(Object::toString).collect(Collectors.joining(" ")));
+        sendMessageToPeer("data"+" "+seedKey+" "+bytes.stream().map(Object::toString).collect(Collectors.joining(" ")));
     }
 
     void data(List<String> args) {
@@ -264,10 +264,6 @@ public class Peer {
     }
 
     void peers(List<String> args) {
-
-    }
-
-    void list(List<String> args) {
 
     }
 }
