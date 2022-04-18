@@ -10,7 +10,6 @@ import java.util.Scanner;
 class Parser {
     String method;
     List<String> args;
-    private boolean toTracker = false;
 
     void parse(String command) {
         String delimiter = " ";
@@ -20,16 +19,5 @@ class Parser {
         
         this.method = this.args.get(0);
         this.args.remove(0);
-    }
-
-    void redirectSending() {
-        List<String> trackerMethods = new ArrayList<String>();
-        trackerMethods.add("announce"); 
-        trackerMethods.add("look");
-        trackerMethods.add("getfiles");
-
-        if (trackerMethods.contains(this.method)) {
-            this.toTracker = true;
-        }
     }
 }

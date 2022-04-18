@@ -2,6 +2,7 @@ package peer.src.main;
 
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -14,6 +15,7 @@ public class Peer {
     private BufferedReader trackerIn;
     private PeerServer peerServer;
     Parser parser;
+    private Seed[] files;
 
     // Connect to the tracker and start the peer server
     public void start(String trackerIp, int trackerPort, int peerPort) {
@@ -173,16 +175,50 @@ public class Peer {
         }
     }
 
-    void interested(List<String> args) {
-
+    void interested(String key) {
+        boolean have = false;
+        for (Seed file : files) {
+            if (file.key.equals(key)) {
+                sendMessageToPeer("have " + file.key + " " + file.buffermap);
+                have = true;
+            }
+        }
+        if (!have)
+            sendMessageToPeer("have not");
     }
 
-    void have(List<String> args) {
-
+    void have(String key, ArrayList<Integer> buffermap) {
+        ArrayList<Integer> indexes;
+        for (Seed file : files) {
+            if (file.key.equals(key)) {
+                for (int i ; i < file.buffermap.length ; i++) {
+                    if (file.buffermap[i] == 0 && buffermap.get(i) == 1) {
+                        indexes.add(i);
+                    }
+                }
+            }
+        }
+        getPieces(key, indexes);
     }
 
-    void getpieces(List<String> args) {
+    void getPieces(String key, ArrayList<Integer> indexes) {
+        ArrayList<byte[]> bytes;
+        for (Seed file : files) {
+            if (file.key.equals(key)) {
+                for (int id : indexes)
+                    try {
+                        FileInputStream fis = new FileInputStream(file.name);
+                        byte[] byteArray = new byte[file.pieceSize];
+                        int bytesCount = 0;
         
+                        bytesCount = fis.read(byteArray, file.pieceSize*indexes.get(id));
+                        bytes.add(byteArray);
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                        throw new RuntimeException(e);
+                    }
+            }
+        }
     }
 
     void data(List<String> args) {
