@@ -18,7 +18,7 @@ public class Peer {
     private ArrayList<Seed> seeds;
     Parser parser;
 
-    // Connect to the tracker and start the peer server
+    // Find files to seed, connect to the tracker and start the peer server
     public void start(String trackerIp, int trackerPort, int peerPort, String seedFolder) {
         seeds = findSeeds(seedFolder);
         connectToTracker(trackerIp, trackerPort);
@@ -55,6 +55,7 @@ public class Peer {
                 System.out.println("Announced to tracker");
             } else {
                 System.out.println("Failed to announce to tracker: " + response);
+                System.exit(1);
             }
         } catch (IOException e) {
             System.out.println("Failed to announce to tracker: " + e.getMessage());
@@ -67,7 +68,7 @@ public class Peer {
         seeds = new ArrayList<Seed>();
         File folder = new File(seedFolder);
         File[] listOfFiles = folder.listFiles();
-        
+
         if (listOfFiles == null) {
             System.out.println("No seeds found");
             return seeds;
@@ -197,7 +198,7 @@ public class Peer {
         System.out.println("Connected to peer on port " + port);
     }
 
-    void ProcessResponse() {
+    void processResponse() {
         java.lang.reflect.Method method;
         try {
             method = this.getClass().getMethod(parser.method);
@@ -206,6 +207,9 @@ public class Peer {
             System.out.println(e.getMessage());
             throw new RuntimeException(e);
         }
+    }
+
+    void sendMessageToPeer(String msg) {
     }
 
     void interested(String key) {
@@ -221,17 +225,17 @@ public class Peer {
     }
 
     void have(String key, ArrayList<Integer> buffermap) {
-        ArrayList<Integer> indexes;
+        ArrayList<Integer> indexes = new ArrayList<Integer>();
         for (Seed seed : seeds) {
             if (seed.key.equals(key)) {
-                for (int i ; i < seed.buffermap.size() ; i++) {
+                for (int i = 0; i < seed.buffermap.size(); i++) {
                     if (seed.buffermap.get(i) == 0 && buffermap.get(i) == 1) {
                         indexes.add(i);
                     }
                 }
             }
         }
-        sendMessageToPeer("getpieces"+" "+indexes.stream().map(Object::toString).collect(Collectors.joining(" ")));
+        sendMessageToPeer("getpieces" + " " + indexes.stream().map(Object::toString).collect(Collectors.joining(" ")));
     }
 
     void getPieces(String key, ArrayList<Integer> indexes) {
@@ -244,19 +248,22 @@ public class Peer {
                     try {
                         FileInputStream fis = new FileInputStream(seed.getName());
                         byte[] byteArray = new byte[seed.pieceSize];
-                        int bytesCount = fis.read(byteArray, seed.pieceSize*indexes.get(id), seed.pieceSize);
-                        bytes.add(id+":"+byteArray);
+                        int bytesCount = fis.read(byteArray, seed.pieceSize * indexes.get(id), seed.pieceSize);
+                        bytes.add(id + ":" + byteArray);
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
                         throw new RuntimeException(e);
                     }
+
+                sendMessageToPeer(
+                        "data" + " " + seedKey + " "
+                                + bytes.stream().map(Object::toString).collect(Collectors.joining(" ")));
             }
         }
-        sendMessageToPeer("data"+" "+seedKey+" "+bytes.stream().map(Object::toString).collect(Collectors.joining(" ")));
     }
 
     void data(List<String> args) {
-        
+
     }
 
     void ok(List<String> args) {
@@ -264,6 +271,10 @@ public class Peer {
     }
 
     void peers(List<String> args) {
+
+    }
+
+    void getFile(List<String> args) {
 
     }
 }
