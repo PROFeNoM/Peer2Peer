@@ -26,6 +26,12 @@ public class Seed {
 
     private File openFile(String path) {
         File file = new File(path);
+
+        if (!file.exists()) {
+            System.out.println("File does not exist");
+            System.exit(1);
+        }
+
         return file;
     }
 
@@ -40,7 +46,7 @@ public class Seed {
             }else {
                 bufferMaped.add(0);
             }
-            System.out.println(bufferMaped);
+//            System.out.println(bufferMaped);
             bufferMap >>= 1;
         }
         return bufferMaped; // trouver un moyen de reverse la liste
@@ -48,6 +54,6 @@ public class Seed {
     }
 
     public String toString() {
-        return getName() + " " + file.length() + " " + getKey();
+        return getName() + " " + file.length() + " " + pieceSize + " " + getKey();
     }
 }
