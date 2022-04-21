@@ -101,6 +101,9 @@ struct file_t** get_files_with_size(unsigned int size, char operator, unsigned i
  */
 struct file_t** get_files_with_name_and_size(char* name, unsigned int size, char operator, unsigned int* nb_files);
 
+/*
+ * Free the list of files and peers
+ */
 void free_lists();
 
 #endif //_DATA_H

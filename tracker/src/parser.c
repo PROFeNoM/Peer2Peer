@@ -5,6 +5,7 @@
 
 #include "include/parser.h"
 #include "include/data.h"
+#include "include/utils.h"
 
 #define KNOWN_REQUEST_REGEX "^(announce|look|getfile|update).*"
 #define ANNOUNCE_REQUEST_REGEX "^announce listen [0-9]*\\( seed \\[\\(.* [0-9]\\+ [0-9]\\+ \\w\\+\\s\\?\\)\\+\\]\\)\\?\\( leech \\[.*\\]\\)\\?\\s*$"
@@ -58,6 +59,7 @@ int is_request_type_known(char* request)
  */
 int is_request_valid(char* request, enum REQUEST_T request_t)
 {
+	debug_log("[PARSER_LOG] Checking request validity\n");
 	regex_t regex;
 	int reti;
 
@@ -149,6 +151,7 @@ void remove_characters(char* str, char to_remove[])
 
 char* parse_announce(char* request, char* ip, int sockfd)
 {
+	debug_log("[PARSER_LOG] Parsing announce request\n");
 	remove_characters(request, "[]");
 
 	char* tokens[MAX_TOKENS];
@@ -159,9 +162,10 @@ char* parse_announce(char* request, char* ip, int sockfd)
 	int i = 0;
 	while (i < size_tokens)
 	{
-		printf("At token %d: %s\n", i, tokens[i]);
+		debug_log("[PARSER_LOG] At token %d: %s\n", i, tokens[i]);
 		if (strcmp("listen", tokens[i]) == 0)
 		{
+			debug_log("[PARSER_LOG] Processing listen\n");
 			processing_listen = 1;
 			processing_seed = 0;
 			processing_leech = 0;
@@ -170,6 +174,7 @@ char* parse_announce(char* request, char* ip, int sockfd)
 		}
 		else if (strcmp("seed", tokens[i]) == 0)
 		{
+			debug_log("[PARSER_LOG] Processing seed\n");
 			processing_listen = 0;
 			processing_seed = 1;
 			processing_leech = 0;
@@ -178,6 +183,7 @@ char* parse_announce(char* request, char* ip, int sockfd)
 		}
 		else if (strcmp("leech", tokens[i]) == 0)
 		{
+			debug_log("[PARSER_LOG] Processing leech\n");
 			processing_listen = 0;
 			processing_seed = 0;
 			processing_leech = 1;
@@ -187,12 +193,12 @@ char* parse_announce(char* request, char* ip, int sockfd)
 		else if (processing_listen)
 		{
 			port = atoi(tokens[i]);
-
+			debug_log("[PARSER_LOG] Port token is %d\n", port);
 			i++;
 		}
 		else if (processing_seed)
 		{
-			printf("[LOG] Processing seed\n");
+			debug_log("[PARSER_LOG] Processing seed\n");
 			char* file_name = tokens[i];
 			remove_characters(file_name, "\n");
 			unsigned int size = atoi(tokens[i + 1]);
@@ -206,7 +212,7 @@ char* parse_announce(char* request, char* ip, int sockfd)
 		}
 		else if (processing_leech)
 		{
-			printf("[LOG] Processing leech\n");
+			debug_log("[PARSER_LOG] Processing leech\n");
 			char* key = tokens[i];
 			remove_characters(key, "\n");
 			add_leecher_to_file(key, ip, port, sockfd);
@@ -285,6 +291,7 @@ unsigned int tokenize_criteria(char* str, char delimiters[], char* tokens[], cha
 
 char* parse_look(char* request)
 {
+	debug_log("[PARSER_LOG] Processing look request\n");
 	char* tokens[MAX_TOKENS];
 	int size_tokens = split(request, " ", tokens, MAX_TOKENS);
 
@@ -306,16 +313,16 @@ char* parse_look(char* request)
 		// Check if sub_tokens[0] is either filename or filesize
 		if (strcmp("filename", sub_tokens[0]) == 0 && sub_tokens[1])
 		{
-			printf("[LOG] Analyze filename set to true\n");
-            printf("[LOG] filename: %s\n", sub_tokens[1]);
+			debug_log("[PARSER_LOG] Analyze filename set to true\n");
+            debug_log("[PARSER_LOG] filename: %s\n", sub_tokens[1]);
 			filename = malloc(sizeof(char) * strlen(sub_tokens[1]) + 1);
 			strcpy(filename, sub_tokens[1]);
 			filename_on = 1;
 		}
 		else if (strcmp("filesize", sub_tokens[0]) == 0 && sub_tokens[1])
 		{
-			printf("[LOG] Analyze filesize set to true\n");
-            printf("[LOG] filesize: %s\n", sub_tokens[1]);
+			debug_log("[PARSER_LOG] Analyze filesize set to true\n");
+            debug_log("[PARSER_LOG] filesize: %s\n", sub_tokens[1]);
 			filesize = atoi(sub_tokens[1]);
 			operator = _op[0][0];
 			filesize_on = 1;
@@ -370,12 +377,7 @@ char* parse_look(char* request)
 
 char* parse_getfile(char* request)
 {
-	/*
-	 * Given a request of the form:
-	 * getfile $file_key
-	 * return a message of the form:
-	 * seeders $file_key [$ip1:$port1 $ip2:$port2 ...]
-	 */
+	debug_log("[PARSER_LOG] Processing getfile request\n");
 
 	// Get the file key
 	char* file_key = strtok(request, " ");
@@ -412,10 +414,8 @@ char* parse_getfile(char* request)
 
 char* parse_update(char* request, char* ip, int sockfd)
 {
-	/*
-	 * Given a request of the form:
-	 * update seed [$key1 $key2 ...] leech [$key1 $key2 ...]
-	 */
+	debug_log("[PARSER_LOG] Processing update request\n");
+
 	int port = get_peer_port(ip, sockfd);
 	if (port == -1) return "nok\n";
 
@@ -460,24 +460,4 @@ char* parse_update(char* request, char* ip, int sockfd)
 	}
 
 	return "ok\n";
-}
-
-/*
- * Split a message for every blank space
- * @param message - Message to split
- * @param spliter - Array to fill
- */
-int split(char message[], char* separator, char* tokens[], int max_tokens)
-{
-	int i = 0;
-	char* token = strtok(message, separator);
-
-	while (token != NULL && i < max_tokens)
-	{
-		tokens[i] = token;
-		token = strtok(NULL, separator);
-		i++;
-	}
-
-	return i;
 }
