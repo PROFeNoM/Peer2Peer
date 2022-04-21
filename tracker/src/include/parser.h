@@ -17,8 +17,4 @@ char* parse_look(char* request);
 char* parse_getfile(char* request);
 char* parse_update(char* request, char* ip, int sockfd);
 
-int split(char message[], char* separator, char* tokens[], int max_tokens);
-
-void set_parser_verbosity(int verbosity);
-
 #endif //_PARSER_H

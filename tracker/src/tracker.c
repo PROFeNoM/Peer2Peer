@@ -7,54 +7,36 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <pthread.h>
-#include <stdarg.h>
 #include <signal.h>
 
 #include "include/tracker.h"
 #include "include/parser.h"
 #include "include/data.h"
+#include "include/utils.h"
 
 #define UNUSED(x) (void)(x)
 
-int tracker_verbose = 0;
 int socket_fd;
-
-void tracker_log(const char* fmt, ...)
-{
-	if (tracker_verbose)
-	{
-		va_list args;
-		va_start(args, fmt);
-		vfprintf(stdout, fmt, args);
-		va_end(args);
-	}
-}
-
-void set_tracker_verbosity(int verbosity)
-{
-	tracker_verbose = verbosity;
-	tracker_log("[TRACKER_LOG] Activating verbose mode\n");
-}
 
 // Define a SIGINT handler
 void sigint_handler(int sig)
 {
 	UNUSED(sig);
-	tracker_log("\n[TRACKER_LOG] SIGINT received, exiting...\n");
+	debug_log("\n[TRACKER_LOG] SIGINT received, exiting...\n");
 
 	struct peer_t* peer;
 	TAILQ_FOREACH(peer, &peers_list, entry)
 	{
-		tracker_log("[TRACKER_LOG] Closing peer %s:%d with sockfd %d\n", peer->ip, peer->port, peer->sockfd);
+		debug_log("[TRACKER_LOG] Closing peer %s:%d with sockfd %d\n", peer->ip, peer->port, peer->sockfd);
 		shutdown(peer->sockfd, SHUT_RDWR);
 		close(peer->sockfd);
 	}
 
-	tracker_log("[TRACKER_LOG] Closing socket %d\n", socket_fd);
+	debug_log("[TRACKER_LOG] Closing socket %d\n", socket_fd);
 	shutdown(socket_fd, SHUT_RDWR);
 	close(socket_fd);
 
-	tracker_log("[TRACKER_LOG] Exiting...\n");
+	debug_log("[TRACKER_LOG] Exiting...\n");
 	exit(0);
 }
 
@@ -106,25 +88,23 @@ int main(int argc, char* argv[])
 		if (!strcmp("tracker-port", tokens[i][0]))
 		{
 			port = atoi(tokens[i][2]);
-			tracker_log("[TRACKER_LOG] port: %d\n", port);
+			debug_log("[TRACKER_LOG] port: %d\n", port);
 		}
 		else if (!strcmp("tracker-address", tokens[i][0]))
 		{
 			strcpy(address, tokens[i][2]);
-			tracker_log("[TRACKER_LOG] adresse: %s", address);
+			debug_log("[TRACKER_LOG] adresse: %s", address);
 		}
 		else if (!strcmp("verbose", tokens[i][0]))
 		{
 			verbose = atoi(tokens[i][2]);
-			set_data_verbosity(verbose);
-			set_parser_verbosity(verbose);
-			set_tracker_verbosity(verbose);
-			tracker_log("[TRACKER_LOG] verbose: %d\n", verbose);
+			set_verbosity(verbose);
+			debug_log("[TRACKER_LOG] verbose: %d\n", verbose);
 		}
 		else if (!strcmp("maximum-peers", tokens[i][0]))
 		{
 			maximum_peers = atoi(tokens[i][2]);
-			tracker_log("[TRACKER_LOG] maximum-peers: %d\n", maximum_peers);
+			debug_log("[TRACKER_LOG] maximum-peers: %d\n", maximum_peers);
 		}
 
 		i++;
@@ -141,7 +121,7 @@ int main(int argc, char* argv[])
 		error("Error setting socket options\n");
 	}
 
-	tracker_log("[TRACKER_LOG] Socket successfully created\n");
+	debug_log("[TRACKER_LOG] Socket successfully created\n");
 
 	// initialize the server socket's structure
 	bzero((char*)&server, sizeof(server));
@@ -154,15 +134,15 @@ int main(int argc, char* argv[])
 	if (bind(socket_fd, (struct sockaddr*)&server, sizeof(server)) < 0)
 		error("Error binding the socket to the server\n");
 
-	tracker_log("[TRACKER_LOG] Socket successfully bound\n");
+	debug_log("[TRACKER_LOG] Socket successfully bound\n");
 
 
 	// Set maximum number of entries & listen
 	if (listen(socket_fd, maximum_peers) < -1) error("Error listening to incoming connections\n");
 	char server_ip[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &server.sin_addr, server_ip, INET_ADDRSTRLEN);
-	tracker_log("[TRACKER_LOG] Tracker %s:%d has started\n", server_ip, port);
-	tracker_log("[TRACKER_LOG] Tracker waiting for an incoming connection...\n");
+	debug_log("[TRACKER_LOG] Tracker %s:%d has started\n", server_ip, port);
+	debug_log("[TRACKER_LOG] Tracker waiting for an incoming connection...\n");
 	c = sizeof(struct sockaddr_in);
 
 	// Listen for incoming connections
@@ -183,7 +163,7 @@ int main(int argc, char* argv[])
 		if (pthread_create(&sniffer_thread, NULL, connection_handler, (void*)args) < 0)
 			error("Error creating client's thread\n");
 
-		tracker_log("[TRACKER_LOG] Handler assigned\n");
+		debug_log("[TRACKER_LOG] Handler assigned\n");
 
 		// Now join the thread, so that we don't terminate before the thread
 		// pthread_join(sniffer_thread, NULL);
@@ -208,36 +188,36 @@ void* connection_handler(void* args)
 	//Receive a message from client
 	while ((read_size = recv(sock, client_message, 2000, 0)) > 0)
 	{
-		tracker_log("\n[TRACKER_LOG] Received %s", client_message);
+		debug_log("\n[TRACKER_LOG] Received %s", client_message);
 
-		tracker_log("[TRACKER_LOG] Analyzing message...\n");
+		debug_log("[TRACKER_LOG] Analyzing message...\n");
 		enum REQUEST_T request_t = get_request_type(client_message);
 
 		switch (request_t)
 		{
 		case ANNOUNCE:
-			tracker_log("[TRACKER_LOG] Announce request\n");
+			debug_log("[TRACKER_LOG] Announce request\n");
 			result = parse_announce(client_message, ip, sock);
-			tracker_log("[TRACKER_LOG] Announce response: %s\n", result);
+			debug_log("[TRACKER_LOG] Announce response: %s\n", result);
 			write(sock, result, strlen(result));
-			tracker_log("[TRACKER_LOG] Sent %s\n", result);
+			debug_log("[TRACKER_LOG] Sent %s\n", result);
 			break;
 		case LOOK:
 			result = parse_look(client_message);
 			write(sock, result, strlen(result));
-			tracker_log("[TRACKER_LOG] Sent %s\n", result);
+			debug_log("[TRACKER_LOG] Sent %s\n", result);
 			free(result);
 			break;
 		case GETFILE:
 			result = parse_getfile(client_message);
 			write(sock, result, strlen(result));
-			tracker_log("[TRACKER_LOG] Sent %s\n", result);
+			debug_log("[TRACKER_LOG] Sent %s\n", result);
 			free(result);
 			break;
 		case UPDATE:
 			result = parse_update(client_message, ip, sock);
 			write(sock, result, strlen(result));
-			tracker_log("[TRACKER_LOG] Sent %s\n", result);
+			debug_log("[TRACKER_LOG] Sent %s\n", result);
 			break;
 		case INVALID:
 			write(sock, "INVALID\n", strlen("INVALID\n"));
@@ -246,7 +226,7 @@ void* connection_handler(void* args)
 			write(sock, "UNKNOWN\n", strlen("UNKNOWN\n"));
 			break;
 		}
-		tracker_log("[TRACKER_LOG] Response sent\n");
+		debug_log("[TRACKER_LOG] Response sent\n");
 
 		// clear the buffer of client_message
 		memset(client_message, 0, sizeof(client_message));
