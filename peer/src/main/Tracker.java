@@ -10,25 +10,17 @@ public class Tracker {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
-    
+
     Tracker(String ip, int port) {
         this.ip = ip;
         this.port = port;
     }
 
     // Connect to the tracker on the given ip and port
-    public void connect() {
-        try {
-            socket = new Socket(ip, port);
-            out = new PrintWriter(socket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        } catch (UnknownHostException e) {
-            System.out.println("Cannot connect to tracker: " + e.getMessage());
-            System.exit(1);
-        } catch (IOException e) {
-            System.out.println("Cannot connect to tracker: " + e.getMessage());
-            System.exit(1);
-        }
+    public void connect() throws IOException, UnknownHostException {
+        socket = new Socket(ip, port);
+        out = new PrintWriter(socket.getOutputStream(), true);
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
 
     // Send the initial announce message to the tracker
@@ -42,17 +34,17 @@ public class Tracker {
         try {
             String response = in.readLine();
             if (response.equals("ok")) {
-                System.out.println("Announced to tracker");
+                Logger.log(getClass().getSimpleName(), "Announced to tracker");
             } else {
-                System.out.println("Failed to announce to tracker: " + response);
+                Logger.error(getClass().getSimpleName(), "Failed to announce to tracker: " + response);
                 System.exit(1);
             }
         } catch (IOException e) {
-            System.out.println("Failed to announce to tracker: " + e.getMessage());
+            Logger.error(getClass().getSimpleName(), "Failed to announce to tracker: " + e.getMessage());
             System.exit(1);
         }
     }
-    
+
     // Send a message to the tracker and return the response
     public String sendMessage(String msg) {
         out.println(msg);
@@ -60,7 +52,7 @@ public class Tracker {
         try {
             response = in.readLine();
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            Logger.error(getClass().getSimpleName(), e.getMessage());
             System.exit(1);
         }
         return response;
@@ -74,7 +66,7 @@ public class Tracker {
             in.close();
             out.close();
         } catch (IOException e) {
-            System.out.println("Error while stopping tracker: " + e.getMessage());
+            Logger.error(getClass().getSimpleName(), "Error while stopping tracker: " + e.getMessage());
             System.exit(1);
         }
     }

@@ -18,7 +18,12 @@ public class Peer {
     // Find files to seed, connect to the tracker and start the peer server
     public void start(String trackerIp, int trackerPort, int peerPort, String seedFolder) {
         tracker = new Tracker(trackerIp, trackerPort);
-        tracker.connect();
+        try {
+            tracker.connect();
+        } catch (IOException e) {
+            Logger.error(getClass().getSimpleName(), "Failed to connect to tracker: " + e.getMessage());
+            System.exit(1);
+        }
         seeds = findSeeds(seedFolder);
         tracker.announce(peerPort, getSeeds(), getLeeches());
         startServer(peerPort);
@@ -31,7 +36,7 @@ public class Peer {
         File[] listOfFiles = folder.listFiles();
 
         if (listOfFiles == null) {
-            System.out.println("No seeds found");
+            Logger.log(getClass().getSimpleName(), "No seeds found");
             return seeds;
         }
 
@@ -41,7 +46,7 @@ public class Peer {
             }
         }
 
-        System.out.println("Seeds found: " + seeds.size());
+        Logger.log(getClass().getSimpleName(), "Seeds found: " + seeds.size());
 
         return seeds;
     }
@@ -67,16 +72,16 @@ public class Peer {
     // Start a server on given port
     void startServer(int port) {
         if (peerServer != null) {
-            System.out.println("Server already started");
+            Logger.warn(getClass().getSimpleName(), "Server already started");
             return;
         }
 
         try {
             peerServer = new PeerServer(port);
             peerServer.start();
-            System.out.println("Server started on port " + port);
+            Logger.log(getClass().getSimpleName(), "Server started on port " + port);
         } catch (IOException e) {
-            System.out.println("Cannot start server: " + e.getMessage());
+            Logger.error(getClass().getSimpleName(), "Cannot start server: " + e.getMessage());
             System.exit(1);
         }
     }
@@ -101,12 +106,12 @@ public class Peer {
                 }
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            Logger.error(getClass().getSimpleName(), e.getMessage());
         } finally {
             try {
                 in.close();
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                Logger.error(getClass().getSimpleName(), e.getMessage());
             }
         }
     }
@@ -122,7 +127,7 @@ public class Peer {
             tracker.stop();
             peerServer.close();
         } catch (IOException e) {
-            System.out.println("Error while stopping peer: " + e.getMessage());
+            Logger.error(getClass().getSimpleName(), "Error while stopping peer: " + e.getMessage());
             System.exit(1);
         }
     }
@@ -134,13 +139,13 @@ public class Peer {
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         } catch (UnknownHostException e) {
-            System.out.println("Cannot connect to peer: " + e.getMessage());
+            Logger.error(getClass().getSimpleName(), "Cannot connect to peer: " + e.getMessage());
             System.exit(1);
         } catch (IOException e) {
-            System.out.println("Cannot connect to peer: " + e.getMessage());
+            Logger.error(getClass().getSimpleName(), "Cannot connect to peer: " + e.getMessage());
             System.exit(1);
         }
-        System.out.println("Connected to peer on port " + port);
+        Logger.log(getClass().getSimpleName(), "Connected to peer on port " + port);
     }
 
     void processResponse() {
@@ -149,7 +154,7 @@ public class Peer {
             method = this.getClass().getMethod(parser.method);
             method.invoke(parser.method, parser.args);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            Logger.error(e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -195,7 +200,7 @@ public class Peer {
                                 seed.getPieceSize());
                         bytes.add(id + ":" + byteArray);
                     } catch (Exception e) {
-                        System.out.println(e.getMessage());
+                        Logger.error(getClass().getSimpleName(), e.getMessage());
                         throw new RuntimeException(e);
                     }
 

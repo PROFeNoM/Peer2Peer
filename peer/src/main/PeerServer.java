@@ -16,11 +16,11 @@ public class PeerServer extends Thread {
         try {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("Peer connected");
+                Logger.log(getClass().getSimpleName(), "Peer connected");
                 new ClientHandler(clientSocket).start();
             }
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            Logger.error(getClass().getSimpleName(), e.getMessage());
         }
     }
 

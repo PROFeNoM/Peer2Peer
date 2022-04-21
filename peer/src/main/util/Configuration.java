@@ -1,5 +1,7 @@
 package peer.src.main.util;
 
+import peer.src.main.Logger;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -15,13 +17,13 @@ public class Configuration {
             prop.load(new FileInputStream(CONFIG_FILE));
 
         } catch (FileNotFoundException e) {
-            System.out.println("Cannot find config file: " + e.getMessage());
+            Logger.error(getClass().getSimpleName(), "Cannot find config file: " + e.getMessage());
             System.exit(1);
         } catch (IOException e) {
-            System.out.println("Cannot read config file: " + e.getMessage());
+            Logger.error(getClass().getSimpleName(), "Cannot read config file: " + e.getMessage());
             System.exit(1);
         }
-        System.out.println("Configuration file " + CONFIG_FILE + " loaded");
+        Logger.log(getClass().getSimpleName(), "Configuration file " + CONFIG_FILE + " loaded");
     }
 
     public static Configuration getInstance() {
