@@ -5,16 +5,18 @@ import java.util.Arrays;
 import java.util.List;
 
 class Parser {
-    String method;
-    List<String> args;
 
-    void parse(String command) {
+    static List<Object> parse(String command) {
         String delimiter = " ";
-        String[] toparse = command.split(delimiter);
+        String method;
+        List<String> args;
 
-        this.args = new ArrayList<>(Arrays.asList(toparse));
+        String[] toparse = command.split(delimiter);
+        args = new ArrayList<>(Arrays.asList(toparse));
+
+        method = args.get(0);
+        args.remove(0);
         
-        this.method = this.args.get(0);
-        this.args.remove(0);
+        return Arrays.asList(method, args);
     }
 }

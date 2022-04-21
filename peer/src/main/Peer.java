@@ -1,5 +1,7 @@
 package peer.src.main;
 
+import peer.src.main.Parser;
+
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
@@ -13,7 +15,6 @@ public class Peer {
     private Tracker tracker;
     private PeerServer peerServer;
     private ArrayList<Seed> seeds;
-    Parser parser;
 
     // Find files to seed, connect to the tracker and start the peer server
     public void start(String trackerIp, int trackerPort, int peerPort, String seedFolder) {
@@ -148,14 +149,27 @@ public class Peer {
         Logger.log(getClass().getSimpleName(), "Connected to peer on port " + port);
     }
 
-    void processResponse() {
-        java.lang.reflect.Method method;
-        try {
-            method = this.getClass().getMethod(parser.method);
-            method.invoke(parser.method, parser.args);
-        } catch (Exception e) {
-            Logger.error(e.getMessage());
-            throw new RuntimeException(e);
+    void processResponse(String response) {
+        List<Object> parsed = Parser.parse(response);
+        String method = (String) parsed.get(0);
+        List<String> args = (List<String>) parsed.get(1);
+
+        switch(method){
+            case "interested":
+                interested((String) args.get(0));
+                break;
+            
+            case "have":
+                break;
+
+            case "getPieces":
+                break;
+
+            case "data":
+                break;
+        
+            case "peers":
+                break;
         }
     }
 
@@ -220,10 +234,6 @@ public class Peer {
     }
 
     void peers(List<String> args) {
-
-    }
-
-    void getFile(List<String> args) {
 
     }
 }
