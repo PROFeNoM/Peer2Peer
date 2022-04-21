@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 public class Peer {
     private Socket clientSocket;
     private Tracker tracker;
-    private ServerSocket serverSocket;
     private PeerServer peerServer;
     private ArrayList<Seed> seeds;
 
@@ -75,8 +74,7 @@ public class Peer {
         }
 
         try {
-            serverSocket = new ServerSocket(port);
-            peerServer = new PeerServer(serverSocket);
+            peerServer = new PeerServer(port);
             peerServer.start();
             System.out.println("Server started on port " + port);
         } catch (IOException e) {
@@ -124,7 +122,7 @@ public class Peer {
     public void stop() {
         try {
             tracker.stop();
-            serverSocket.close();
+            peerServer.close();
         } catch (IOException e) {
             System.out.println("Error while stopping peer: " + e.getMessage());
             System.exit(1);
@@ -209,7 +207,8 @@ public class Peer {
                     try {
                         FileInputStream fis = new FileInputStream(seed.getName());
                         byte[] byteArray = new byte[seed.getPieceSize()];
-                        int bytesCount = fis.read(byteArray, seed.getPieceSize() * indexes.get(id), seed.getPieceSize());
+                        int bytesCount = fis.read(byteArray, seed.getPieceSize() * indexes.get(id),
+                                seed.getPieceSize());
                         bytes.add(id + ":" + byteArray);
                     } catch (Exception e) {
                         System.out.println(e.getMessage());

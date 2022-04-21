@@ -3,24 +3,28 @@ package peer.src.main;
 import java.io.*;
 import java.net.*;
 
-// Class for starting the peer server and listen for connections
+// Server to listen for connections from peers
 public class PeerServer extends Thread {
-    private ServerSocket socket;
+    private ServerSocket serverSocket;
 
-    public PeerServer(ServerSocket socket) {
-        this.socket = socket;
+    public PeerServer(int port) throws IOException {
+        serverSocket = new ServerSocket(port);
     }
 
     @Override
     public void run() {
         try {
             while (true) {
-                Socket clientSocket = socket.accept();
-                System.out.println("Connected to a peer");
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Peer connected");
                 new ClientHandler(clientSocket).start();
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public void close() throws IOException {
+        serverSocket.close();
     }
 }
