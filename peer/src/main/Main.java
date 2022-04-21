@@ -26,7 +26,7 @@ public class Main {
                 : Integer.parseInt(System.getProperty("peerPort"));
 
         Peer peer = new Peer();
-        peer.start(trackerIp, trackerPort, peerPort, "seeds");
+        peer.start(trackerIp, trackerPort, peerPort);
         peer.run();
         peer.stop();
     }

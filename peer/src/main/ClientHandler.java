@@ -26,6 +26,7 @@ public class ClientHandler extends Thread {
             while ((inputLine = in.readLine()) != null) {
                 if (!inputLine.isEmpty())
                     System.out.println("[client]: " + inputLine);
+                    Parser.parseRequest(inputLine, this);
 
                 if (inputLine.equals(".")) {
                     out.println("good bye");
@@ -43,5 +44,15 @@ public class ClientHandler extends Thread {
                 System.out.println("Error while closing connection to client: " + e);
             }
         }
+    }
+
+    void interested(String key) {
+        for (Seed seed : SeedManager.getInstance().getSeeds()) {
+            if (seed.getKey().equals(key)) {
+                out.println("have " + seed.getKey() + " " + seed.getBuffermap());
+                return;
+            }
+        }
+        out.println("have not");
     }
 }

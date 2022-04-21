@@ -6,8 +6,16 @@ import java.util.stream.Collectors;
 
 public class SeedManager {
     ArrayList<Seed> seeds;
+    private static SeedManager instance;
 
-    public SeedManager(String folderPath) {
+    public static SeedManager getInstance() {
+        if (instance == null) {
+            instance = new SeedManager("seeds");
+        }
+        return instance;
+    }
+    
+    private SeedManager(String folderPath) {
         seeds = findSeeds(folderPath);
     }
 

@@ -1,25 +1,20 @@
 package peer.src.main;
 
 import java.io.*;
-import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 // Peer class
 public class Peer {
-    private Socket clientSocket;
     private Tracker tracker;
     private PeerServer peerServer;
-    private SeedManager seedManager;
 
     // Find files to seed, connect to the tracker and start the peer server
-    public void start(String trackerIp, int trackerPort, int peerPort, String seedFolder) {
+    public void start(String trackerIp, int trackerPort, int peerPort) {
         tracker = new Tracker(trackerIp, trackerPort);
         tracker.connect();
-        seedManager = new SeedManager(seedFolder);
-        tracker.announce(peerPort, seedManager.seedsToString(), seedManager.leechesToString());
+        tracker.announce(peerPort, SeedManager.getInstance().seedsToString(), SeedManager.getInstance().leechesToString());
         startServer(peerPort);
     }
 
@@ -54,6 +49,7 @@ public class Peer {
                         }
                         String response = tracker.sendMessage(inputLine);
                         System.out.println("> " + response);
+                        Parser.parseResponse(response, this);
                     } else {
                         System.out.print("< ");
                     }
@@ -77,6 +73,7 @@ public class Peer {
 
     // Close the connection to the tracker and stop the server
     public void stop() {
+        Logger.log("Stopping peer");
         try {
             tracker.stop();
             peerServer.close();
@@ -86,62 +83,9 @@ public class Peer {
         }
     }
 
-    // Connect to a peer on the given ip and port
-    public void connectToPeer(String ip, int port) {
-        try {
-            clientSocket = new Socket(ip, port);
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        } catch (UnknownHostException e) {
-            Logger.error(getClass().getSimpleName(), "Cannot connect to peer: " + e.getMessage());
-            System.exit(1);
-        } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), "Cannot connect to peer: " + e.getMessage());
-            System.exit(1);
-        }
-        Logger.log(getClass().getSimpleName(), "Connected to peer on port " + port);
-    }
-
-    void processResponse(String response) {
-        List<Object> parsed = Parser.parse(response);
-        String method = (String) parsed.get(0);
-        List<String> args = (List<String>) parsed.get(1);
-
-        switch(method){
-            case "interested":
-                interested((String) args.get(0));
-                break;
-            
-            case "have":
-                break;
-
-            case "getPieces":
-                break;
-
-            case "data":
-                break;
-        
-            case "peers":
-                break;
-        }
-    }
-
-    void sendMessageToPeer(String msg) {
-    }
-
-    void interested(String key) {
-        for (Seed seed : seedManager.getSeeds()) {
-            if (seed.getKey().equals(key)) {
-                sendMessageToPeer("have " + seed.getKey() + " " + seed.getBuffermap());
-                return;
-            }
-        }
-        sendMessageToPeer("have not");
-    }
-
     void have(String key, ArrayList<Integer> buffermap) {
         ArrayList<Integer> indexes = new ArrayList<Integer>();
-        for (Seed seed : seedManager.getSeeds()) {
+        for (Seed seed : SeedManager.getInstance().getSeeds()) {
             if (seed.getKey().equals(key)) {
                 for (int i = 0; i < seed.getBuffermap().size(); i++) {
                     if (seed.getBuffermap().get(i) == 0 && buffermap.get(i) == 1) {
@@ -150,13 +94,13 @@ public class Peer {
                 }
             }
         }
-        sendMessageToPeer("getpieces" + " " + indexes.stream().map(Object::toString).collect(Collectors.joining(" ")));
+        // sendMessageToPeer("getpieces" + " " + indexes.stream().map(Object::toString).collect(Collectors.joining(" ")));
     }
 
     void getPieces(String key, ArrayList<Integer> indexes) {
         ArrayList<String> bytes = new ArrayList<String>();
         String seedKey;
-        for (Seed seed : seedManager.getSeeds()) {
+        for (Seed seed : SeedManager.getInstance().getSeeds()) {
             if (seed.getKey().equals(key)) {
                 seedKey = seed.getKey();
                 for (int id : indexes)
@@ -171,9 +115,7 @@ public class Peer {
                         throw new RuntimeException(e);
                     }
 
-                sendMessageToPeer(
-                        "data" + " " + seedKey + " "
-                                + bytes.stream().map(Object::toString).collect(Collectors.joining(" ")));
+                // sendMessageToPeer("data" + " " + seedKey + " "+ bytes.stream().map(Object::toString).collect(Collectors.joining(" ")));
             }
         }
     }
@@ -182,11 +124,18 @@ public class Peer {
 
     }
 
-    void ok(List<String> args) {
-        // do nothing
-    }
-
-    void peers(List<String> args) {
-
+    // Ask all peers for the file of the given key
+    void getFile(String key, String[] peers) {
+        Logger.log("Asking peers for the file of key " + key);
+        for (String peerInfo : peers) {
+            String ip = peerInfo.split(":")[0];
+            int port = Integer.parseInt(peerInfo.split(":")[1]);
+            Logger.log("Asking peer " + ip + ":" + port);
+            RemotePeer peer = new RemotePeer(ip, port);
+            peer.connect();
+            String response = peer.sendMessage("interested" + " " + key);
+            Logger.log("Peer responded " + response);
+            peer.close();
+        }
     }
 }
