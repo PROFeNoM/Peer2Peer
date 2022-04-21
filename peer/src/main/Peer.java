@@ -1,7 +1,5 @@
 package peer.src.main;
 
-import peer.src.main.Parser;
-
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
@@ -14,60 +12,15 @@ public class Peer {
     private Socket clientSocket;
     private Tracker tracker;
     private PeerServer peerServer;
-    private ArrayList<Seed> seeds;
+    private SeedManager seedManager;
 
     // Find files to seed, connect to the tracker and start the peer server
     public void start(String trackerIp, int trackerPort, int peerPort, String seedFolder) {
         tracker = new Tracker(trackerIp, trackerPort);
-        try {
-            tracker.connect();
-        } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), "Failed to connect to tracker: " + e.getMessage());
-            System.exit(1);
-        }
-        seeds = findSeeds(seedFolder);
-        tracker.announce(peerPort, getSeeds(), getLeeches());
+        tracker.connect();
+        seedManager = new SeedManager(seedFolder);
+        tracker.announce(peerPort, seedManager.seedsToString(), seedManager.leechesToString());
         startServer(peerPort);
-    }
-
-    // Find seeded files from the given folder
-    public ArrayList<Seed> findSeeds(String seedFolder) {
-        seeds = new ArrayList<Seed>();
-        File folder = new File(seedFolder);
-        File[] listOfFiles = folder.listFiles();
-
-        if (listOfFiles == null) {
-            Logger.log(getClass().getSimpleName(), "No seeds found");
-            return seeds;
-        }
-
-        for (File file : listOfFiles) {
-            if (file.isFile()) {
-                seeds.add(new Seed(file.getAbsolutePath()));
-            }
-        }
-
-        Logger.log(getClass().getSimpleName(), "Seeds found: " + seeds.size());
-
-        return seeds;
-    }
-
-    public String getSeeds() {
-        String message = "[";
-
-        for (Seed seed : seeds) {
-            message += seed.toString();
-            message += " ";
-        }
-
-        message = message.trim();
-        message += "]";
-
-        return message;
-    }
-
-    public String getLeeches() {
-        return "[]";
     }
 
     // Start a server on given port
@@ -177,7 +130,7 @@ public class Peer {
     }
 
     void interested(String key) {
-        for (Seed seed : seeds) {
+        for (Seed seed : seedManager.getSeeds()) {
             if (seed.getKey().equals(key)) {
                 sendMessageToPeer("have " + seed.getKey() + " " + seed.getBuffermap());
                 return;
@@ -188,7 +141,7 @@ public class Peer {
 
     void have(String key, ArrayList<Integer> buffermap) {
         ArrayList<Integer> indexes = new ArrayList<Integer>();
-        for (Seed seed : seeds) {
+        for (Seed seed : seedManager.getSeeds()) {
             if (seed.getKey().equals(key)) {
                 for (int i = 0; i < seed.getBuffermap().size(); i++) {
                     if (seed.getBuffermap().get(i) == 0 && buffermap.get(i) == 1) {
@@ -203,7 +156,7 @@ public class Peer {
     void getPieces(String key, ArrayList<Integer> indexes) {
         ArrayList<String> bytes = new ArrayList<String>();
         String seedKey;
-        for (Seed seed : seeds) {
+        for (Seed seed : seedManager.getSeeds()) {
             if (seed.getKey().equals(key)) {
                 seedKey = seed.getKey();
                 for (int id : indexes)

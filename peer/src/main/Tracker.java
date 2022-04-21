@@ -17,10 +17,15 @@ public class Tracker {
     }
 
     // Connect to the tracker on the given ip and port
-    public void connect() throws IOException, UnknownHostException {
-        socket = new Socket(ip, port);
-        out = new PrintWriter(socket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    public void connect() {
+        try {
+            socket = new Socket(ip, port);
+            out = new PrintWriter(socket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        } catch (IOException e) {
+            Logger.error(getClass().getSimpleName(), "Failed to connect to tracker: " + e.getMessage());
+            System.exit(1);
+        }
     }
 
     // Send the initial announce message to the tracker
