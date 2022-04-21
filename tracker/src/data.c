@@ -1,18 +1,32 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <stdarg.h>
 #include "include/data.h"
+
+int data_verbose = 0;
+
+// Define a variadic function to print a message to stdout
+void data_log(const char* fmt, ...)
+{
+	if (data_verbose)
+	{
+		va_list args;
+		va_start(args, fmt);
+		vfprintf(stdout, fmt, args);
+		va_end(args);
+	}
+}
 
 void init_lists()
 {
-	printf("[LOG] Initializing files list...\n");
+	data_log("[DATA_LOG] Initializing files list...\n");
 	TAILQ_INIT(&files_list);
-	printf("[LOG] Files list initialized.\n");
+	data_log("[DATA_LOG] Files list initialized.\n");
 
-	printf("[LOG] Initializing peers list...\n");
+	data_log("[DATA_LOG] Initializing peers list...\n");
 	TAILQ_INIT(&peers_list);
-	printf("[LOG] Peers list initialized.\n");
+	data_log("[DATA_LOG] Peers list initialized.\n");
 }
 
 int is_file_in_list(char* key)
@@ -33,7 +47,7 @@ int is_peer_in_list(char* ip, int sockfd)
 	{
 		if (strcmp(peer->ip, ip) == 0 && peer->sockfd == sockfd)
 		{
-			printf("[LOG] Peer %s:%d already in list.\n", ip, sockfd);
+			data_log("[DATA_LOG] Peer %s:%d already in list.\n", ip, sockfd);
 			return 1;
 		}
 	}
@@ -42,6 +56,7 @@ int is_peer_in_list(char* ip, int sockfd)
 
 int get_peer_port(char* ip, int sockfd)
 {
+	data_log("[DATA_LOG] Getting peer port with ip %s and sockfd %d...\n", ip, sockfd);
 	for (struct peer_t* peer = peers_list.tqh_first; peer != NULL; peer = peer->entry.tqe_next)
 	{
 		if (strcmp(peer->ip, ip) == 0 && peer->sockfd == sockfd)
@@ -58,6 +73,7 @@ void add_peer_to_list(char* ip, unsigned int port, int sockfd)
 	strcpy(peer->ip, ip);
 	peer->port = port;
 	peer->sockfd = sockfd;
+
 	// Add the peer to the list
 	TAILQ_INSERT_TAIL(&peers_list, peer, entry);
 }
@@ -74,6 +90,8 @@ void add_file_to_list(char* name, unsigned int size, unsigned int piece_size, ch
 	TAILQ_INSERT_TAIL(&files_list, file, next_file);
 	TAILQ_INIT(&file->seeders);
 	TAILQ_INIT(&file->leechers);
+	data_log("[DATA_LOG] Adding file %s:%u:%u:%s to list.\n",
+			file->name, file->size, file->piece_size, file->key);
 }
 
 void add_seeder_to_file(char* name, unsigned int size, unsigned int piece_size, char* key, char* ip,
@@ -81,13 +99,13 @@ void add_seeder_to_file(char* name, unsigned int size, unsigned int piece_size, 
 {
 	if (!is_peer_in_list(ip, sockfd))
 	{
-		printf("[LOG] Adding peer %s:%d to list.\n", ip, sockfd);
+		data_log("[DATA_LOG] Adding peer %s:%d to list.\n", ip, sockfd);
 		add_peer_to_list(ip, port, sockfd);
 	}
 
 	if (!is_file_in_list(key))
 	{
-		printf("[LOG] Adding file to list...\n");
+		data_log("[DATA_LOG] Adding file to list...\n");
 		add_file_to_list(name, size, piece_size, key);
 	}
 
@@ -96,12 +114,13 @@ void add_seeder_to_file(char* name, unsigned int size, unsigned int piece_size, 
 	// Add the seeder to the file
 	if (is_seeder_of_file(key, ip, port))
 	{
+		data_log("[DATA_LOG] Peer %s:%d is already a seeder of file %s.\n", ip, port, key);
 		// The seeder is already in the list
 		return;
 	}
 	else
 	{
-		printf("[LOG] Adding seeder %s %d %d to file %s...\n", ip, port, sockfd, key);
+		data_log("[DATA_LOG] Adding seeder %s %d %d to file %s...\n", ip, port, sockfd, key);
 		struct peer_t* seeder = malloc(sizeof(struct peer_t));
 		strcpy(seeder->ip, ip);
 		seeder->port = port;
@@ -114,12 +133,13 @@ void add_leecher_to_file(char* key, char* ip, unsigned int port, int sockfd)
 {
 	if (!is_peer_in_list(ip, sockfd))
 	{
-		printf("[LOG] Adding peer %s:%d to list.\n", ip, sockfd);
+		data_log("[DATA_LOG] Adding peer %s:%d to list.\n", ip, sockfd);
 		add_peer_to_list(ip, port, sockfd);
 	}
 
 	if (!is_file_in_list(key))
 	{
+		data_log("[DATA_LOG] File doesn't exists\n");
 		return;
 	}
 
@@ -128,11 +148,13 @@ void add_leecher_to_file(char* key, char* ip, unsigned int port, int sockfd)
 	// Add the leecher to the file
 	if (is_leecher_of_file(key, ip, port))
 	{
+		data_log("[DATA_LOG] Peer %s:%d is already a leecher of file %s.\n", ip, port, key);
 		// The leecher is already in the list
 		return;
 	}
 	else
 	{
+		data_log("[DATA_LOG] Adding leecher %s %d %d to file %s...\n", ip, port, sockfd, key);
 		struct peer_t* leecher = malloc(sizeof(struct peer_t));
 		strcpy(leecher->ip, ip);
 		leecher->port = port;
@@ -146,6 +168,7 @@ int is_seeder_of_file(char* key, char* ip, unsigned int port)
 	struct file_t* file;
 	if (!is_file_in_list(key))
 	{
+		data_log("[DATA_LOG] The file referenced by the key %s doesn't exists\n", key);
 		return 0;
 	}
 	else
@@ -156,7 +179,7 @@ int is_seeder_of_file(char* key, char* ip, unsigned int port)
 
 	if (TAILQ_EMPTY(&file->seeders))
 	{
-		printf("[LOG] The list is empty.\n");
+		data_log("[DATA_LOG] The seeders list is empty.\n");
 		return 0;
 	}
 
@@ -177,6 +200,7 @@ int is_leecher_of_file(char* key, char* ip, unsigned int port)
 	struct file_t* file;
 	if (!is_file_in_list(key))
 	{
+		data_log("[DATA_LOG] The file referenced by the key %s doesn't exists\n", key);
 		return 0;
 	}
 	else
@@ -185,7 +209,10 @@ int is_leecher_of_file(char* key, char* ip, unsigned int port)
 		file = get_file(key);
 	}
 
-	if (TAILQ_EMPTY(&file->leechers)) return 0;
+	if (TAILQ_EMPTY(&file->leechers)) {
+		data_log("[DATA_LOG] The seeders list is empty.");
+		return 0;
+	}
 
 	// Check if the leecher is in the list
 	struct peer_t* leecher;
@@ -204,6 +231,7 @@ void remove_seeder_from_file(char* key, char* ip, int sockfd)
 	struct file_t* file;
 	if (!is_file_in_list(key))
 	{
+		data_log("[DATA_LOG] The file referenced by the key %s doesn't exists\n", key);
 		return;
 	}
 	else
@@ -216,13 +244,13 @@ void remove_seeder_from_file(char* key, char* ip, int sockfd)
 	struct peer_t* seeder;
 	TAILQ_FOREACH(seeder, &file->seeders, next_peer)
 	{
-		printf("[LOG] Comparing ip %s with %s, and socket %d with %d\n", seeder->ip, ip, seeder->sockfd, sockfd);
+		data_log("[DATA_LOG] Comparing ip %s with %s, and socket %d with %d\n", seeder->ip, ip, seeder->sockfd, sockfd);
 		if (strcmp(seeder->ip, ip) == 0 && seeder->sockfd == sockfd)
 		{
-			printf("[LOG] Removing seeder %s %d %d from file %s\n", seeder->ip, seeder->port, seeder->sockfd, key);
+			data_log("[DATA_LOG] Removing seeder %s %d %d from file %s\n", seeder->ip, seeder->port, seeder->sockfd, key);
 			TAILQ_REMOVE(&file->seeders, seeder, next_peer);
 			free(seeder);
-            return;
+			return;
 		}
 	}
 }
@@ -232,6 +260,7 @@ void remove_leecher_from_file(char* key, char* ip, int sockfd)
 	struct file_t* file;
 	if (!is_file_in_list(key))
 	{
+		data_log("[DATA_LOG] The file referenced by the key %s doesn't exists\n", key);
 		return;
 	}
 	else
@@ -244,13 +273,13 @@ void remove_leecher_from_file(char* key, char* ip, int sockfd)
 	struct peer_t* leecher;
 	TAILQ_FOREACH(leecher, &file->leechers, next_peer)
 	{
-		printf("[LOG] Comparing ip %s with %s, and socket %d with %d\n", leecher->ip, ip, leecher->sockfd, sockfd);
+		data_log("[DATA_LOG] Comparing ip %s with %s, and socket %d with %d\n", leecher->ip, ip, leecher->sockfd, sockfd);
 		if (strcmp(leecher->ip, ip) == 0 && leecher->sockfd == sockfd)
 		{
-			printf("[LOG] Removing leecher %s %d %d from file %s\n", leecher->ip, leecher->port, leecher->sockfd, key);
+			data_log("[DATA_LOG] Removing leecher %s %d %d from file %s\n", leecher->ip, leecher->port, leecher->sockfd, key);
 			TAILQ_REMOVE(&file->leechers, leecher, next_peer);
-            free(leecher);
-            return;
+			free(leecher);
+			return;
 		}
 	}
 }
@@ -270,10 +299,9 @@ int count_files_with_name(char* name)
 	int count = 0;
 	for (struct file_t* file = files_list.tqh_first; file != NULL; file = file->next_file.tqe_next)
 	{
-		printf("[LOG] [Counting files with name] File name %s and comparing with %s => %s\n", file->name, name,
-				strcmp(file->name, name) == 0 ? "yes" : "no");
 		count += strcmp(file->name, name) == 0;
 	}
+	data_log("[DATA_LOG] %d files are named %s\n", count, name);
 	return count;
 }
 
@@ -314,7 +342,10 @@ int count_files_with_size(unsigned int size, char operator)
 			return 0;
 		}
 	}
-
+	data_log("[DATA_LOG] %d files are %s %d\n",
+			count,
+			operator == '=' ? "equal to" : (operator == '>' ? "superior than" : "less than"),
+			size);
 	return count;
 }
 
@@ -368,7 +399,11 @@ int count_files_with_name_and_size(char* name, unsigned int size, char operator)
 			return 0;
 		}
 	}
-
+	data_log("%d files are named %s and are %s %d\n",
+			count,
+			name,
+			operator == '=' ? "equal to" : (operator == '>' ? "superior than" : "less than"),
+			size);
 	return count;
 }
 
@@ -404,6 +439,7 @@ struct file_t** get_files_with_name_and_size(char* name, unsigned int size, char
 
 void free_lists()
 {
+	data_log("[DATA_LOG] Freeing lists\n");
 	struct file_t* file = files_list.tqh_first;
 	while (file != NULL)
 	{
@@ -437,4 +473,10 @@ void free_lists()
 		peer = next_peer;
 	}
 
+}
+
+void set_data_verbosity(int verbosity)
+{
+	data_verbose = verbosity;
+	data_log("[DATA_LOG] Activating verbose mode\n");
 }

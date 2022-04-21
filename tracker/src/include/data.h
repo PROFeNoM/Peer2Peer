@@ -101,6 +101,14 @@ struct file_t** get_files_with_size(unsigned int size, char operator, unsigned i
  */
 struct file_t** get_files_with_name_and_size(char* name, unsigned int size, char operator, unsigned int* nb_files);
 
+/*
+ * Free the list of files and peers
+ */
 void free_lists();
+
+/*
+ * Set the level of verbosity. If level is 0, no message is printed.
+ */
+void set_data_verbosity(int verbosity);
 
 #endif //_DATA_H

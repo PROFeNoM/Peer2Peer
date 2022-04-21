@@ -7,15 +7,59 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <stdarg.h>
+#include <signal.h>
 
 #include "include/tracker.h"
 #include "include/parser.h"
 #include "include/data.h"
 
-struct args {
-    int newsockfd;
-    char* ip;
-    unsigned int port;
+#define UNUSED(x) (void)(x)
+
+int tracker_verbose = 0;
+int socket_fd;
+
+void tracker_log(const char* fmt, ...)
+{
+	if (tracker_verbose)
+	{
+		va_list args;
+		va_start(args, fmt);
+		vfprintf(stdout, fmt, args);
+		va_end(args);
+	}
+}
+
+void set_tracker_verbosity(int verbosity)
+{
+	tracker_verbose = verbosity;
+	tracker_log("[TRACKER_LOG] Activating verbose mode\n");
+}
+
+// Define a SIGINT handler
+void sigint_handler(int sig)
+{
+	UNUSED(sig);
+	tracker_log("\n[TRACKER_LOG] SIGINT received, exiting...\n");
+
+	struct peer_t* peer;
+	TAILQ_FOREACH(peer, &peers_list, entry)
+	{
+		tracker_log("[TRACKER_LOG] Closing peer %s:%d with sockfd %d\n", peer->ip, peer->port, peer->sockfd);
+		close(peer->sockfd);
+	}
+
+	tracker_log("[TRACKER_LOG] Closing socket %d\n", socket_fd);
+	close(socket_fd);
+
+	tracker_log("[TRACKER_LOG] Exiting...\n");
+	exit(0);
+}
+
+struct args
+{
+	int newsockfd;
+	char* ip;
 };
 
 void error(char* msg)
@@ -26,10 +70,15 @@ void error(char* msg)
 
 int main(int argc, char* argv[])
 {
+	signal(SIGINT, sigint_handler);
+
+	UNUSED(argc);
+	UNUSED(argv);
+
 	init_lists();
 
-	int socket_fd, client_sock, c, * new_sock;
-	int port, verbose;
+	int client_sock, c, * new_sock;
+	int port, verbose, maximum_peers;
 	char address[INET6_ADDRSTRLEN];
 	struct sockaddr_in server, client;
 
@@ -48,105 +97,86 @@ int main(int argc, char* argv[])
 	size_t len = 50;
 	int i = 0;
 
-	while ((read = getline(&str, &len, fptr)) != -1) {
+	while ((read = getline(&str, &len, fptr)) != -1)
+	{
 		split(str, " ", tokens[i], MAX_TOKENS);
 
 		if (!strcmp("tracker-port", tokens[i][0]))
 		{
 			port = atoi(tokens[i][2]);
-			printf("token: %d\n", port);
+			tracker_log("[TRACKER_LOG] port: %d\n", port);
 		}
 		else if (!strcmp("tracker-address", tokens[i][0]))
 		{
 			strcpy(address, tokens[i][2]);
-			printf("adresse: %s\n", address);
+			tracker_log("[TRACKER_LOG] adresse: %s", address);
 		}
 		else if (!strcmp("verbose", tokens[i][0]))
 		{
 			verbose = atoi(tokens[i][2]);
+			set_data_verbosity(verbose);
+			set_parser_verbosity(verbose);
+			set_tracker_verbosity(verbose);
+			tracker_log("[TRACKER_LOG] verbose: %d\n", verbose);
+		}
+		else if (!strcmp("maximum-peers", tokens[i][0]))
+		{
+			maximum_peers = atoi(tokens[i][2]);
+			tracker_log("[TRACKER_LOG] maximum-peers: %d\n", maximum_peers);
 		}
 
 		i++;
-    }
+	}
 
 	fclose(fptr);
-
-
-	// Retrieve port number
-	/*
-	if (argc < 2)
-	{
-		printf("Usage: Missing port number\n");
-		exit(-1);
-	}
-	else
-	{
-		port = atoi(argv[1]);
-	}
-	*/
 
 	// Create a socket
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_fd < 0) error("Error creating the socket\n");
-	else printf("Socket successfully created\n");
+
+	tracker_log("[TRACKER_LOG] Socket successfully created\n");
 
 	// initialize the server socket's structure
 	bzero((char*)&server, sizeof(server));
 	server.sin_family = AF_INET; // internet socket
-	server.sin_addr.s_addr = INADDR_ANY; // we listen on every interfaces
+	server.sin_addr.s_addr = inet_addr(address); // IP address
+	//server.sin_addr.s_addr = INADDR_ANY; // we listen on every interfaces
 	server.sin_port = htons(port);  // listened port
 
 	// Bind the socket
 	if (bind(socket_fd, (struct sockaddr*)&server, sizeof(server)) < 0)
-	{
 		error("Error binding the socket to the server\n");
-	}
-	else
-	{
-		printf("Socket successfully bound\n");
-	}
+
+	tracker_log("[TRACKER_LOG] Socket successfully bound\n");
+
 
 	// Set maximum number of entries & listen
-	if (listen(socket_fd, 5) < -1) error("Error listening to incoming connections\n");
+	if (listen(socket_fd, maximum_peers) < -1) error("Error listening to incoming connections\n");
 	char server_ip[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &server.sin_addr, server_ip, INET_ADDRSTRLEN);
-	printf("Tracker %s:%d has started\n", server_ip, port);
-	printf("Tracker waiting for an incoming connection...\n");
+	tracker_log("[TRACKER_LOG] Tracker %s:%d has started\n", server_ip, port);
+	tracker_log("[TRACKER_LOG] Tracker waiting for an incoming connection...\n");
 	c = sizeof(struct sockaddr_in);
 
 	// Listen for incoming connections
 	while ((client_sock = accept(socket_fd, (struct sockaddr*)&client, (socklen_t*)&c)))
 	{
-		// New client
-		//printf("Connection accepted\n");
-
-        // Retrive clien's port number from the client's structure
-        int client_port = ntohs(client.sin_port);
-
 		char client_ip[INET_ADDRSTRLEN];
 		if (inet_ntop(AF_INET, &client.sin_addr, client_ip, INET_ADDRSTRLEN) == NULL)
-		{
 			error("Error retrieving the client IP\n");
-		}
-		else
-		{
-			printf("Accepted a new connection from %s\n", client_ip);
-		}
+
+		printf("[TRACKER_LOG] Accepted a new connection from %s\n", client_ip);
 
 		pthread_t sniffer_thread;
 		new_sock = malloc(1);
 		*new_sock = client_sock;
-        printf("Cli socket: %d\n", client_sock);
-        struct args* args = malloc(sizeof(struct args));
-        args->newsockfd = *new_sock;
-        printf("Args socket: %d\n", args->newsockfd);
-        args->ip = client_ip;
-        args->port = client_port;
+		struct args* args = malloc(sizeof(struct args));
+		args->newsockfd = *new_sock;
+		args->ip = client_ip;
 		if (pthread_create(&sniffer_thread, NULL, connection_handler, (void*)args) < 0)
-		{
 			error("Error creating client's thread\n");
-		}
-		printf("Handler assigned\n");
+
+		tracker_log("[TRACKER_LOG] Handler assigned\n");
 
 		// Now join the thread, so that we don't terminate before the thread
 		// pthread_join(sniffer_thread, NULL);
@@ -160,47 +190,47 @@ int main(int argc, char* argv[])
 void* connection_handler(void* args)
 {
 	//Get the socket descriptor
-    struct args* arg = (struct args*)args;
-    int sock = arg->newsockfd;
-    printf("CLeient's socket: %d\n", sock);
-    char* ip = arg->ip;
-    //unsigned int port = arg->port;
+	struct args* arg = (struct args*)args;
+	int sock = arg->newsockfd;
+	printf("Client's socket: %d\n", sock);
+	char* ip = arg->ip;
+	//unsigned int port = arg->port;
 	ssize_t read_size;
 	char client_message[2000];
-    char* result;
+	char* result;
 	//Receive a message from client
 	while ((read_size = recv(sock, client_message, 2000, 0)) > 0)
 	{
-		printf("Received %s\n", client_message);
+		tracker_log("\n[TRACKER_LOG] Received %s", client_message);
 
-        printf("Analyzing message...\n");
+		tracker_log("[TRACKER_LOG] Analyzing message...\n");
 		enum REQUEST_T request_t = get_request_type(client_message);
 
 		switch (request_t)
 		{
 		case ANNOUNCE:
-            printf("[LOG] Announce request\n");
+			tracker_log("[TRACKER_LOG] Announce request\n");
 			result = parse_announce(client_message, ip, sock);
-            printf("[LOG] Announce response: %s\n", result);
-            write(sock, result, strlen(result));
-            printf("[LOG] Sent %s\n", result);
+			tracker_log("[TRACKER_LOG] Announce response: %s\n", result);
+			write(sock, result, strlen(result));
+			tracker_log("[TRACKER_LOG] Sent %s\n", result);
 			break;
 		case LOOK:
-            result = parse_look(client_message);
+			result = parse_look(client_message);
 			write(sock, result, strlen(result));
-			printf("[LOG] Sent %s\n", result);
-            free(result);
+			tracker_log("[TRACKER_LOG] Sent %s\n", result);
+			free(result);
 			break;
 		case GETFILE:
-            result = parse_getfile(client_message);
-            write(sock, result, strlen(result));
-			printf("[LOG] Sent %s\n", result);
-            free(result);
+			result = parse_getfile(client_message);
+			write(sock, result, strlen(result));
+			tracker_log("[TRACKER_LOG] Sent %s\n", result);
+			free(result);
 			break;
 		case UPDATE:
 			result = parse_update(client_message, ip, sock);
-            write(sock, result, strlen(result));
-			printf("[LOG] Sent %s\n", result);
+			write(sock, result, strlen(result));
+			tracker_log("[TRACKER_LOG] Sent %s\n", result);
 			break;
 		case INVALID:
 			write(sock, "INVALID\n", strlen("INVALID\n"));
@@ -209,7 +239,7 @@ void* connection_handler(void* args)
 			write(sock, "UNKNOWN\n", strlen("UNKNOWN\n"));
 			break;
 		}
-        printf("[LOG] Response sent\n");
+		tracker_log("[TRACKER_LOG] Response sent\n");
 
 		// clear the buffer of client_message
 		memset(client_message, 0, sizeof(client_message));
@@ -233,8 +263,8 @@ void* connection_handler(void* args)
 
 	//Free the socket pointer
 	//free(socket_desc);
-    //printf("Free args\n");
-    //free(args);
+	//printf("Free args\n");
+	//free(args);
 
 	return 0;
 }
