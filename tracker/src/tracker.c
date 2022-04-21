@@ -46,10 +46,12 @@ void sigint_handler(int sig)
 	TAILQ_FOREACH(peer, &peers_list, entry)
 	{
 		tracker_log("[TRACKER_LOG] Closing peer %s:%d with sockfd %d\n", peer->ip, peer->port, peer->sockfd);
+		shutdown(peer->sockfd, SHUT_RDWR);
 		close(peer->sockfd);
 	}
 
 	tracker_log("[TRACKER_LOG] Closing socket %d\n", socket_fd);
+	shutdown(socket_fd, SHUT_RDWR);
 	close(socket_fd);
 
 	tracker_log("[TRACKER_LOG] Exiting...\n");
@@ -133,6 +135,11 @@ int main(int argc, char* argv[])
 	// Create a socket
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_fd < 0) error("Error creating the socket\n");
+
+	if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)))
+	{
+		error("Error setting socket options\n");
+	}
 
 	tracker_log("[TRACKER_LOG] Socket successfully created\n");
 
