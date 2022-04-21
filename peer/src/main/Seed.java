@@ -1,14 +1,15 @@
-package peer.src.main;
+package peer.src.main.seed;
 
 import java.util.*;
 import peer.src.main.util.FileHandler;
 import java.io.*;
 
+// Class representing a file to seed
 public class Seed {
-    String key;
-    ArrayList<Integer> buffermap;
-    File file;
-    int pieceSize = 1024;
+    String key; // MD5 hash of the file
+    ArrayList<Integer> buffermap; // List of chunks in the file
+    File file; // File
+    int pieceSize = 1024; // Size of each chunk
 
     public Seed(String path) {
         this.file = openFile(path);
@@ -22,6 +23,14 @@ public class Seed {
 
     public String getKey() {
         return key;
+    }
+
+    public int getPieceSize() {
+        return pieceSize;
+    }
+
+    public ArrayList<Integer> getBuffermap() {
+        return buffermap;
     }
 
     private File openFile(String path) {

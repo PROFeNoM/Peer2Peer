@@ -1,5 +1,7 @@
 package peer.src.main;
 
+import peer.src.main.seed.Seed;
+
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
@@ -10,57 +12,19 @@ import java.util.stream.Collectors;
 // Peer class
 public class Peer {
     private Socket clientSocket;
-    private Socket trackerSocket;
+    private Tracker tracker;
     private ServerSocket serverSocket;
-    private PrintWriter trackerOut;
-    private BufferedReader trackerIn;
     private PeerServer peerServer;
     private ArrayList<Seed> seeds;
     Parser parser;
 
     // Find files to seed, connect to the tracker and start the peer server
     public void start(String trackerIp, int trackerPort, int peerPort, String seedFolder) {
+        tracker = new Tracker(trackerIp, trackerPort);
+        tracker.connect();
         seeds = findSeeds(seedFolder);
-        connectToTracker(trackerIp, trackerPort);
+        tracker.announce(peerPort, getSeeds(), getLeeches());
         startServer(peerPort);
-        announceToTracker(peerPort);
-    }
-
-    // Connect to the tracker on the given ip and port
-    public void connectToTracker(String ip, int port) {
-        try {
-            trackerSocket = new Socket(ip, port);
-            trackerOut = new PrintWriter(trackerSocket.getOutputStream(), true);
-            trackerIn = new BufferedReader(new InputStreamReader(trackerSocket.getInputStream()));
-        } catch (UnknownHostException e) {
-            System.out.println("Cannot connect to tracker: " + e.getMessage());
-            System.exit(1);
-        } catch (IOException e) {
-            System.out.println("Cannot connect to tracker: " + e.getMessage());
-            System.exit(1);
-        }
-    }
-
-    // Send the initial announce message to the tracker
-    public void announceToTracker(int peerPort) {
-        String message = "announce";
-        message += " listen " + peerPort;
-        message += " seed " + getSeeds();
-        message += " leech " + getLeech();
-        trackerOut.println(message);
-
-        try {
-            String response = trackerIn.readLine();
-            if (response.equals("ok")) {
-                System.out.println("Announced to tracker");
-            } else {
-                System.out.println("Failed to announce to tracker: " + response);
-                System.exit(1);
-            }
-        } catch (IOException e) {
-            System.out.println("Failed to announce to tracker: " + e.getMessage());
-            System.exit(1);
-        }
     }
 
     // Find seeded files from the given folder
@@ -99,7 +63,7 @@ public class Peer {
         return message;
     }
 
-    public String getLeech() {
+    public String getLeeches() {
         return "[]";
     }
 
@@ -133,7 +97,7 @@ public class Peer {
                             System.out.println("Good bye");
                             break;
                         }
-                        String response = sendMessageToTracker(inputLine);
+                        String response = tracker.sendMessage(inputLine);
                         System.out.println("> " + response);
                     } else {
                         System.out.print("< ");
@@ -159,27 +123,12 @@ public class Peer {
     // Close the connection to the tracker and stop the server
     public void stop() {
         try {
-            trackerIn.close();
-            trackerOut.close();
-            trackerSocket.close();
+            tracker.stop();
             serverSocket.close();
         } catch (IOException e) {
             System.out.println("Error while stopping peer: " + e.getMessage());
             System.exit(1);
         }
-    }
-
-    // Send a message to the tracker and return the response
-    public String sendMessageToTracker(String msg) {
-        trackerOut.println(msg);
-        String response = "";
-        try {
-            response = trackerIn.readLine();
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            System.exit(1);
-        }
-        return response;
     }
 
     // Connect to a peer on the given ip and port
@@ -213,23 +162,21 @@ public class Peer {
     }
 
     void interested(String key) {
-        boolean have = false;
         for (Seed seed : seeds) {
             if (seed.getKey().equals(key)) {
-                sendMessageToPeer("have " + seed.getKey() + " " + seed.buffermap);
-                have = true;
+                sendMessageToPeer("have " + seed.getKey() + " " + seed.getBuffermap());
+                return;
             }
         }
-        if (!have)
-            sendMessageToPeer("have not");
+        sendMessageToPeer("have not");
     }
 
     void have(String key, ArrayList<Integer> buffermap) {
         ArrayList<Integer> indexes = new ArrayList<Integer>();
         for (Seed seed : seeds) {
-            if (seed.key.equals(key)) {
-                for (int i = 0; i < seed.buffermap.size(); i++) {
-                    if (seed.buffermap.get(i) == 0 && buffermap.get(i) == 1) {
+            if (seed.getKey().equals(key)) {
+                for (int i = 0; i < seed.getBuffermap().size(); i++) {
+                    if (seed.getBuffermap().get(i) == 0 && buffermap.get(i) == 1) {
                         indexes.add(i);
                     }
                 }
@@ -247,8 +194,8 @@ public class Peer {
                 for (int id : indexes)
                     try {
                         FileInputStream fis = new FileInputStream(seed.getName());
-                        byte[] byteArray = new byte[seed.pieceSize];
-                        int bytesCount = fis.read(byteArray, seed.pieceSize * indexes.get(id), seed.pieceSize);
+                        byte[] byteArray = new byte[seed.getPieceSize()];
+                        int bytesCount = fis.read(byteArray, seed.getPieceSize() * indexes.get(id), seed.getPieceSize());
                         bytes.add(id + ":" + byteArray);
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
