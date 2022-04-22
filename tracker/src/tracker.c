@@ -232,21 +232,14 @@ void* connection_handler(void* args)
 		memset(client_message, 0, sizeof(client_message));
 	}
 
-	if (read_size == 0)
-	{
-		// Remove the seeder/leecher with given ip and sockfd from every files in the file list
-		for (struct file_t* file = files_list.tqh_first; file != NULL; file = file->next_file.tqe_next)
-		{
-			remove_seeder_from_file(file->key, ip, sock);
-			remove_leecher_from_file(file->key, ip, sock);
-		}
-		puts("Client disconnected");
-		fflush(stdout);
-	}
-	else if (read_size == -1)
-	{
-		//perror("recv failed");
-	}
+    // Remove the seeder/leecher with given ip and sockfd from every files in the file list
+    for (struct file_t* file = files_list.tqh_first; file != NULL; file = file->next_file.tqe_next)
+    {
+        remove_seeder_from_file(file->key, ip, sock);
+        remove_leecher_from_file(file->key, ip, sock);
+    }
+    puts("Client disconnected");
+    fflush(stdout);
 
 	//Free the socket pointer
 	//free(socket_desc);
