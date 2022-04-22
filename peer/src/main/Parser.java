@@ -24,7 +24,15 @@ class Parser {
                 peer.getFile(key, peers);
                 break;
             case "ok":
+                break;
             case "list":
+                for (int i = 1; i + 3 < args.length; i += 4) {
+                    String fileName = args[i];
+                    int fileLength = Integer.parseInt(args[i + 1]);
+                    int pieceSize = Integer.parseInt(args[i + 2]);
+                    String fileKey = args[i + 3];
+                    SeedManager.getInstance().addSeed(fileKey, fileName, fileLength, pieceSize);
+                }
                 break;
             default:
                 System.err.println("Received unknown command from tracker: " + command);
@@ -47,7 +55,7 @@ class Parser {
                 key = args[0];
                 BufferMap bufferMap = new BufferMap(Integer.parseInt(args[1]));
                 Map<Integer, byte[]> pieces = peer.getPieces(remotePeer, key, bufferMap);
-                SeedManager.writePieces(key, pieces);
+                SeedManager.getInstance().writePieces(key, pieces);
                 break;
         }
     }

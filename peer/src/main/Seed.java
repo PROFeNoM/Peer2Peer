@@ -9,13 +9,27 @@ public class Seed {
     String name; // Name of the file
     BufferMap buffermap; // Buffermap representing the list of chunks in the file
     File file; // File
-    int pieceSize = 4; // Size of each chunk
+    int pieceSize; // Size of each chunk
+    int size; // Size of the file
 
-    public Seed(String path) {
-        this.file = openFile(path);
-        this.key = FileHandler.getHash(this.file);
-        this.buffermap = new BufferMap(file, pieceSize);
+    // Create a seed from an existing file
+    public Seed(File file, int pieceSize) {
+        this.file = file;
+        this.key = FileHandler.getHash(file);
         this.name = file.getName();
+        this.pieceSize = pieceSize;
+        this.size = (int) file.length();
+        this.buffermap = new BufferMap(size, pieceSize);
+    }
+
+    // Create a seed entry from info
+    public Seed(String key, String name, int fileSize, int pieceSize) {
+        this.file = null;
+        this.key = key;
+        this.name = name;
+        this.pieceSize = pieceSize;
+        this.size = fileSize;
+        this.buffermap = new BufferMap(size, pieceSize);
     }
 
     public String getName() {
@@ -35,17 +49,6 @@ public class Seed {
     }
 
     public File getFile() {
-        return file;
-    }
-
-    private File openFile(String path) {
-        File file = new File(path);
-
-        if (!file.exists()) {
-            System.out.println("File does not exist");
-            System.exit(1);
-        }
-
         return file;
     }
 

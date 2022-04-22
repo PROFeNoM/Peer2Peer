@@ -1,7 +1,5 @@
 package peer.src.main;
 
-import java.io.File;
-
 // Class representing a list of chunks in a file
 public class BufferMap {
     private int value;
@@ -9,8 +7,8 @@ public class BufferMap {
 
     // We assume that we have all the pieces
     // TODO: We should just store the pieces we have
-    public BufferMap(File file, int pieceSize) {
-        int nbPieces = (int) Math.ceil(file.length() / (double) pieceSize);
+    public BufferMap(long fileSize, int pieceSize) {
+        int nbPieces = (int) Math.ceil(fileSize / (double) pieceSize);
         size = nbPieces;
         value = (1 << nbPieces) - 1;
     }
