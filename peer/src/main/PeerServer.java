@@ -24,7 +24,11 @@ public class PeerServer extends Thread {
         }
     }
 
-    public void close() throws IOException {
-        serverSocket.close();
+    public void close() {
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            Logger.error(getClass().getSimpleName(), "Cannot close server: " + e.getMessage());
+        }
     }
 }

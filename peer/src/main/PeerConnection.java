@@ -4,32 +4,22 @@ import java.net.*;
 import java.io.*;
 
 // Class to talk to another peer
-public class RemotePeer {
-    String ip;
-    int port;
+public class PeerConnection {
     Socket socket;
     BufferedReader in;
     PrintWriter out;
 
-
-    public RemotePeer(String ip, int port) {
-        this.ip = ip;
-        this.port = port;
-    }
-
-    // Connect to the peer on the given ip and port
-    public void connect() {
+    public PeerConnection(Socket socket) {
+        this.socket = socket;
         try {
-            socket = new Socket(ip, port);
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            Logger.log(getClass().getSimpleName(), "Connected to peer");
         } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), e.getMessage());
         }
     }
 
-    public void close() {
+    public void stop() {
         try {
         in.close();
         out.close();
@@ -39,14 +29,17 @@ public class RemotePeer {
         }
     }
 
-    public String sendMessage(String msg) {
-        out.println(msg);
-        String response = "";
+    public void sendMessage(String message) {
+        out.println(message);
+    }
+
+    public String getMessage() {
+        String message = "";
         try {
-            response = in.readLine();
+            message = in.readLine();
         } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), e.getMessage());
         }
-        return response;
+        return message;
     }
 }

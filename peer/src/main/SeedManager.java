@@ -1,7 +1,9 @@
 package peer.src.main;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SeedManager {
@@ -50,5 +52,43 @@ public class SeedManager {
 
     public String leechesToString() {
         return "[]";
+    }
+
+    public Seed getSeedFromKey(String key) {
+        for (Seed seed : seeds) {
+            if (seed.getKey().equals(key)) {
+                return seed;
+            }
+        }
+        return null;
+    }
+
+    // Write pieces to file
+    public static void writePieces(String key, Map<Integer, byte[]> pieces) {
+        // TODO: We need to know the seed to be able to write to it
+        // Seed seed = getSeedFromKey(key);
+        // if (seed == null) {
+        //     Logger.error(getClass().getSimpleName(), "No seed found for key " + key);
+        //     return;
+        // }
+
+        File file = new File(key + ".txt");
+        try {
+            file.createNewFile();
+        } catch (Exception e) {
+            Logger.error(SeedManager.class.getSimpleName(), "Error while creating file " + key + ": " + e.getMessage());
+            return;
+        }
+
+        for (Map.Entry<Integer, byte[]> entry : pieces.entrySet()) {
+            try {
+                FileOutputStream fos = new FileOutputStream(file, true);
+                fos.write(entry.getValue());
+                fos.close();
+            } catch (Exception e) {
+                Logger.error(SeedManager.class.getSimpleName(), "Error while writing piece " + entry.getKey() + ": " + e.getMessage());
+            }
+        }
+        Logger.log(SeedManager.class.getSimpleName(), "File " + key + " written");
     }
 }

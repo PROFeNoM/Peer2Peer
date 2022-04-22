@@ -1,47 +1,28 @@
 package peer.src.main;
 
-import java.io.*;
 import java.net.*;
+import java.io.FileInputStream;
+import java.util.StringJoiner;
 
 // Class for handling communication from an other peer
 public class ClientHandler extends Thread {
-    private Socket socket;
-    private BufferedReader in;
-    private PrintWriter out;
+    private PeerConnection peer;
 
     public ClientHandler(Socket socket) {
-        this.socket = socket;
-        try {
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(socket.getOutputStream(), true);
-        } catch (IOException e) {
-            System.out.println("Error while creating client: " + e);
-        }
+        peer = new PeerConnection(socket);
     }
 
     @Override
     public void run() {
-        try {
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                if (!inputLine.isEmpty())
-                    System.out.println("[client]: " + inputLine);
-                    Parser.parseRequest(inputLine, this);
+        String input;
+        while ((input = peer.getMessage()) != null) {
+            if (!input.isEmpty())
+                Logger.log(getClass().getSimpleName(), "Received " + input);
+            Parser.parseRequest(input, this);
 
-                if (inputLine.equals(".")) {
-                    out.println("good bye");
-                    break;
-                }
-
-                out.println("200");
-            }
-        } catch (IOException e) {
-            System.out.println("Error while reading from client: " + e);
-        } finally {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                System.out.println("Error while closing connection to client: " + e);
+            if (input.equals(".")) {
+                peer.stop();
+                break;
             }
         }
     }
@@ -49,10 +30,33 @@ public class ClientHandler extends Thread {
     void interested(String key) {
         for (Seed seed : SeedManager.getInstance().getSeeds()) {
             if (seed.getKey().equals(key)) {
-                out.println("have " + seed.getKey() + " " + seed.getBuffermap());
+                peer.sendMessage("have " + seed.getKey() + " " + seed.getBuffermap().toString());
                 return;
             }
         }
-        out.println("have not");
+        peer.sendMessage("have not");
+    }
+
+    void sendPieces(String key, int[] indices) {
+        StringJoiner pieces = new StringJoiner(" ", "[", "]");
+        Seed seed = SeedManager.getInstance().getSeedFromKey(key);
+        for (int index : indices) {
+            try {
+                FileInputStream fis = new FileInputStream(seed.getFile());
+                byte[] bytes = new byte[seed.getPieceSize()];
+                int byteRead = fis.read(bytes, seed.getPieceSize() * index, seed.getPieceSize());
+                fis.close();
+                // Convert byte to hexadecimal for sending
+                String hex = "";
+                for (int i = 0; i < byteRead; i++) {
+                    hex += String.format("%02X", bytes[i]);
+                }
+                pieces.add(index + ":" + hex);
+            } catch (Exception e) {
+                Logger.error(getClass().getSimpleName(), "Error while read piece " + index + ": " + e.getMessage());
+            }
+        }
+        String message = "data " + key + " " + pieces.toString();
+        peer.sendMessage(message);
     }
 }

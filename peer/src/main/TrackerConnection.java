@@ -4,14 +4,14 @@ import java.io.*;
 import java.net.*;
 
 // Class to talk to the tracker
-public class Tracker {
+public class TrackerConnection {
     private String ip;
     private int port;
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
 
-    Tracker(String ip, int port) {
+    TrackerConnection(String ip, int port) {
         this.ip = ip;
         this.port = port;
     }
@@ -29,16 +29,16 @@ public class Tracker {
     }
 
     // Send the initial announce message to the tracker
-    public void announce(int peerPort, String seeds, String leeches) {
+    public void announce(int peerPort) {
         String message = "announce";
         message += " listen " + peerPort;
-        message += " seed " + seeds;
-        message += " leech " + leeches;
+        message += " seed " + SeedManager.getInstance().seedsToString();
+        message += " leech " + SeedManager.getInstance().leechesToString();
         out.println(message);
 
         try {
             String response = in.readLine();
-            if (response.equals("ok")) {
+            if ("ok".equals(response)) {
                 Logger.log(getClass().getSimpleName(), "Announced to tracker");
             } else {
                 Logger.error(getClass().getSimpleName(), "Failed to announce to tracker: " + response);
@@ -63,13 +63,13 @@ public class Tracker {
         return response;
     }
 
-    // Close the connection to the tracker and stop the server
+    // Close the connection to the tracker
     public void stop() {
         try {
             out.println("exit");
-            socket.close();
             in.close();
             out.close();
+            socket.close();
         } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), "Error while stopping tracker: " + e.getMessage());
             System.exit(1);

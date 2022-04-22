@@ -7,14 +7,14 @@ import java.io.*;
 // Class representing a file to seed
 public class Seed {
     String key; // MD5 hash of the file
-    ArrayList<Integer> buffermap; // List of chunks in the file
+    BufferMap buffermap; // Buffermap representing the list of chunks in the file
     File file; // File
     int pieceSize = 1024; // Size of each chunk
 
     public Seed(String path) {
         this.file = openFile(path);
         this.key = FileHandler.getHash(this.file);
-        this.buffermap = computeBufferMap();
+        this.buffermap = new BufferMap(file, pieceSize);
     }
 
     public String getName() {
@@ -29,8 +29,12 @@ public class Seed {
         return pieceSize;
     }
 
-    public ArrayList<Integer> getBuffermap() {
+    public BufferMap getBuffermap() {
         return buffermap;
+    }
+
+    public File getFile() {
+        return file;
     }
 
     private File openFile(String path) {
@@ -42,24 +46,6 @@ public class Seed {
         }
 
         return file;
-    }
-
-    // A function that returns the values where bit number are at 1
-    public ArrayList<Integer> computeBufferMap() {
-        int bufferMap = 1457;
-        int bufferSize = (int) Math.ceil((double) file.length() / pieceSize);
-        ArrayList<Integer> bufferMaped = new ArrayList<Integer>();
-        while (bufferMap > 0) {
-            if ((bufferMap % 2) == 1) {
-                bufferMaped.add(1);
-            }else {
-                bufferMaped.add(0);
-            }
-//            System.out.println(bufferMaped);
-            bufferMap >>= 1;
-        }
-        return bufferMaped; // trouver un moyen de reverse la liste
-        // return Collections.reverse(bufferMaped);
     }
 
     public String toString() {
