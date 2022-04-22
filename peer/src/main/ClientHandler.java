@@ -2,6 +2,7 @@ package peer.src.main;
 
 import java.net.*;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.StringJoiner;
 
 // Class for handling communication from an other peer
@@ -37,24 +38,30 @@ public class ClientHandler extends Thread {
         peer.sendMessage("have not");
     }
 
+    // TODO: Handle reading file from specific index
     void sendPieces(String key, int[] indices) {
         StringJoiner pieces = new StringJoiner(" ", "[", "]");
         Seed seed = SeedManager.getInstance().getSeedFromKey(key);
-        for (int index : indices) {
-            try {
-                FileInputStream fis = new FileInputStream(seed.getFile());
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(seed.getFile());
+            for (int index : indices) {
                 byte[] bytes = new byte[seed.getPieceSize()];
-                int byteRead = fis.read(bytes, seed.getPieceSize() * index, seed.getPieceSize());
-                fis.close();
+                int byteRead = fis.read(bytes, 0, seed.getPieceSize());
                 // Convert byte to hexadecimal for sending
                 String hex = "";
                 for (int i = 0; i < byteRead; i++) {
                     hex += String.format("%02X", bytes[i]);
                 }
                 pieces.add(index + ":" + hex);
-            } catch (Exception e) {
-                Logger.error(getClass().getSimpleName(), "Error while read piece " + index + ": " + e.getMessage());
             }
+        } catch (IOException e) {
+            Logger.error(getClass().getSimpleName(), "Error while reading file: " + e.getMessage());
+        }
+        try {
+        fis.close();
+        } catch (IOException e) {
+            Logger.error(getClass().getSimpleName(), "Error while closing file: " + e.getMessage());
         }
         String message = "data " + key + " " + pieces.toString();
         peer.sendMessage(message);

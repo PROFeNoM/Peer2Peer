@@ -88,7 +88,8 @@ public class Peer {
         for (String peerInfo : peers) {
             String ip = peerInfo.split(":")[0];
             int port = Integer.parseInt(peerInfo.split(":")[1]);
-            if (port == Configuration.getInstance().getPeerPort()) {
+            // Exclude current peer
+            if ("127.0.0.1".equals(ip) && port == Configuration.getInstance().getPeerPort()) {
                 continue;
             }
             Logger.log("Asking peer " + ip + ":" + port);

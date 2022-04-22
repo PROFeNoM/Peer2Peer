@@ -1,6 +1,5 @@
 package peer.src.main;
 
-import java.util.*;
 import peer.src.main.util.FileHandler;
 import java.io.*;
 
