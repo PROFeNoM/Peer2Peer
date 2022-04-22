@@ -6,18 +6,20 @@ import java.io.*;
 // Class representing a file to seed
 public class Seed {
     String key; // MD5 hash of the file
+    String name; // Name of the file
     BufferMap buffermap; // Buffermap representing the list of chunks in the file
     File file; // File
-    int pieceSize = 1024; // Size of each chunk
+    int pieceSize = 4; // Size of each chunk
 
     public Seed(String path) {
         this.file = openFile(path);
         this.key = FileHandler.getHash(this.file);
         this.buffermap = new BufferMap(file, pieceSize);
+        this.name = file.getName();
     }
 
     public String getName() {
-        return file.getName();
+        return name;
     }
 
     public String getKey() {

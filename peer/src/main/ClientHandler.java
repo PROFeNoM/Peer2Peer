@@ -38,15 +38,14 @@ public class ClientHandler extends Thread {
         peer.sendMessage("have not");
     }
 
-    // TODO: Handle reading file from specific index
     void sendPieces(String key, int[] indices) {
         StringJoiner pieces = new StringJoiner(" ", "[", "]");
         Seed seed = SeedManager.getInstance().getSeedFromKey(key);
-        FileInputStream fis = null;
         try {
-            fis = new FileInputStream(seed.getFile());
             for (int index : indices) {
+                FileInputStream fis = new FileInputStream(seed.getFile());
                 byte[] bytes = new byte[seed.getPieceSize()];
+                fis.getChannel().position(index * seed.getPieceSize());
                 int byteRead = fis.read(bytes, 0, seed.getPieceSize());
                 // Convert byte to hexadecimal for sending
                 String hex = "";
@@ -54,14 +53,10 @@ public class ClientHandler extends Thread {
                     hex += String.format("%02X", bytes[i]);
                 }
                 pieces.add(index + ":" + hex);
+                fis.close();
             }
         } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), "Error while reading file: " + e.getMessage());
-        }
-        try {
-        fis.close();
-        } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), "Error while closing file: " + e.getMessage());
         }
         String message = "data " + key + " " + pieces.toString();
         peer.sendMessage(message);
