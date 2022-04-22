@@ -371,7 +371,7 @@ char* parse_look(char* request)
 	strcat(message, "]\n");
 
 	if (filename_on) free(filename);
-    free(files);
+    if (files_size) free(files);
 	return message;
 }
 
