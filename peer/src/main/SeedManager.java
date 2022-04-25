@@ -69,6 +69,11 @@ public class SeedManager {
         seeds.add(new Seed(key, fileName, fileSize, pieceSize));
     }
 
+    // Remove a seed given its key
+    public void removeSeed(String key) {
+        seeds.removeIf(seed -> seed.getKey().equals(key));
+    }
+
     public ArrayList<Seed> getSeeds() {
         return seeds;
     }
