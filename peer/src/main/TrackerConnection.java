@@ -75,4 +75,12 @@ public class TrackerConnection {
             System.exit(1);
         }
     }
+
+    // Get all peers that have the file of the given key
+    public PeerInfo[] getPeers(String key) {
+        String message = "getfile " + key;
+        String response = sendMessage(message);
+        PeerInfo[] peers = Parser.parsePeers(response, key);
+        return peers;
+    }
 }

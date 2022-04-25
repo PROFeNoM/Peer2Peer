@@ -1,9 +1,9 @@
 package peer.src.main;
 
 import peer.src.main.util.FileHandler;
+import peer.src.main.util.Configuration;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -11,15 +11,18 @@ import java.util.stream.Collectors;
 public class SeedManager {
     ArrayList<Seed> seeds = new ArrayList<Seed>();
     private static SeedManager instance;
-    private static int pieceSize = 64; // Default piece size
+    private static int pieceSize = 3; // Default piece size
 
     public static SeedManager getInstance() {
         if (instance == null) {
-            instance = new SeedManager("seeds");
+            String seedFolder = System.getProperty("seedsFolder") != null ? System.getProperty("seedsFolder")
+                    : Configuration.getInstance().getSeedsFolder();
+            Logger.log(SeedManager.class.getSimpleName(), "Seeds folder: " + seedFolder);
+            instance = new SeedManager(seedFolder);
         }
         return instance;
     }
-    
+
     private SeedManager(String folderPath) {
         findSeeds(folderPath);
     }
@@ -27,10 +30,16 @@ public class SeedManager {
     // Find seeded files from the given folder
     private void findSeeds(String folderPath) {
         File folder = new File(folderPath);
+
+        if (!folder.exists()) {
+            Logger.error(SeedManager.class.getSimpleName(), "Seeds folder does not exist: " + folderPath);
+            System.exit(1);
+        }
+
         File[] listOfFiles = folder.listFiles();
 
         if (listOfFiles == null) {
-            Logger.log(getClass().getSimpleName(), "No seeds found");
+            Logger.log(getClass().getSimpleName(), "Seeds folder is not a valid directory: " + folderPath);
             return;
         }
 
@@ -41,10 +50,9 @@ public class SeedManager {
 
             // Seed already exists in database
             String key = FileHandler.getHash(file);
-            if (getSeedFromKey(key) != null) {
+            if (hasSeed(key)) {
                 continue;
             }
-
             addSeed(file, pieceSize);
         }
 
@@ -73,6 +81,10 @@ public class SeedManager {
         return "[]";
     }
 
+    public boolean hasSeed(String key) {
+        return getSeedFromKey(key) != null;
+    }
+
     public Seed getSeedFromKey(String key) {
         for (Seed seed : seeds) {
             if (seed.getKey().equals(key)) {
@@ -84,38 +96,17 @@ public class SeedManager {
 
     // Write pieces to file
     public void writePieces(String key, Map<Integer, byte[]> pieces) {
-        // We need to know the seed to be able to write to it
         Seed seed = getSeedFromKey(key);
+        // Ensure we know the seed
         if (seed == null) {
             Logger.error(getClass().getSimpleName(), "No seed registered for key " + key);
             return;
         } else {
-            Logger.log(getClass().getSimpleName(), "Writing pieces to file");
+            Logger.log(getClass().getSimpleName(), "Writing pieces to file " + seed.getName());
         }
 
-        // TODO: check the buffermap to write only the missing pieces
-        if (seed.getFile() != null) {
-            // Logger.log(getClass().getSimpleName(), "File already exists");
-            // return; // To be able to test locally
+        for (Map.Entry<Integer, byte[]> piece : pieces.entrySet()) {
+            seed.writePiece(piece.getKey(), piece.getValue());
         }
-
-        File file = new File(seed.getName());
-        try {
-            file.createNewFile();
-        } catch (Exception e) {
-            Logger.error(SeedManager.class.getSimpleName(), "Error while creating file " + key + ": " + e.getMessage());
-            return;
-        }
-
-        for (Map.Entry<Integer, byte[]> entry : pieces.entrySet()) {
-            try {
-                FileOutputStream fos = new FileOutputStream(file, true);
-                fos.write(entry.getValue());
-                fos.close();
-            } catch (Exception e) {
-                Logger.error(SeedManager.class.getSimpleName(), "Error while writing piece " + entry.getKey() + ": " + e.getMessage());
-            }
-        }
-        Logger.log(SeedManager.class.getSimpleName(), "File " + key + " written");
     }
 }

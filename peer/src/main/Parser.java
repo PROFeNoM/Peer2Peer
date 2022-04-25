@@ -5,25 +5,45 @@ import java.util.HashMap;
 import java.util.Map;
 
 class Parser {
+    // Parse user input
+    public static String[] parseInput(String input) {
+        String[] tokens = input.split(" ", 3);
+
+        String command = tokens[0];
+
+        switch (command) {
+            case "getfile":
+                if (tokens.length < 2) {
+                    Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
+                    return null;
+                }
+                String key = tokens[1];
+                return new String[] { "getfile", key };
+            case "look":
+                if (tokens.length < 2) {
+                    Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
+                    return null;
+                }
+                String research = tokens[1];
+                return new String[] { "look", research };
+            case "exit":
+                return new String[] { "exit" };
+            default:
+                System.out.println("Unknown command, available commands: look, getfile, exit");
+                return null;
+        }
+    }
 
     // Parse a response and call the appropriate method
     public static void parseTrackerResponse(String response, Peer peer) {
-        Logger.log(Parser.class.getSimpleName(), "Parsing tracker response: " + response);
         String[] tokens = response.split("[ \\[\\]]");
         String command = tokens[0];
         String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
         String key = "";
 
         switch (command) {
-            case "peers":
-                key = args[0];
-                String[] peers = new String[args.length - 2];
-                for (int i = 2; i < args.length; i++) {
-                    peers[i - 2] = args[i];
-                }
-                peer.getFile(key, peers);
-                break;
             case "ok":
+            case "peers":
                 break;
             case "list":
                 for (int i = 1; i + 3 < args.length; i += 4) {
@@ -40,32 +60,38 @@ class Parser {
         }
     }
 
-    public static void parsePeerResponse(String response, Peer peer, PeerConnection remotePeer) {
+    public static BufferMap parseInterested(String response, String key) {
         Logger.log(Parser.class.getSimpleName(), "Parsing remote peer response: " + response);
         String[] tokens = response.split("[ \\[\\]]");
-        String command = tokens[0];
-        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
-        String key = "";
-        switch (command) {
-            case "have":
-                if (args[0] == "not") {
-                    Logger.log(Parser.class.getSimpleName(), "Peer does not have file");
-                    break;
-                }
-                key = args[0];
-                BufferMap bufferMap = new BufferMap(Integer.parseInt(args[1]));
-                Map<Integer, byte[]> pieces = peer.getPieces(remotePeer, key, bufferMap);
-                SeedManager.getInstance().writePieces(key, pieces);
-                break;
+        if (tokens.length < 2) {
+            System.err.println("Received invalid response from remote peer: " + response);
+            return null;
         }
+
+        String command = tokens[0];
+
+        if (!"have".equals(command)) {
+            Logger.warn("Received unknown command from peer: " + command);
+            return null;
+        }
+
+        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
+        String receivedKey = args[0];
+
+        if (!receivedKey.equals(key)) {
+            Logger.warn("Received wrong key from peer: " + receivedKey);
+            return null;
+        }
+
+        return new BufferMap(Integer.parseInt(args[1]));
     }
 
     // Parse a request and call the appropriate method
     public static void parseRequest(String request, ClientHandler clientHandler) {
         Logger.log(Parser.class.getSimpleName(), "Parsing request: " + request);
-        String[] splited = request.split("[ \\[\\]]");
-        String command = splited[0];
-        String[] args = Arrays.copyOfRange(splited, 1, splited.length);
+        String[] tokens = request.split("[ \\[\\]]");
+        String command = tokens[0];
+        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
 
         switch (command) {
             case "interested":
@@ -89,8 +115,8 @@ class Parser {
     public static Map<Integer, byte[]> parsePieces(String response, String key, BufferMap bufferMap) {
         Logger.log(Parser.class.getSimpleName(), "Parsing pieces response: " + response);
         String[] tokens = response.split("[ \\[\\]]");
-
         String command = tokens[0];
+
         if (!"data".equals(command)) {
             Logger.error(Parser.class.getSimpleName(), "Received invalid command from peer: " + command);
             return null;
@@ -114,5 +140,45 @@ class Parser {
         }
 
         return pieces;
+    }
+
+    public static PeerInfo[] parsePeers(String response, String key) {
+        Logger.log(Parser.class.getSimpleName(), "Parsing peers response: " + response);
+        String[] tokens = response.split(" ", 3);
+
+        if (tokens.length < 3) {
+            Logger.error(Parser.class.getSimpleName(), "Received invalid response from tracker: " + response);
+            return null;
+        }
+
+        String command = tokens[0];
+        String receivedKey = tokens[1];
+        // TODO check if correct (use JSONArray ?)
+        String[] data = tokens[2].substring(1, tokens[2].length() - 1).split(" ");
+        if (data[0].isEmpty()) {
+            Logger.log(Parser.class.getSimpleName(), "No peers found");
+            return new PeerInfo[0];
+        }
+
+        if (!"peers".equals(command)) {
+            Logger.error(Parser.class.getSimpleName(), "Received invalid command from peer: " + command);
+            return null;
+        }
+
+        if (!key.equals(receivedKey)) {
+            Logger.error(Parser.class.getSimpleName(), "Received peers for wrong file");
+            return null;
+        }
+
+        PeerInfo[] peers = new PeerInfo[data.length];
+        System.out.println(Arrays.toString(data));
+        for (int i = 0; i < data.length; i++) {
+            String[] peer = data[i].split(":");
+            String ip = peer[0];
+            int port = Integer.parseInt(peer[1]);
+            peers[i] = new PeerInfo(ip, port);
+        }
+
+        return peers;
     }
 }

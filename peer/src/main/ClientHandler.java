@@ -1,8 +1,6 @@
 package peer.src.main;
 
 import java.net.*;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.StringJoiner;
 
 // Class for handling communication from an other peer
@@ -29,34 +27,34 @@ public class ClientHandler extends Thread {
     }
 
     void interested(String key) {
-        for (Seed seed : SeedManager.getInstance().getSeeds()) {
-            if (seed.getKey().equals(key)) {
-                peer.sendMessage("have " + seed.getKey() + " " + seed.getBuffermap().toString());
-                return;
-            }
+        Seed seed = SeedManager.getInstance().getSeedFromKey(key);
+        if (seed == null) {
+            peer.sendMessage("have " + key + " 0");
+        } else {
+            peer.sendMessage("have " + key + " " + seed.getBuffermap().toString());
         }
-        peer.sendMessage("have not");
     }
 
     void sendPieces(String key, int[] indices) {
         StringJoiner pieces = new StringJoiner(" ", "[", "]");
         Seed seed = SeedManager.getInstance().getSeedFromKey(key);
-        try {
-            for (int index : indices) {
-                FileInputStream fis = new FileInputStream(seed.getFile());
-                byte[] bytes = new byte[seed.getPieceSize()];
-                fis.getChannel().position(index * seed.getPieceSize());
-                int byteRead = fis.read(bytes, 0, seed.getPieceSize());
-                // Convert byte to hexadecimal for sending
-                String hex = "";
-                for (int i = 0; i < byteRead; i++) {
-                    hex += String.format("%02X", bytes[i]);
-                }
-                pieces.add(index + ":" + hex);
-                fis.close();
+
+        if (seed == null) {
+            Logger.error(getClass().getSimpleName(), "Seed asked not found");
+            // TODO : send better error message
+            peer.sendMessage("not found");
+            return;
+        }
+
+        for (int index : indices) {
+            byte[] bytes = new byte[seed.getPieceSize()];
+            int byteRead = seed.readPiece(index, bytes);
+            // Convert byte to hexadecimal for sending
+            String hex = "";
+            for (int i = 0; i < byteRead; i++) {
+                hex += String.format("%02X", bytes[i]);
             }
-        } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), "Error while reading file: " + e.getMessage());
+            pieces.add(index + ":" + hex);
         }
         String message = "data " + key + " " + pieces.toString();
         peer.sendMessage(message);

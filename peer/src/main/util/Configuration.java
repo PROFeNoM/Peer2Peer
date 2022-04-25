@@ -52,4 +52,8 @@ public class Configuration {
     public int getMaxPieces() {
         return Integer.parseInt(prop.getProperty("pieces-max"));
     }
+
+    public String getSeedsFolder() {
+        return prop.getProperty("seeds-folder");
+    }
 }

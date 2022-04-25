@@ -1,12 +1,9 @@
 package peer.src.main;
 
-import peer.src.main.util.Configuration;
-
 import java.io.*;
-import java.net.Socket;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
-import java.util.StringJoiner;
 
 // Peer class
 public class Peer {
@@ -41,24 +38,36 @@ public class Peer {
     public void run() {
         Scanner in = new Scanner(System.in);
         String input;
-        try {
-            while (true) {
-                System.out.print("< ");
+        while (true) {
+            System.out.print("< ");
+            try {
                 input = in.nextLine();
-                if (input != null && !input.isEmpty()) {
-                    if (input.equals("exit")) {
-                        System.out.println("Good bye");
+            } catch (NoSuchElementException e) {
+                continue;
+            }
+            if (input != null && !input.isEmpty()) {
+                String[] command = Parser.parseInput(input);
+                if (command == null) {
+                    continue;
+                }
+                switch (command[0]) {
+                    case "getfile":
+                        getFile(command[1]);
                         break;
-                    }
-                    String response = tracker.sendMessage(input);
-                    System.out.println("> " + response);
-                    Parser.parseTrackerResponse(response, this);
+                    case "look":
+                        String response = tracker.sendMessage(command[0] + " " + command[1]);
+                        System.out.println("> " + response);
+                        Parser.parseTrackerResponse(response, this);
+                        break;
+                    case "exit":
+                        System.out.println("Good bye");
+                        in.close();
+                        stop();
+                        System.exit(0);
+                        break;
                 }
             }
-        } catch (Exception e) {
-            Logger.error(getClass().getSimpleName(), e.getMessage());
         }
-        in.close();
     }
 
     // Close the connection to the tracker and stop the server
@@ -68,46 +77,39 @@ public class Peer {
         peerServer.close();
     }
 
-    // Get pieces from the remote peer
-    Map<Integer, byte[]> getPieces(PeerConnection peer, String key, BufferMap bufferMap) {
-        StringJoiner joiner = new StringJoiner(" ", "[", "]");
-        for (int i = 0; i < bufferMap.size(); i++) {
-            if (bufferMap.get(i) == 1) {
-                joiner = joiner.add(Integer.toString(i));
-            }
-        }
-        String message = "getpieces " + key + " " + joiner.toString();
-        peer.sendMessage(message);
-        String response = peer.getMessage();
-        return Parser.parsePieces(response, key, bufferMap);
-    }
-
     // Ask all peers for the file of the given key
-    void getFile(String key, String[] peers) {
-        Logger.log(getClass().getSimpleName(), "Asking peers for the file of key " + key);
-        for (String peerInfo : peers) {
-            String ip = peerInfo.split(":")[0];
-            int port = Integer.parseInt(peerInfo.split(":")[1]);
-            // Exclude current peer
-            if ("127.0.0.1".equals(ip) && port == Configuration.getInstance().getPeerPort()) {
-                continue;
-            }
-            Logger.log("Asking peer " + ip + ":" + port);
-            Socket socket = null;
+    void getFile(String key) {
+        PeerInfo[] peers = tracker.getPeers(key);
+
+        for (PeerInfo peerInfo : peers) {
+            // TODO: Prevent asking ourselves
+            Logger.log("Asking peer " + peerInfo.toString());
+
+            PeerConnection peer = null;
             try {
-                socket = new Socket(ip, port);
-            } catch (Exception e) {
-                Logger.error(getClass().getSimpleName(), e.getMessage());
+                peer = new PeerConnection(peerInfo.getIp(), peerInfo.getPort());
+            } catch (IOException e) {
+                Logger.error(getClass().getSimpleName(),
+                        "Cannot connect to peer " + peerInfo.toString() + ": " + e.getMessage());
                 continue;
             }
-            PeerConnection peer = new PeerConnection(socket);
-            Logger.log(getClass().getSimpleName(), "Connected to peer");
-            peer.sendMessage("interested " + key);
-            String response = peer.getMessage();
-            Logger.log(getClass().getSimpleName(), "Peer responded " + response);
-            Parser.parsePeerResponse(response, this, peer);
+
+            // Ask the peer for the pieces of the file he has
+            BufferMap bufferMap = peer.interested(key);
+
+            // If the peer does not have the file, continue
+            if (bufferMap.isEmpty()) {
+                Logger.log("Peer " + peerInfo.toString() + " has no pieces of the file");
+                peer.stop();
+                continue;
+            }
+
+            Logger.log("Peer " + peerInfo.toString() + " has " + bufferMap.size() + " pieces of the file");
+
+            Map<Integer, byte[]> pieces = peer.getPieces(key, bufferMap);
             peer.stop();
+
+            SeedManager.getInstance().writePieces(key, pieces);
         }
-        Logger.log(getClass().getSimpleName(), "File " + key + " downloaded");
     }
 }
