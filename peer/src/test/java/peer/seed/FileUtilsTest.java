@@ -14,10 +14,9 @@ public class FileUtilsTest {
     
     @Test
     public void testHash() throws IOException {
-        final String expectedHash = "d41d8cd98f00b204e9800998ecf8427e";
         final File file = folder.newFile("file.txt");
-
         final String actualHash = FileUtils.getMD5Hash(file);
+        final String expectedHash = "d41d8cd98f00b204e9800998ecf8427e";
 
         assertEquals("MD5 hash is not correct", expectedHash, actualHash);
     }
