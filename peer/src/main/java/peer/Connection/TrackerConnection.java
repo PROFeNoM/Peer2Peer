@@ -1,7 +1,6 @@
 package peer.connection;
 
 import peer.Command;
-import peer.ConnectionInfo;
 import peer.Parser;
 import peer.seed.SeedManager;
 import peer.util.Logger;

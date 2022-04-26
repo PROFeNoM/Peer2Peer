@@ -1,5 +1,6 @@
 package peer;
 
+import peer.connection.ConnectionInfo;
 import peer.connection.PeerConnection;
 import peer.connection.TrackerConnection;
 import peer.seed.BufferMap;

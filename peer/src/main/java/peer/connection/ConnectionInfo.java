@@ -1,4 +1,4 @@
-package peer;
+package peer.connection;
 
 /**
  * This class contains the information about a connection.

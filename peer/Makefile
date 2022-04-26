@@ -3,7 +3,7 @@ JAVA 	?= java
 PORT 	?= 8080
 
 PACKAGE = peer
-SRC_PACKAGE = $(PACKAGE).src.main
+SRC_PACKAGE = $(PACKAGE)
 TEST_PACKAGE = $(PACKAGE).src.test
 
 PEER	= $(SRC_PACKAGE).Main
