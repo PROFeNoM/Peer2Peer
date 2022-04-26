@@ -1,12 +1,21 @@
-package peer.src.main;
+package peer.server;
+
+import peer.Command;
+import peer.Parser;
+import peer.connection.PeerConnection;
+import peer.seed.Seed;
+import peer.seed.SeedManager;
+import peer.util.Logger;
 
 import java.io.IOException;
 import java.net.*;
 import java.util.StringJoiner;
 
-// Class for handling communication from an other peer
+/**
+ * Class for handling communication coming from an other peer.
+ */
 public class ClientHandler extends Thread {
-    private PeerConnection peer;
+    private final PeerConnection peer;
 
     public ClientHandler(Socket socket) throws IOException {
         peer = new PeerConnection(socket);

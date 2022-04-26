@@ -1,14 +1,19 @@
-package peer.src.main;
+package peer;
 
-import peer.src.main.util.Configuration;
+import peer.util.Configuration;
 
+/**
+ * Main class of the application.
+ * It launches the user peer with the command-line arguments
+ * or the parameters in the configuration file if not parameters are provided.
+ */
 public class Main {
     public static void main(String[] args) {
         String trackerIp;
         int trackerPort;
         int peerPort;
+
         for (String arg : args) {
-            System.out.println(arg);
             if (arg.equals("-h")) {
                 System.out.println("Usage: java [-D trackerIp=<trackerIp>] [-D trackerPort=<trackerPort>] [-D peerPort=<peerPort>] peer.src.main.Main [-h]");
                 System.exit(0);

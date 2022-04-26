@@ -1,7 +1,7 @@
-package peer.src.main;
+package peer.seed;
 
-import peer.src.main.util.FileHandler;
-import peer.src.main.util.Configuration;
+import peer.util.Configuration;
+import peer.util.Logger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -87,6 +87,7 @@ public class SeedManager {
     }
 
     public boolean hasSeed(String key) {
+        // TODO: optimize
         return getSeedFromKey(key) != null;
     }
 

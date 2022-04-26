@@ -1,21 +1,48 @@
-package peer.src.main;
+package peer.connection;
 
-import java.net.*;
+import peer.Command;
+import peer.Parser;
+import peer.seed.BufferMap;
+import peer.util.Logger;
+
+import java.io.IOException;
+import java.net.Socket;
 import java.util.Map;
 import java.util.StringJoiner;
-import java.io.*;
 
-// Class to talk to another peer
+/**
+ * Class to talk to another peer.
+ * It can be used to get its buffermap for a specific key (interested),
+ * or ask for the pieces he has for a specific key (getpieces).
+ */
 public class PeerConnection extends Connection {
+    /**
+     * Create a new peer connection through the given socket.
+     * 
+     * @param socket Socket to use for the connection.
+     * @throws IOException If an error occurs while creating the connection.
+     */
     public PeerConnection(Socket socket) throws IOException {
         super(socket);
     }
 
+    /**
+     * Create a new peer connection with the given ip and port.
+     * 
+     * @param ip   IP address to connect to.
+     * @param port Port to connect to.
+     * @throws IOException If an error occurs while creating the connection.
+     */
     public PeerConnection(String ip, int port) throws IOException {
         super(ip, port);
     }
 
-    // Ask peer for his buffermap of the file with key `key`
+    /**
+     * Ask peer for his buffermap of the file with key `key`.
+     * 
+     * @param key Key of the file to get the buffermap of.
+     * @return Buffermap of the file of key `key`.
+     */
     public BufferMap getBufferMap(String key) {
         String message = "interested " + key;
         sendMessage(message);
@@ -37,14 +64,17 @@ public class PeerConnection extends Connection {
         return bufferMap;
     }
 
-    /** Ask the remote peer for the pieces of the file of key `key`
-    * in the given buffermap `bufferMap`
-    * @param key
-    * @param bufferMap
-    * @return Map<Integer, byte[]> pieces or null if the response is invalid
-    */
-
-    Map<Integer, byte[]> getPieces(String key, BufferMap bufferMap) {
+    /**
+     * Ask peer for the pieces of the file of key `key`
+     * in the given buffermap `bufferMap`.
+     * Warning: All the pieces that are in the buffermap might not be 
+     * available, so the peer might send less.
+     * 
+     * @param key Key of the file to get the pieces of.
+     * @param bufferMap Buffermap of the file of key `key`.
+     * @return Map<Integer, byte[]> pieces or null if the response is invalid.
+     */
+    public Map<Integer, byte[]> getPieces(String key, BufferMap bufferMap) {
         StringJoiner joiner = new StringJoiner(" ", "[", "]");
         for (int i = 0; i < bufferMap.size(); i++) {
             if (bufferMap.has(i)) {

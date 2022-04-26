@@ -1,5 +1,8 @@
-package peer.src.main;
+package peer;
 
+/**
+ * Class representing all the available commands.
+ */
 public enum Command {
     ANNOUNCE,
     LOOK,
@@ -16,10 +19,10 @@ public enum Command {
     INVALID;
 
     /**
-     * Return the regex corresponding to the command.
+     * Return a regex to validate the given command.
      * 
-     * @param command
-     * @return String regex
+     * @param command Command to get the regex of.
+     * @return The regex of the command.
      */
     public static String getRegex(Command command) {
         switch (command) {
@@ -53,6 +56,12 @@ public enum Command {
         }
     }
 
+    /**
+     * Return the command corresponding to the given string.
+     * 
+     * @param command Command to get the command of.
+     * @return The command corresponding to the given string.
+     */
     public static Command fromString(String command) {
         try {
             return Command.valueOf(command.toUpperCase());
@@ -61,7 +70,12 @@ public enum Command {
         }
     }
 
-    public String toString() {
-        return this.name().toLowerCase();
+    /**
+     * Get the string representation of the command.
+     * 
+     * @return Command name in lowercase.
+     */
+    public static String toString(Command command) {
+        return command.name().toLowerCase();
     }
 }

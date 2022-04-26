@@ -1,16 +1,40 @@
-package peer.src.main;
+package peer.seed;
 
-import peer.src.main.util.FileHandler;
 import java.io.*;
+
+import peer.util.Logger;
 
 // Class representing a file to seed
 public class Seed {
-    String key; // MD5 hash of the file
-    String name; // Name of the file
-    BufferMap bufferMap; // Buffermap representing the list of chunks in the file
-    File file; // File
-    int pieceSize; // Size of each chunk
-    int size; // Size of the file
+    /**
+     * MD5 hash of the file.
+     */
+    String key;
+
+    /**
+     * Name of the file.
+     */
+    String name;
+
+    /**
+     * Buffermap representing the list of chunks in the file.
+     */
+    BufferMap bufferMap;
+
+    /**
+     * File instance.
+     */
+    File file;
+
+    /**
+     * Size of each chunk in bytes.
+     */
+    int pieceSize;
+
+    /**
+     * Size of the file in bytes.
+     */
+    int size;
 
     // Create a seed from an existing file
     public Seed(File file, int pieceSize) {

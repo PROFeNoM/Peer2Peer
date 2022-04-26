@@ -1,4 +1,11 @@
-package peer.src.main;
+package peer;
+
+import peer.connection.PeerConnection;
+import peer.connection.TrackerConnection;
+import peer.seed.BufferMap;
+import peer.seed.SeedManager;
+import peer.server.PeerServer;
+import peer.util.Logger;
 
 import java.io.*;
 import java.util.Map;
@@ -9,6 +16,7 @@ import java.util.Scanner;
  * The Peer class is the main class of the peer.
  * It is responsible for etablishing a connection for the tracker,
  * starting the peer server and handling the user input.
+ * It can make a search query to the tracker (look) and download a file (getfile).
  */
 public class Peer {
     private TrackerConnection tracker;
@@ -42,21 +50,6 @@ public class Peer {
             System.exit(1);
         }
         Logger.log(getClass().getSimpleName(), "Server started on port " + peerPort);
-    }
-
-    /**
-     * Start the peer server on given port.
-     * 
-     * @param port
-     */
-    void startServer(int port) throws IOException {
-        if (peerServer != null) {
-            Logger.warn(getClass().getSimpleName(), "Server already started");
-            return;
-        }
-
-        peerServer = new PeerServer(port);
-        peerServer.start();
     }
 
     /**
@@ -125,11 +118,26 @@ public class Peer {
     }
 
     /**
+     * Start the peer server on given port.
+     * 
+     * @param port
+     */
+    private void startServer(int port) throws IOException {
+        if (peerServer != null) {
+            Logger.warn(getClass().getSimpleName(), "Server already started");
+            return;
+        }
+
+        peerServer = new PeerServer(port);
+        peerServer.start();
+    }
+
+    /**
      * Make a search request to the tracker.
      * 
      * @param searchQuery The message containing the search request.
      */
-    void look(String searchQuery) {
+    private void look(String searchQuery) {
         String[] filesInfo = tracker.look(searchQuery);
         for (int i = 0; i + 3 < filesInfo.length; i += 4) {
             String fileName = filesInfo[i];
@@ -149,7 +157,7 @@ public class Peer {
      * 
      * @param key The key of the file to get.
      */
-    void getFile(String key) {
+    private void getFile(String key) {
         ConnectionInfo[] peers = tracker.getPeers(key);
 
         for (ConnectionInfo peerInfo : peers) {

@@ -1,4 +1,4 @@
-package peer.src.main.util;
+package peer.seed;
 
 import java.security.MessageDigest;
 import java.io.*;

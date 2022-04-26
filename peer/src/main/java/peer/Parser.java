@@ -1,4 +1,7 @@
-package peer.src.main;
+package peer;
+
+import peer.seed.BufferMap;
+import peer.util.Logger;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -8,7 +11,7 @@ import java.util.Map;
  * The parser class is responsible for parsing the user input,
  * the message from the tracker and the message from the peers.
  */
-class Parser {
+public class Parser {
     /**
      * Parse a list of arguments from a string.
      * The string must be surrounded by square brackets.

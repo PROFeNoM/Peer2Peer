@@ -1,4 +1,4 @@
-package peer.src.main;
+package peer.util;
 
 public class Logger {
     public static void log(String message) {
