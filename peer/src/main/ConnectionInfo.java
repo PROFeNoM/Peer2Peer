@@ -1,10 +1,10 @@
 package peer.src.main;
 
-public class PeerInfo {
+public class ConnectionInfo {
     String ip;
     int port;
 
-    public PeerInfo(String ip, int port) {
+    public ConnectionInfo(String ip, int port) {
         this.ip = ip;
         this.port = port;
     }
