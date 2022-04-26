@@ -41,7 +41,7 @@ public class BufferMap {
      */
     public BufferMap(int value) {
         this.value = value;
-        size = (int) Math.floor(Math.log(value) / Math.log(2)) + 1;
+        size = value == 0 ? 0 : (int) Math.floor(Math.log(value) / Math.log(2)) + 1;
     }
 
     /**
