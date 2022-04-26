@@ -67,13 +67,14 @@ public class Peer {
                     continue;
                 }
                 switch (command[0]) {
-                    case "neighbourhood" -> neighboorhood(command[2]);
-                    case "exit" -> {
+                    case "neighbourhood":
+                        neighboorhood(command[2]);
+                        break;
+                    case "exit":
                         System.out.println("Good bye");
                         in.close();
                         stop();
                         System.exit(0);
-                    }
                 }
             }
         }

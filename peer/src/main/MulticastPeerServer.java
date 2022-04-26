@@ -79,16 +79,18 @@ public class MulticastPeerServer extends Thread {
             InetAddress clientAddress = packet.getAddress();
             int clientPort = packet.getPort();
 
-            Logger.log(getClass().getSimpleName(), "Received message from " + clientAddress + ":" + clientPort);
-            Logger.log(getClass().getSimpleName(), "Received message: " + message);
 
+            // TODO: Respond to the message à la gueule, and don't create socket. This will be done
+            // only if needed (as I'm just testing neighbourhood atm)
             try {
                 Socket clientSocket = new Socket(clientAddress, clientPort);
+                Logger.log(getClass().getSimpleName(), "Received message from " + clientAddress + ":" + clientPort);
+                Logger.log(getClass().getSimpleName(), "Received message: " + message);
                 Logger.log(getClass().getSimpleName(), "Created socket to " + clientAddress + ":" + clientPort);
                 ClientHandler clientHandler = new ClientHandler(clientSocket);
                 clientHandler.start();
             } catch (IOException e) {
-                Logger.log(getClass().getSimpleName(), "Received message from self");
+                //Logger.log(getClass().getSimpleName(), "Received message from self");
             }
         }
     }
