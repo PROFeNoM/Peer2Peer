@@ -12,15 +12,20 @@ import java.net.Socket;
 // Multicast UDP
 // When a client connects, establish a connection with the client with ClientHandler
 public class MulticastPeerServer extends Thread {
-    final int MULTICAST_PORT = 6789;
-    final String MULTICAST_ADDRESS = "228.5.6.7";
-    final int MAX_PACKET_SIZE = 1024;
+    public static final int MULTICAST_PORT = 6789;
+    public static final String MULTICAST_ADDRESS = "228.5.6.7";
+    public static final int MAX_PACKET_SIZE = 1024;
 
     private final MulticastSocket multicastSocket;
+    private final Peer _peer;
 
-    public MulticastPeerServer() throws IOException {
+    public MulticastPeerServer(Peer peer) throws IOException {
+        _peer = peer;
         multicastSocket = new MulticastSocket(MULTICAST_PORT);
         multicastSocket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
+
+        // Allow ReuseAddress
+        multicastSocket.setReuseAddress(true);
     }
 
     @Override
@@ -70,37 +75,29 @@ public class MulticastPeerServer extends Thread {
         byte[] buffer = new byte[MAX_PACKET_SIZE];
 
         while (true) {
-            Logger.log(getClass().getSimpleName(), "Waiting for message...");
+            //Logger.log(getClass().getSimpleName(), "Waiting for message...");
 
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             multicastSocket.receive(packet);
             String message = new String(packet.getData(), packet.getOffset(),packet.getLength());
 
-            InetAddress clientAddress = packet.getAddress();
-            int clientPort = packet.getPort();
+            Logger.log(getClass().getSimpleName(), "Received message: " + message);
 
+            Parser.parseUDPMessage(message, this);
 
-            // TODO: Respond to the message à la gueule, and don't create socket. This will be done
-            // only if needed (as I'm just testing neighbourhood atm)
-            try {
-                Socket clientSocket = new Socket(clientAddress, clientPort);
-                Logger.log(getClass().getSimpleName(), "Received message from " + clientAddress + ":" + clientPort);
-                Logger.log(getClass().getSimpleName(), "Received message: " + message);
-                Logger.log(getClass().getSimpleName(), "Created socket to " + clientAddress + ":" + clientPort);
-                ClientHandler clientHandler = new ClientHandler(clientSocket);
-                clientHandler.start();
-            } catch (IOException e) {
-                //Logger.log(getClass().getSimpleName(), "Received message from self");
-            }
         }
     }
 
     public void sendUDPMessage(String message) throws IOException {
-        Logger.log(getClass().getSimpleName(), "Sending message: " + message);
+        //Logger.log(getClass().getSimpleName(), "Sending message: " + message);
         byte[] buffer = message.getBytes();
         InetAddress address = InetAddress.getByName(MULTICAST_ADDRESS);
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, MULTICAST_PORT);
         multicastSocket.send(packet);
-        Logger.log(getClass().getSimpleName(), "Sent message: " + message);
+        //Logger.log(getClass().getSimpleName(), "Sent message: " + message);
+    }
+
+    Peer getPeer() {
+        return _peer;
     }
 }

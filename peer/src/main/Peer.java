@@ -8,10 +8,14 @@ import java.util.Scanner;
 public class Peer {
     private MulticastPeerServer multicastPeerServer;
     private PeerServer peerServer;
+    private int _peerPort;
+    private String _fileShareVersion;
 
     // Connect and announce to the tracker and start the peer server
-    public void start(int peerPort) {
+    public void start(int peerPort, String fileShareVersion) {
         startServer(peerPort);
+        _fileShareVersion = fileShareVersion;
+        _peerPort = peerPort;
     }
 
     void _startPeerServer(int port) {
@@ -25,22 +29,22 @@ public class Peer {
             peerServer.start();
             Logger.log(getClass().getSimpleName(), "Peer Server started on port " + port);
         } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), "Cannot start multicast server: " + e.getMessage());
+            Logger.error(getClass().getSimpleName(), "Cannot start peer server: " + e.getMessage());
         }
     }
 
     void _startMulticastPeerServer() {
         if (multicastPeerServer != null) {
-            Logger.warn(getClass().getSimpleName(), "Server already started");
+            Logger.warn(getClass().getSimpleName(), "Multicast server already started");
             return;
         }
 
         try {
-            multicastPeerServer = new MulticastPeerServer();
+            multicastPeerServer = new MulticastPeerServer(this);
             multicastPeerServer.start();
             Logger.log(getClass().getSimpleName(), "Multicast server started");
         } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), "Cannot start server: " + e.getMessage());
+            Logger.error(getClass().getSimpleName(), "Cannot start multicast server: " + e.getMessage());
             System.exit(1);
         }
     }
@@ -93,5 +97,13 @@ public class Peer {
         } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), "Cannot send UDP message: " + e.getMessage());
         }
+    }
+
+    String getVersion() {
+        return _fileShareVersion;
+    }
+
+    int getPort() {
+        return _peerPort;
     }
 }

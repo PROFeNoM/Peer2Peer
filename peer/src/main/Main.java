@@ -18,7 +18,7 @@ public class Main {
                 : Integer.parseInt(System.getProperty("peerPort"));
 
         Peer peer = new Peer();
-        peer.start(peerPort);
+        peer.start(peerPort, "0.0.1");
         peer.run();
         peer.stop();
     }

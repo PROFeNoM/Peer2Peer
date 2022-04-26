@@ -27,6 +27,34 @@ class Parser {
         }
     }
 
+    public static void parseUDPMessage(String message, MulticastPeerServer socket) {
+        String[] tokens = message.split(" ");
+        String command = tokens[0];
+        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
+
+        switch (command) {
+            case "neighbourhood":
+                // neighbourhood FileShare <version>
+                if (args.length < 2) {
+                    Logger.error(Parser.class.getSimpleName(), "Invalid command: " + message);
+                } else {
+                    String version = args[1];
+                    Peer peer = socket.getPeer();
+                    String peerVersion = peer.getVersion();
+                    int peerPort = peer.getPort();
+
+                    if (version.equals(peerVersion)) {
+                        // Response: neighbour "FileShare" <version> <port>
+                        try {
+                            socket.sendUDPMessage("neighbour \"FileShare\" " + peerVersion + " " + peerPort);
+                        } catch (Exception e) {
+                            Logger.error(Parser.class.getSimpleName(), "Failed to send UDP message: " + e.getMessage());
+                        }
+                    }
+                }
+        }
+    }
+
     // Parse a response and call the appropriate method
     public static void parseTrackerResponse(String response, Peer peer) {
         String[] tokens = response.split("[ \\[\\]]");
