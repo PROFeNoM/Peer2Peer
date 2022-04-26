@@ -3,8 +3,8 @@ package peer.seed;
 import java.security.MessageDigest;
 import java.io.*;
 
-public class FileHandler {
-    public static String getHash(File file) {
+public class FileUtils {
+    public static String getMD5Hash(File file) {
         MessageDigest md = null;
         StringBuilder hash = new StringBuilder();
 

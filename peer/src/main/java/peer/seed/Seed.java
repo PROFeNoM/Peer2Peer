@@ -39,7 +39,7 @@ public class Seed {
     // Create a seed from an existing file
     public Seed(File file, int pieceSize) {
         this.file = file;
-        this.key = FileHandler.getHash(file);
+        this.key = FileUtils.getMD5Hash(file);
         this.name = file.getName();
         this.pieceSize = pieceSize;
         this.size = (int) file.length();

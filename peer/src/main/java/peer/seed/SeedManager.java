@@ -49,7 +49,7 @@ public class SeedManager {
             }
 
             // Seed already exists in database
-            String key = FileHandler.getHash(file);
+            String key = FileUtils.getMD5Hash(file);
             if (hasSeed(key)) {
                 continue;
             }
