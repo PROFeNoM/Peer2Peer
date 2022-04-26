@@ -60,7 +60,7 @@ public class SeedManager {
     }
 
     // Add a seed from file
-    private void addSeed(File file, int pieceSize) {
+    public void addSeed(File file, int pieceSize) {
         seeds.add(new Seed(file, pieceSize));
     }
 
