@@ -55,6 +55,20 @@ public class BufferMap {
     }
 
     /**
+     * Set the piece number `index` to have or not have.
+     * 
+     * @param index Index of the piece to set.
+     * @param have  True if we have the piece number `index`, false otherwise.
+     */
+    public void set(int index, boolean have) {
+        if (have) {
+            value |= 1 << index;
+        } else {
+            value &= ~(1 << index);
+        }
+    }
+
+    /**
      * Get the size of the buffermap, i.e the number of chunks in the file.
      * 
      * @return Size of the buffermap.

@@ -69,7 +69,7 @@ public class Seed {
         return pieceSize;
     }
 
-    public BufferMap getBuffermap() {
+    public BufferMap getBufferMap() {
         return bufferMap;
     }
 
@@ -115,6 +115,8 @@ public class Seed {
         } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), "Error writing piece to file: " + e.getMessage());
         }
+
+        bufferMap.set(index, true);
 
         Logger.log(getClass().getSimpleName(), "Wrote piece " + index + " to file " + name);
     }

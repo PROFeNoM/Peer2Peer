@@ -86,9 +86,7 @@ public class Peer {
                 case EXIT:
                     System.out.println("Good bye");
                     in.close();
-                    stop();
-                    System.exit(0);
-                    break;
+                    return;
                 default:
                     Logger.warn(getClass().getSimpleName(),
                             "Unknown command: " + command + ", available commands: look, getfile, exit");
