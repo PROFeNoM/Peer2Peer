@@ -1,4 +1,4 @@
-package peer.src.main;
+package peer.gui;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;

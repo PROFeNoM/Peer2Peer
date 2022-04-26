@@ -1,11 +1,9 @@
-package peer.src.main;
+package peer.gui;
 
-import peer.src.main.*;
+import peer.Peer;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 
 import java.awt.GridLayout;
 

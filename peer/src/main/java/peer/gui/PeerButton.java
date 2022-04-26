@@ -1,11 +1,11 @@
-package peer.src.main;
+package peer.gui;
+
+import peer.Peer;
+import peer.seed.SeedManager;
 
 import java.io.File;
-import peer.src.main.*;
 import javax.swing.JTextField;
 import javax.swing.JButton;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class PeerButton extends JButton {
     private Peer peer;

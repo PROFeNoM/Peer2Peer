@@ -1,6 +1,4 @@
-package peer.src.main;
-
-import javax.swing.*;
+package peer.gui;
 
 public class MainWindow {
     public static void main(String[] args) {
