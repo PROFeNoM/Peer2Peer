@@ -9,13 +9,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SeedManager {
-    ArrayList<Seed> seeds = new ArrayList<Seed>();
     private static SeedManager instance;
+    private static String seedFolder;
+    private static ArrayList<Seed> seeds = new ArrayList<Seed>();
     private static int pieceSize = 3; // Default piece size
 
     public static SeedManager getInstance() {
         if (instance == null) {
-            String seedFolder = System.getProperty("seedsFolder") != null ? System.getProperty("seedsFolder")
+            seedFolder = System.getProperty("seedsFolder") != null ? System.getProperty("seedsFolder")
                     : Configuration.getInstance().getSeedsFolder();
             Logger.log(SeedManager.class.getSimpleName(), "Seeds folder: " + seedFolder);
             instance = new SeedManager(seedFolder);
@@ -40,7 +41,7 @@ public class SeedManager {
 
         if (listOfFiles == null) {
             Logger.log(getClass().getSimpleName(), "Seeds folder is not a valid directory: " + folderPath);
-            return;
+            System.exit(1);
         }
 
         for (File file : listOfFiles) {
@@ -66,7 +67,7 @@ public class SeedManager {
 
     // Add a seed from info
     public void addSeed(String key, String fileName, int fileSize, int pieceSize) {
-        seeds.add(new Seed(key, fileName, fileSize, pieceSize));
+        seeds.add(new Seed(key, seedFolder + "/" + fileName, fileSize, pieceSize));
     }
 
     // Remove a seed given its key
