@@ -4,6 +4,7 @@ import peer.connection.ConnectionInfo;
 import peer.connection.PeerConnection;
 import peer.connection.TrackerConnection;
 import peer.seed.BufferMap;
+import peer.seed.Seed;
 import peer.seed.SeedManager;
 import peer.server.PeerServer;
 import peer.util.Logger;
@@ -17,7 +18,8 @@ import java.util.Scanner;
  * The Peer class is the main class of the peer.
  * It is responsible for etablishing a connection for the tracker,
  * starting the peer server and handling the user input.
- * It can make a search query to the tracker (look) and download a file (getfile).
+ * It can make a search query to the tracker (look) and download a file
+ * (getfile).
  */
 public class Peer {
     private TrackerConnection tracker;
@@ -157,10 +159,21 @@ public class Peer {
      * @param key The key of the file to get.
      */
     private void getFile(String key) {
+        Seed seed = SeedManager.getInstance().getSeedFromKey(key);
+
+        if (seed == null) {
+            Logger.error(getClass().getSimpleName(), "Unknown file key: " + key);
+            return;
+        }
+
+        if (seed.getBufferMap().isFull()) {
+            Logger.warn(getClass().getSimpleName(), "Already have the full file");
+            return;
+        }
+
         ConnectionInfo[] peers = tracker.getPeers(key);
 
         for (ConnectionInfo peerInfo : peers) {
-            // TODO: Prevent asking ourselves
             Logger.log("Asking peer " + peerInfo.toString());
 
             PeerConnection peer = null;
@@ -172,12 +185,14 @@ public class Peer {
                 continue;
             }
 
-            // Ask the peer for the pieces of the file he has
-            BufferMap bufferMap = peer.getBufferMap(key);
+            // Get a buffermap representing the pieces of the file that the peer has and that we don't have yet
+            BufferMap ownedBufferMap = seed.getBufferMap();
+            BufferMap peerBufferMap = peer.getBufferMap(key);
+            BufferMap missingBufferMap = ownedBufferMap.getMissingBufferMap(peerBufferMap);
 
-            // If the peer does not have the file, continue
-            if (bufferMap == null || bufferMap.isEmpty()) {
-                Logger.log("Peer " + peerInfo.toString() + " has no pieces of the file");
+            // If there is no piece to ask for, continue
+            if (missingBufferMap.isEmpty()) {
+                Logger.log("No piece to ask for");
                 try {
                     peer.stop();
                 } catch (IOException e) {
@@ -187,9 +202,9 @@ public class Peer {
                 continue;
             }
 
-            Logger.log("Peer " + peerInfo.toString() + " has " + bufferMap.size() + " pieces of the file");
+            Logger.log("Asking for " + missingBufferMap.size() + " pieces of the file");
 
-            Map<Integer, byte[]> pieces = peer.getPieces(key, bufferMap);
+            Map<Integer, byte[]> pieces = peer.getPieces(key, missingBufferMap);
 
             try {
                 peer.stop();

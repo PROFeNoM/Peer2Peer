@@ -96,6 +96,21 @@ public class BufferMap {
     }
 
     /**
+     * Get the missing buffermap, i.e the buffermap representing
+     * the pieces we don't have yet
+     * and are available in the other buffermap.
+     * 
+     * @param other Other buffermap.
+     */
+    public BufferMap getMissingBufferMap(BufferMap other) {
+        if (other == null) {
+            return new BufferMap(0);
+        }
+
+        return new BufferMap(~value & other.value);
+    }
+
+    /**
      * Get the string representation of the buffermap.
      * 
      * @return String representation of the buffermap.
