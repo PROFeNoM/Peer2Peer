@@ -3,9 +3,9 @@ package peer.src.main;
 import java.net.*;
 import java.util.StringJoiner;
 
-// Class for handling communication from an other peer
+// Class for handling communication from another peer
 public class ClientHandler extends Thread {
-    private PeerConnection peer;
+    final private PeerConnection peer;
 
     public ClientHandler(Socket socket) {
         peer = new PeerConnection(socket);
@@ -50,13 +50,13 @@ public class ClientHandler extends Thread {
             byte[] bytes = new byte[seed.getPieceSize()];
             int byteRead = seed.readPiece(index, bytes);
             // Convert byte to hexadecimal for sending
-            String hex = "";
+            StringBuilder hex = new StringBuilder();
             for (int i = 0; i < byteRead; i++) {
-                hex += String.format("%02X", bytes[i]);
+                hex.append(String.format("%02X", bytes[i]));
             }
             pieces.add(index + ":" + hex);
         }
-        String message = "data " + key + " " + pieces.toString();
+        String message = "data " + key + " " + pieces;
         peer.sendMessage(message);
     }
 }

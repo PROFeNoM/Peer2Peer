@@ -12,24 +12,17 @@ class Parser {
         String command = tokens[0];
 
         switch (command) {
-            case "getfile":
-                if (tokens.length < 2) {
+            case "neighbourhood":
+                if (tokens.length < 3) {
                     Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
                     return null;
                 }
-                String key = tokens[1];
-                return new String[] { "getfile", key };
-            case "look":
-                if (tokens.length < 2) {
-                    Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
-                    return null;
-                }
-                String research = tokens[1];
-                return new String[] { "look", research };
+                String version = tokens[2];
+                return new String[] { "neighbourhood", "FileShare", version };
             case "exit":
                 return new String[] { "exit" };
             default:
-                System.out.println("Unknown command, available commands: look, getfile, exit");
+                System.out.println("Unknown command, available commands: neighbourhood, exit");
                 return null;
         }
     }
@@ -127,7 +120,7 @@ class Parser {
             return null;
         }
 
-        Map<Integer, byte[]> pieces = new HashMap<Integer, byte[]>();
+        Map<Integer, byte[]> pieces = new HashMap<>();
         for (int i = 3; i < tokens.length; i++) {
             String[] data = tokens[i].split(":");
             int index = Integer.parseInt(data[0]);

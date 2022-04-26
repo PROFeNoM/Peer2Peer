@@ -1,38 +1,54 @@
 package peer.src.main;
 
 import java.io.*;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 // Peer class
 public class Peer {
-    private TrackerConnection tracker;
+    private MulticastPeerServer multicastPeerServer;
     private PeerServer peerServer;
 
     // Connect and announce to the tracker and start the peer server
-    public void start(String trackerIp, int trackerPort, int peerPort) {
-        tracker = new TrackerConnection(trackerIp, trackerPort);
-        tracker.connect();
-        tracker.announce(peerPort);
+    public void start(int peerPort) {
         startServer(peerPort);
     }
 
-    // Start a server on given port
-    void startServer(int port) {
+    void _startPeerServer(int port) {
         if (peerServer != null) {
-            Logger.warn(getClass().getSimpleName(), "Server already started");
+            Logger.warn(getClass().getSimpleName(), "Peer server already started");
             return;
         }
 
         try {
             peerServer = new PeerServer(port);
             peerServer.start();
-            Logger.log(getClass().getSimpleName(), "Server started on port " + port);
+            Logger.log(getClass().getSimpleName(), "Peer Server started on port " + port);
+        } catch (IOException e) {
+            Logger.error(getClass().getSimpleName(), "Cannot start multicast server: " + e.getMessage());
+        }
+    }
+
+    void _startMulticastPeerServer() {
+        if (multicastPeerServer != null) {
+            Logger.warn(getClass().getSimpleName(), "Server already started");
+            return;
+        }
+
+        try {
+            multicastPeerServer = new MulticastPeerServer();
+            multicastPeerServer.start();
+            Logger.log(getClass().getSimpleName(), "Multicast server started");
         } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), "Cannot start server: " + e.getMessage());
             System.exit(1);
         }
+    }
+
+    // Start a server on given port
+    void startServer(int port) {
+        _startPeerServer(port);
+        _startMulticastPeerServer();
     }
 
     public void run() {
@@ -51,20 +67,13 @@ public class Peer {
                     continue;
                 }
                 switch (command[0]) {
-                    case "getfile":
-                        getFile(command[1]);
-                        break;
-                    case "look":
-                        String response = tracker.sendMessage(command[0] + " " + command[1]);
-                        System.out.println("> " + response);
-                        Parser.parseTrackerResponse(response, this);
-                        break;
-                    case "exit":
+                    case "neighbourhood" -> neighboorhood(command[2]);
+                    case "exit" -> {
                         System.out.println("Good bye");
                         in.close();
                         stop();
                         System.exit(0);
-                        break;
+                    }
                 }
             }
         }
@@ -73,43 +82,15 @@ public class Peer {
     // Close the connection to the tracker and stop the server
     public void stop() {
         Logger.log(getClass().getSimpleName(), "Stopping peer");
-        tracker.stop();
+        multicastPeerServer.close();
         peerServer.close();
     }
 
-    // Ask all peers for the file of the given key
-    void getFile(String key) {
-        PeerInfo[] peers = tracker.getPeers(key);
-
-        for (PeerInfo peerInfo : peers) {
-            // TODO: Prevent asking ourselves
-            Logger.log("Asking peer " + peerInfo.toString());
-
-            PeerConnection peer = null;
-            try {
-                peer = new PeerConnection(peerInfo.getIp(), peerInfo.getPort());
-            } catch (IOException e) {
-                Logger.error(getClass().getSimpleName(),
-                        "Cannot connect to peer " + peerInfo.toString() + ": " + e.getMessage());
-                continue;
-            }
-
-            // Ask the peer for the pieces of the file he has
-            BufferMap bufferMap = peer.interested(key);
-
-            // If the peer does not have the file, continue
-            if (bufferMap.isEmpty()) {
-                Logger.log("Peer " + peerInfo.toString() + " has no pieces of the file");
-                peer.stop();
-                continue;
-            }
-
-            Logger.log("Peer " + peerInfo.toString() + " has " + bufferMap.size() + " pieces of the file");
-
-            Map<Integer, byte[]> pieces = peer.getPieces(key, bufferMap);
-            peer.stop();
-
-            SeedManager.getInstance().writePieces(key, pieces);
+    void neighboorhood(String version) {
+        try {
+            multicastPeerServer.sendUDPMessage("neighbourhood \"FileShare\" " + version);
+        } catch (IOException e) {
+            Logger.error(getClass().getSimpleName(), "Cannot send UDP message: " + e.getMessage());
         }
     }
 }
