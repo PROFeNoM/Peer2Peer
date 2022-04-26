@@ -4,29 +4,33 @@ PORT 	?= 8080
 
 PACKAGE = peer
 SRC_PACKAGE = $(PACKAGE)
-TEST_PACKAGE = $(PACKAGE).src.test
+TEST_PACKAGE = $(PACKAGE)
 
-PEER	= $(SRC_PACKAGE).Main
+MAIN_CLASS	= $(SRC_PACKAGE).Main
 
 SRC_DIR		= src/main
 TST_DIR		= src/test
 BUILD_DIR 	= build
+LIB_DIR		= lib
+
+JUNIT_PATH ?= $(LIB_DIR)/junit-platform-console-standalone-1.8.2.jar
+
+CLASS_PATH = $(BUILD_DIR)
+TST_CLASS_PATH = $(JUNIT_PATH):$(CLASS_PATH)
 
 JAVA_FILES			=	$(shell find ./$(SRC_DIR) -type f -name "*.java")
 JAVA_TEST_FILES		=	$(shell find ./$(TST_DIR) -type f -name "*.java")
-JAVA_TEST_CLASSES	=   $(addprefix $(TEST_PACKAGE)., $(shell find ./$(TST_DIR) -type f -name "Test*" -exec basename {} .java ';'))
 
-COMPILE_OPTS = -d ./build -cp build
-EXEC_OPTS = -ea -cp build
+TST_EXEC_OPTS = -cp $(TST_CLASS_PATH)
 
-COLOR				=	"\033["
-GREEN				=	";32m"
-CYAN				=	";36m"
-PURPLE				=	";35m"
-GREY				=	"1;30m"
-BOLD				=	";1"
-ITALIC				=	";3"
-NOCOLOR				=	"\033[0m"
+COLOR	=	"\033["
+GREEN	=	";32m"
+CYAN	=	";36m"
+PURPLE	=	";35m"
+GREY	=	"1;30m"
+BOLD	=	";1"
+ITALIC	=	";3"
+NOCOLOR	=	"\033[0m"
 
 ############################## MAIN RULES ##############################
 
@@ -41,7 +45,6 @@ clean:
 
 .SECONDARY: $(TRACKER_OBJ) $(TRACKER_BIN)
 
-
 %_start:
 	@echo $(COLOR)$(BOLD)$(GREEN)$* START$(NOCOLOR)
 
@@ -52,24 +55,20 @@ clean:
 
 build: $(JAVA_FILES)
 	@$(MAKE) $@_start
-	mkdir -p $(BUILD_DIR)
-	$(JAVAC) $(COMPILE_OPTS) $(JAVA_FILES)
+	$(JAVAC) -d $(BUILD_DIR) $(JAVA_FILES)
 	@$(MAKE) $@_end
 
-build_tests: $(JAVA_TEST_FILES)
+build-tests: build $(JAVA_TEST_FILES)
 	@$(MAKE) $@_start
-	mkdir -p $(BUILD_DIR)
-	$(JAVAC) $(COMPILE_OPTS) $(JAVA_TEST_FILES)
+	$(JAVAC) -d $(BUILD_DIR) -cp $(TST_CLASS_PATH) $(JAVA_TEST_FILES)
 	@$(MAKE) $@_end
 
 ############################## INSTALL RULES ##############################
 
 peer: build
-	$(JAVA) $(EXEC_OPTS) $(PEER)
+	$(JAVA) -cp $(CLASS_PATH) $(MAIN_CLASS)
 
 ############################## TESTS RULES ##############################
 
-tests: build build_tests
-	@$(MAKE) $@_start
-	@$(JAVA) $(EXEC_OPTS) $(TEST_PACKAGE).AllTests $(JAVA_TEST_CLASSES)
-	@$(MAKE) $@_end
+tests: build-tests
+	$(JAVA) -jar $(JUNIT_PATH) -cp $(CLASS_PATH) -p $(PACKAGE)
