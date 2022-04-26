@@ -36,9 +36,11 @@ public class PeerServer extends Thread {
                 Socket clientSocket = serverSocket.accept();
                 Logger.log(getClass().getSimpleName(), "Peer connected");
                 new ClientHandler(clientSocket).start();
+            } catch (SocketException e) {
+                break;
             } catch (IOException e) {
                 Logger.error(getClass().getSimpleName(), e.getMessage());
-            }
+            } 
         }
     }
 
