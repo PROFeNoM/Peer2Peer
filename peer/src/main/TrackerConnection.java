@@ -1,86 +1,70 @@
 package peer.src.main;
 
 import java.io.*;
-import java.net.*;
 
 // Class to talk to the tracker
-public class TrackerConnection {
-    private String ip;
-    private int port;
-    private Socket socket;
-    private PrintWriter out;
-    private BufferedReader in;
-
-    TrackerConnection(String ip, int port) {
-        this.ip = ip;
-        this.port = port;
-    }
-
-    // Connect to the tracker on the given ip and port
-    public void connect() {
-        try {
-            socket = new Socket(ip, port);
-            out = new PrintWriter(socket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), "Failed to connect to tracker: " + e.getMessage());
-            System.exit(1);
-        }
+public class TrackerConnection extends Connection {
+    TrackerConnection(String ip, int port) throws IOException {
+        super(ip, port);
     }
 
     // Send the initial announce message to the tracker
-    public void announce(int peerPort) {
+    public void announce(int peerPort) throws RuntimeException {
         String message = "announce";
         message += " listen " + peerPort;
         message += " seed " + SeedManager.getInstance().seedsToString();
         message += " leech " + SeedManager.getInstance().leechesToString();
-        out.println(message);
 
-        try {
-            String response = in.readLine();
-            if ("ok".equals(response)) {
-                Logger.log(getClass().getSimpleName(), "Announced to tracker");
-            } else {
-                Logger.error(getClass().getSimpleName(), "Failed to announce to tracker: " + response);
-                System.exit(1);
-            }
-        } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), "Failed to announce to tracker: " + e.getMessage());
-            System.exit(1);
-        }
-    }
+        sendMessage(message);
+        String response = getMessage();
 
-    // Send a message to the tracker and return the response
-    public String sendMessage(String msg) {
-        out.println(msg);
-        String response = "";
-        try {
-            response = in.readLine();
-        } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), e.getMessage());
-            System.exit(1);
-        }
-        return response;
-    }
-
-    // Close the connection to the tracker
-    public void stop() {
-        try {
-            out.println("exit");
-            in.close();
-            out.close();
-            socket.close();
-        } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), "Error while stopping tracker: " + e.getMessage());
-            System.exit(1);
+        if (Parser.getMessageType(response) != Command.OK) {
+            throw new RuntimeException("Failed to announce to tracker: " + response);
         }
     }
 
     // Get all peers that have the file of the given key
-    public PeerInfo[] getPeers(String key) {
+    public ConnectionInfo[] getPeers(String key) {
         String message = "getfile " + key;
-        String response = sendMessage(message);
-        PeerInfo[] peers = Parser.parsePeers(response, key);
+
+        sendMessage(message);
+        String response = getMessage();
+
+        if (Parser.getMessageType(response) != Command.PEERS) {
+            Logger.error(getClass().getSimpleName(),
+                    "Received unexpected response from tracker: " + response);
+            return null;
+        }
+
+        String receivedKey = Parser.parseKey(response);
+        if (!key.equals(receivedKey)) {
+            Logger.error(getClass().getSimpleName(), "Received wrong key from tracker: " + receivedKey);
+            return null;
+        }
+
+        ConnectionInfo[] peers = Parser.parsePeers(response);
         return peers;
+    }
+
+    /**
+     * Make a search request to the tracker.
+     * 
+     * @param searchQuery The query to search for.
+     * @return The list of files that match the query.
+     */
+    public String[] look(String searchQuery) {
+        String message = "look " + searchQuery;
+        ;
+        sendMessage(message);
+        String response = getMessage();
+        System.out.println("> " + response.toString());
+
+        if (Parser.getMessageType(response) != Command.LIST) {
+            Logger.error(getClass().getSimpleName(),
+                    "Received unexpected response from tracker: " + response);
+            return null;
+        }
+
+        return Parser.parseSearchResult(response);
     }
 }

@@ -4,132 +4,141 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The parser class is responsible for parsing the user input,
+ * the message from the tracker and the message from the peers.
+ */
 class Parser {
-    // Parse user input
-    public static String[] parseInput(String input) {
+    /**
+     * Parse a list of arguments from a string.
+     * The string must be surrounded by square brackets.
+     * Example : "[arg1 arg2 arg3]" -> ["arg1", "arg2", "arg3"]
+     * Warning: it flattens the array.
+     * 
+     * @param string    The string to parse.
+     * @param delimiter The delimiter to use to separate the elements.
+     * @return The array of arguments.
+     */
+    static String[] stringToArray(String string, String delimiter) {
+        if (string == null || string.isEmpty() || !string.startsWith("[") || !string.endsWith("]")) {
+            System.out.println("Cannot convert string \"" + string + "\" to array");
+            return null;
+        }
+
+        String[] array = string.replace("[", "").replace("]", "").split(delimiter);
+
+        return array[0].isEmpty() ? new String[0] : array;
+    }
+
+    // Validate an input with its corresponding regex.
+    private static boolean isValidMessage(String input, Command command) {
+        return input.matches(Command.getRegex(command));
+    }
+
+    /**
+     * Parse message type and validate it.
+     * 
+     * @param input
+     * @return Command
+     */
+    public static Command getMessageType(String input) {
+        if (input == null || input.isEmpty()) {
+            Logger.warn("Parser", "Empty input");
+            return null;
+        }
+
+        String[] tokens = input.split(" ", 2);
+        Command command = Command.fromString(tokens[0]);
+
+        return command == Command.UNKNOWN ? Command.UNKNOWN
+                : isValidMessage(input, command) ? command : Command.INVALID;
+    }
+
+    /**
+     * Get key from message.
+     * We assume the input is a valid getfile|peers|interested|getpieces|data|have
+     * message.
+     * 
+     * @param input
+     * @return
+     */
+    public static String parseKey(String input) {
         String[] tokens = input.split(" ", 3);
-
-        String command = tokens[0];
-
-        switch (command) {
-            case "getfile":
-                if (tokens.length < 2) {
-                    Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
-                    return null;
-                }
-                String key = tokens[1];
-                return new String[] { "getfile", key };
-            case "look":
-                if (tokens.length < 2) {
-                    Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
-                    return null;
-                }
-                String research = tokens[1];
-                return new String[] { "look", research };
-            case "exit":
-                return new String[] { "exit" };
-            default:
-                System.out.println("Unknown command, available commands: look, getfile, exit");
-                return null;
-        }
+        return tokens[1];
     }
 
-    // Parse a response and call the appropriate method
-    public static void parseTrackerResponse(String response, Peer peer) {
-        String[] tokens = response.split("[ \\[\\]]");
-        String command = tokens[0];
-        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
-        String key = "";
-
-        switch (command) {
-            case "ok":
-            case "peers":
-                break;
-            case "list":
-                for (int i = 1; i + 3 < args.length; i += 4) {
-                    String fileName = args[i];
-                    int fileLength = Integer.parseInt(args[i + 1]);
-                    int pieceSize = Integer.parseInt(args[i + 2]);
-                    String fileKey = args[i + 3];
-                    SeedManager.getInstance().addSeed(fileKey, fileName, fileLength, pieceSize);
-                }
-                break;
-            default:
-                System.err.println("Received unknown command from tracker: " + command);
-                break;
-        }
+    /**
+     * Get search query from message.
+     * We assume the input is a valid "look" message.
+     * 
+     * @param input
+     * @return
+     */
+    public static String parseSearchQuery(String input) {
+        String[] tokens = input.split(" ", 2);
+        return tokens[1];
     }
 
-    public static BufferMap parseInterested(String response, String key) {
-        Logger.log(Parser.class.getSimpleName(), "Parsing remote peer response: " + response);
-        String[] tokens = response.split("[ \\[\\]]");
-        if (tokens.length < 2) {
-            System.err.println("Received invalid response from remote peer: " + response);
-            return null;
-        }
-
-        String command = tokens[0];
-
-        if (!"have".equals(command)) {
-            Logger.warn("Received unknown command from peer: " + command);
-            return null;
-        }
-
-        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
-        String receivedKey = args[0];
-
-        if (!receivedKey.equals(key)) {
-            Logger.warn("Received wrong key from peer: " + receivedKey);
-            return null;
-        }
-
-        return new BufferMap(Integer.parseInt(args[1]));
+    /**
+     * Get search results from message.
+     * We assume the input is a valid "list" message.
+     * 
+     * @param input
+     * @return
+     */
+    public static String[] parseSearchResult(String input) {
+        String[] tokens = input.split(" ", 2);
+        return stringToArray(tokens[1], " ");
     }
 
-    // Parse a request and call the appropriate method
-    public static void parseRequest(String request, ClientHandler clientHandler) {
-        Logger.log(Parser.class.getSimpleName(), "Parsing request: " + request);
-        String[] tokens = request.split("[ \\[\\]]");
-        String command = tokens[0];
-        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
-
-        switch (command) {
-            case "interested":
-                String key = args[0];
-                clientHandler.interested(key);
-                break;
-            case "getpieces":
-                key = args[0];
-                int[] indices = new int[args.length - 2];
-                for (int i = 2; i < args.length; i++) {
-                    indices[i - 2] = Integer.parseInt(args[i]);
-                }
-                clientHandler.sendPieces(key, indices);
-                break;
-            default:
-                Logger.error(Parser.class.getSimpleName(), "Received unknown command from peer: " + command);
-                break;
-        }
+    /**
+     * Get buffermap from message.
+     * We assume the input is a valid "have" message.
+     * 
+     * @param input
+     * @return
+     */
+    public static BufferMap parseBufferMap(String input) {
+        String[] tokens = input.split(" ", 3);
+        return new BufferMap(Integer.parseInt(tokens[2]));
     }
 
-    public static Map<Integer, byte[]> parsePieces(String response, String key, BufferMap bufferMap) {
-        Logger.log(Parser.class.getSimpleName(), "Parsing pieces response: " + response);
-        String[] tokens = response.split("[ \\[\\]]");
-        String command = tokens[0];
-
-        if (!"data".equals(command)) {
-            Logger.error(Parser.class.getSimpleName(), "Received invalid command from peer: " + command);
-            return null;
+    /**
+     * Parse peers list from a message.
+     * We assume the input is a valid "peers" message.
+     * 
+     * @param input
+     * @return
+     */
+    public static ConnectionInfo[] parsePeers(String input) {
+        String[] tokens = input.split(" ", 3);
+        String[] args = stringToArray(tokens[2], " ");
+        ConnectionInfo[] peers = new ConnectionInfo[args.length];
+        
+        for (int i = 0; i < args.length; i++) {
+            tokens = args[i].split(":");
+            String ip = tokens[0];
+            int port = Integer.parseInt(tokens[1]);
+            peers[i] = new ConnectionInfo(ip, port);
         }
 
-        if (!key.equals(tokens[1])) {
-            Logger.error(Parser.class.getSimpleName(), "Received pieces for wrong file");
-            return null;
-        }
+        return peers;
+    }
+
+    /**
+     * Parse pieces from a message.
+     * We assume the input is a valid "data" message.
+     * 
+     * @param input
+     * @return
+     */
+    public static Map<Integer, byte[]> parsePieces(String input) {
+        String[] tokens = input.split(" ", 3);
+        String[] args = stringToArray(tokens[2], " ");
 
         Map<Integer, byte[]> pieces = new HashMap<Integer, byte[]>();
-        for (int i = 3; i < tokens.length; i++) {
-            String[] data = tokens[i].split(":");
+        for (int i = 0; i < args.length; i++) {
+            String[] data = args[i].split(":");
             int index = Integer.parseInt(data[0]);
             String hex = data[1];
             byte[] bytes = new byte[hex.length() / 2];
@@ -142,43 +151,17 @@ class Parser {
         return pieces;
     }
 
-    public static PeerInfo[] parsePeers(String response, String key) {
-        Logger.log(Parser.class.getSimpleName(), "Parsing peers response: " + response);
-        String[] tokens = response.split(" ", 3);
-
-        if (tokens.length < 3) {
-            Logger.error(Parser.class.getSimpleName(), "Received invalid response from tracker: " + response);
-            return null;
-        }
-
-        String command = tokens[0];
-        String receivedKey = tokens[1];
-        // TODO check if correct (use JSONArray ?)
-        String[] data = tokens[2].substring(1, tokens[2].length() - 1).split(" ");
-        if (data[0].isEmpty()) {
-            Logger.log(Parser.class.getSimpleName(), "No peers found");
-            return new PeerInfo[0];
-        }
-
-        if (!"peers".equals(command)) {
-            Logger.error(Parser.class.getSimpleName(), "Received invalid command from peer: " + command);
-            return null;
-        }
-
-        if (!key.equals(receivedKey)) {
-            Logger.error(Parser.class.getSimpleName(), "Received peers for wrong file");
-            return null;
-        }
-
-        PeerInfo[] peers = new PeerInfo[data.length];
-        System.out.println(Arrays.toString(data));
-        for (int i = 0; i < data.length; i++) {
-            String[] peer = data[i].split(":");
-            String ip = peer[0];
-            int port = Integer.parseInt(peer[1]);
-            peers[i] = new PeerInfo(ip, port);
-        }
-
-        return peers;
+    /**
+     * Parse indices from a message.
+     * We assume the input is a valid "getpieces" message.
+     * 
+     * @param input
+     * @return int[]
+     **/
+    public static int[] parseIndices(String input) {
+        String[] tokens = input.split(" ", 3);
+        String[] args = stringToArray(tokens[2], " ");
+        int[] indices = Arrays.stream(args).mapToInt(Integer::parseInt).toArray();
+        return indices;
     }
 }

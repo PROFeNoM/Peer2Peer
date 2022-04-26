@@ -1,5 +1,6 @@
 package peer.src.main;
 
+import java.io.IOException;
 import java.net.*;
 import java.util.StringJoiner;
 
@@ -7,22 +8,48 @@ import java.util.StringJoiner;
 public class ClientHandler extends Thread {
     private PeerConnection peer;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket) throws IOException {
         peer = new PeerConnection(socket);
     }
 
     @Override
     public void run() {
         String input;
-        while ((input = peer.getMessage()) != null) {
-            if (!input.isEmpty())
-                Logger.log(getClass().getSimpleName(), "Received " + input);
-            Parser.parseRequest(input, this);
 
-            if (input.equals(".")) {
-                peer.stop();
-                break;
+        while ((input = peer.getMessage()) != null) {
+            if (input.isEmpty()) {
+                continue;
             }
+
+            Command command = Parser.getMessageType(input);
+            String key;
+            switch (command) {
+                case INTERESTED:
+                    key = Parser.parseKey(input);
+                    interested(key);
+                    break;
+                case GETPIECES:
+                    key = Parser.parseKey(input);
+                    int[] indices = Parser.parseIndices(input);
+                    sendPieces(key, indices);
+                case EXIT:
+                    try {
+                        peer.stop();
+                    } catch (IOException e) {
+                        Logger.error(getClass().getSimpleName(),
+                                "Failed to close connection to peer: " + e.getMessage());
+                    }
+                    return;
+                default:
+                    Logger.error(getClass().getSimpleName(), "Received unknown command from peer: " + command);
+                    break;
+            }
+        }
+
+        try {
+            peer.stop();
+        } catch (IOException e) {
+            Logger.error(getClass().getSimpleName(), "Failed to close connection to peer: " + e.getMessage());
         }
     }
 
