@@ -59,4 +59,13 @@ public class ClientHandler extends Thread {
         String message = "data " + key + " " + pieces;
         peer.sendMessage(message);
     }
+
+    void announce(String port) {
+        String message = "announce listen " + port;
+        peer.sendMessage(message);
+    }
+
+    void acceptAnnounce(int port) {
+        peer.sendMessage("ok");
+    }
 }

@@ -1,21 +1,30 @@
 package peer.src.main;
 
 import java.io.*;
+import java.net.*;
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 // Peer class
 public class Peer {
+
+    public static final String HOST = "127.0.0.1";
+
     private MulticastPeerServer multicastPeerServer;
     private PeerServer peerServer;
     private int _peerPort;
     private String _fileShareVersion;
+    private ArrayList<Integer> neighborsPort;
+    private ArrayList<ClientHandler> neighbours;
 
     // Connect and announce to the tracker and start the peer server
     public void start(int peerPort, String fileShareVersion) {
         startServer(peerPort);
         _fileShareVersion = fileShareVersion;
         _peerPort = peerPort;
+        neighborsPort = new ArrayList<>();
+        neighbours = new ArrayList<>();
     }
 
     void _startPeerServer(int port) {
@@ -74,6 +83,9 @@ public class Peer {
                     case "neighbourhood":
                         neighboorhood(command[2]);
                         break;
+                    case "announce":
+                        announce(command[2]);
+                        break;
                     case "exit":
                         System.out.println("Good bye");
                         in.close();
@@ -99,11 +111,39 @@ public class Peer {
         }
     }
 
+    void announce(String port) {
+        // Iterate over all the neighbours port, create a socket
+        // and send the announce message
+        for (int neighbourPort : neighborsPort) {
+            try {
+                Socket socketToPeer = new Socket(Peer.HOST, neighbourPort);
+                ClientHandler clientHandler = new ClientHandler(socketToPeer);
+                clientHandler.start();
+                this.addNeighbour(clientHandler);
+                clientHandler.announce(port);
+            } catch (IOException e) {
+                Logger.error(getClass().getSimpleName(), "Cannot connect to peer: " + e.getMessage());
+            }
+        }
+    }
+
     String getVersion() {
         return _fileShareVersion;
     }
 
     int getPort() {
         return _peerPort;
+    }
+
+    void addNeighbourPort(int port) {
+        neighborsPort.add(port);
+    }
+
+    boolean isNeighbourPort(int port) {
+        return neighborsPort.contains(port);
+    }
+
+    void addNeighbour(ClientHandler neighbour) {
+        neighbours.add(neighbour);
     }
 }

@@ -19,11 +19,74 @@ class Parser {
                 }
                 String version = tokens[2];
                 return new String[] { "neighbourhood", "FileShare", version };
+            case "announce":
+                if (tokens.length < 3) {
+                    Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
+                    return null;
+                }
+                int port = Integer.parseInt(tokens[2]);
+                return new String[] { "announce", "listen", Integer.toString(port) };
             case "exit":
                 return new String[] { "exit" };
             default:
-                System.out.println("Unknown command, available commands: neighbourhood, exit");
+                System.out.println("Unknown command, available commands: neighbourhood, announce, exit");
                 return null;
+        }
+    }
+
+    private static void parseNeighbourhoodMessage(String message, MulticastPeerServer socket) {
+        // Remove quotes from message
+        message = message.replaceAll("\"", "");
+        String[] tokens = message.split(" ");
+        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
+
+        // neighbour <filename> <version> <port>
+        if (args.length < 2) {
+            Logger.error(Parser.class.getSimpleName(), "Invalid command: " + message);
+        } else {
+            String fileshare = args[0];
+            String version = args[1];
+
+            Peer peer = socket.getPeer();
+            String peerVersion = peer.getVersion();
+            int peerPort = peer.getPort();
+
+            if (fileshare.equals("FileShare") && version.equals(peerVersion)) {
+                // Response: neighbour "FileShare" <version> <port>
+                try {
+                    socket.sendUDPMessage("neighbour \"FileShare\" " + peerVersion + " " + peerPort);
+                } catch (Exception e) {
+                    Logger.error(Parser.class.getSimpleName(), "Failed to send UDP message: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    private static void parseNeighbourMessage(String message, MulticastPeerServer socket) {
+        // Remove quotes from message
+        message = message.replaceAll("\"", "");
+        String[] tokens = message.split(" ");
+        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
+
+        // neighbour FileShare <version> <port>
+        if (args.length < 3) {
+            Logger.error(Parser.class.getSimpleName(), "Invalid command: " + message);
+        } else {
+            String fileshare = args[0];
+            String version = args[1];
+            int port = Integer.parseInt(args[2]);
+
+            Peer peer = socket.getPeer();
+            String peerVersion = peer.getVersion();
+
+            if (fileshare.equals("FileShare") && version.equals(peerVersion) && port != peer.getPort()) { // Don't add self
+                try {
+                    peer.addNeighbourPort(port);
+                    Logger.log(Parser.class.getSimpleName(), "Added neighbour: " + port);
+                } catch (Exception e) {
+                    Logger.error(Parser.class.getSimpleName(), "Failed to connect to peer: " + e.getMessage());
+                }
+            }
         }
     }
 
@@ -34,24 +97,11 @@ class Parser {
 
         switch (command) {
             case "neighbourhood":
-                // neighbourhood FileShare <version>
-                if (args.length < 2) {
-                    Logger.error(Parser.class.getSimpleName(), "Invalid command: " + message);
-                } else {
-                    String version = args[1];
-                    Peer peer = socket.getPeer();
-                    String peerVersion = peer.getVersion();
-                    int peerPort = peer.getPort();
-
-                    if (version.equals(peerVersion)) {
-                        // Response: neighbour "FileShare" <version> <port>
-                        try {
-                            socket.sendUDPMessage("neighbour \"FileShare\" " + peerVersion + " " + peerPort);
-                        } catch (Exception e) {
-                            Logger.error(Parser.class.getSimpleName(), "Failed to send UDP message: " + e.getMessage());
-                        }
-                    }
-                }
+                parseNeighbourhoodMessage(message, socket);
+                break;
+            case "neighbour":
+                parseNeighbourMessage(message, socket);
+                break;
         }
     }
 
@@ -126,6 +176,13 @@ class Parser {
                     indices[i - 2] = Integer.parseInt(args[i]);
                 }
                 clientHandler.sendPieces(key, indices);
+                break;
+            case "announce":
+                int port = Integer.parseInt(args[1]);
+                clientHandler.acceptAnnounce(port);
+                break;
+            case "ok":
+                System.out.println("> ok");
                 break;
             default:
                 Logger.error(Parser.class.getSimpleName(), "Received unknown command from peer: " + command);
