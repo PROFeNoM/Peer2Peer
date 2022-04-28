@@ -56,4 +56,6 @@ public class Configuration {
     public String getSeedsFolder() {
         return prop.getProperty("seeds-folder");
     }
+
+    public int getMaxTTL() { return Integer.parseInt(prop.getProperty("ttl-max")); }
 }

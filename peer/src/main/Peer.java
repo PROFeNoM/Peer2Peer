@@ -2,9 +2,7 @@ package peer.src.main;
 
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.util.*;
 
 // Peer class
 public class Peer {
@@ -16,7 +14,8 @@ public class Peer {
     private int _peerPort;
     private String _fileShareVersion;
     private ArrayList<Integer> neighborsPort;
-    private ArrayList<ClientHandler> neighbours;
+    //private ArrayList<ClientHandler> neighbours;
+    private Map<Integer, ClientHandler> neighborsHandler;
 
     // Connect and announce to the tracker and start the peer server
     public void start(int peerPort, String fileShareVersion) {
@@ -24,7 +23,7 @@ public class Peer {
         _fileShareVersion = fileShareVersion;
         _peerPort = peerPort;
         neighborsPort = new ArrayList<>();
-        neighbours = new ArrayList<>();
+        neighborsHandler = new HashMap<>();
     }
 
     void _startPeerServer(int port) {
@@ -86,6 +85,9 @@ public class Peer {
                     case "announce":
                         announce(command[2]);
                         break;
+                    case "look":
+                        look(command[1], command[2], command[3], command[4]);
+                        break;
                     case "exit":
                         System.out.println("Good bye");
                         in.close();
@@ -119,11 +121,18 @@ public class Peer {
                 Socket socketToPeer = new Socket(Peer.HOST, neighbourPort);
                 ClientHandler clientHandler = new ClientHandler(socketToPeer);
                 clientHandler.start();
-                this.addNeighbour(clientHandler);
+                this.addNeighbour(neighbourPort, clientHandler);
                 clientHandler.announce(port);
             } catch (IOException e) {
                 Logger.error(getClass().getSimpleName(), "Cannot connect to peer: " + e.getMessage());
             }
+        }
+    }
+
+    void look(String criterion, String ttl, String ip, String port) {
+        for (Map.Entry<Integer, ClientHandler> entry : neighborsHandler.entrySet()) {
+            ClientHandler clientHandler = entry.getValue();
+            clientHandler.look(criterion, ttl, ip, port);
         }
     }
 
@@ -143,7 +152,7 @@ public class Peer {
         return neighborsPort.contains(port);
     }
 
-    void addNeighbour(ClientHandler neighbour) {
-        neighbours.add(neighbour);
+    void addNeighbour(int port, ClientHandler neighbour) {
+        neighborsHandler.put(port, neighbour);
     }
 }

@@ -7,7 +7,7 @@ import java.util.Map;
 class Parser {
     // Parse user input
     public static String[] parseInput(String input) {
-        String[] tokens = input.split(" ", 3);
+        String[] tokens = input.split(" ");
 
         String command = tokens[0];
 
@@ -24,8 +24,21 @@ class Parser {
                     Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
                     return null;
                 }
-                int port = Integer.parseInt(tokens[2]);
-                return new String[] { "announce", "listen", Integer.toString(port) };
+                String port = tokens[2];
+                return new String[] { "announce", "listen", port };
+            case "look":
+                if (tokens.length < 4) {
+                    Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
+                    return null;
+                }
+                String criterion = tokens[1];
+                String ttl = tokens[2];
+                String ipPort = tokens[3];
+                // Split ip:port
+                String[] ipPortTokens = ipPort.split(":");
+                String ip = ipPortTokens[0];
+                String portString = ipPortTokens[1];
+                return new String[] { "look", criterion, ttl, ip, portString };
             case "exit":
                 return new String[] { "exit" };
             default:
@@ -180,6 +193,17 @@ class Parser {
             case "announce":
                 int port = Integer.parseInt(args[1]);
                 clientHandler.acceptAnnounce(port);
+                break;
+            case "look":
+                String criterion = args[0];
+                String ttl = args[1];
+                String ip = args[2];
+                String portString = args[3];
+                //Logger.log(Parser.class.getSimpleName(), "Looking for " + criterion + " with ttl " + ttl + " and ip " + ip + " and port " + portString);
+                clientHandler.acceptLook(ip, portString);
+                break;
+            case "file":
+                System.out.println("> " + request);
                 break;
             case "ok":
                 System.out.println("> ok");

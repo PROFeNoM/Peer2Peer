@@ -68,4 +68,14 @@ public class ClientHandler extends Thread {
     void acceptAnnounce(int port) {
         peer.sendMessage("ok");
     }
+
+    void look(String criterion, String ttl, String ip, String port) {
+        String message = "look " + criterion + " " + ttl + " " + ip + " " + port;
+        peer.sendMessage(message);
+    }
+
+    void acceptLook(String ip, String port) {
+        String message = "file at " + ip + ":" + port;
+        peer.sendMessage(message);
+    }
 }
