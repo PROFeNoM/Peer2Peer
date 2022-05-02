@@ -29,7 +29,7 @@ public class SeedManager {
     }
 
     // Find seeded files from the given folder
-    private void findSeeds(String folderPath) {
+    public void findSeeds(String folderPath) {
         File folder = new File(folderPath);
 
         if (!folder.exists()) {
@@ -73,6 +73,11 @@ public class SeedManager {
     // Remove a seed given its key
     public void removeSeed(String key) {
         seeds.removeIf(seed -> seed.getKey().equals(key));
+    }
+
+    // remove a seed given its file
+    public void removeSeedFromName(String fileName) {
+        seeds.removeIf(seed -> seed.getName().equals(fileName));
     }
 
     public ArrayList<Seed> getSeeds() {

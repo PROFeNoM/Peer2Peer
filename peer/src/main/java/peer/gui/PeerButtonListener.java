@@ -1,6 +1,11 @@
 package peer.gui;
 
 import java.awt.event.ActionListener;
+
+import javax.swing.JFileChooser;
+import java.io.File;
+import javax.swing.JOptionPane;
+
 import java.awt.event.ActionEvent;
 
 public class PeerButtonListener implements ActionListener {
@@ -20,9 +25,25 @@ public class PeerButtonListener implements ActionListener {
             System.out.println("Starting peer");
 
             pb.startPeer();
-        } else if (e.getActionCommand().equals("Add file")) {
-            System.out.println("Adding file");
-            pb.addFile();
+        } else if (e.getActionCommand().equals("Remove file(s)")) {
+            System.out.println("Removing file");
+            JOptionPane pane = new JOptionPane();
+            pb.removeFile(pane.showInputDialog("Enter file name you want to remove"));
+        }else if (e.getActionCommand().equals("Add file(s)")) {
+            System.out.println("Opening files");
+            JFileChooser fc = new JFileChooser();
+            fc.setMultiSelectionEnabled(true);
+            fc.setCurrentDirectory(new File("seeds"));
+            fc.showDialog(pb.getParent(), "Add file(s)");
+            File[] files = fc.getSelectedFiles();
+            for (File f : files) {
+                System.out.println("File : " + f.getName());
+                pb.addFile(f.getName());
+            }
+        } else if (e.getActionCommand().equals("Check")) {
+            System.out.println("Checking seeds");
+            
+            pb.findSeeds();
         } else {
             System.out.println("Unknown button pressed");
         }

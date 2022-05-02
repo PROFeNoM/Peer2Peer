@@ -33,12 +33,37 @@ public class PeerButton extends JButton {
     }
 
     public void addFile() {
-        File f = new File(file.getText());
-        System.out.println("File : " + file.getText());
+        String fileName = "seeds/" + file.getText();
+        File f = new File(fileName);
+        System.out.println("File : " + fileName);
         System.out.println("Adding file: " + f.getAbsolutePath());
         if (f.exists()) {
             System.out.println("File exists");
             SeedManager.getInstance().addSeed(f, 64);
         }
+    }
+    public void addFile(String fileName) {
+        File f = new File("seeds/" + fileName);
+        System.out.println("File : " + fileName);
+        System.out.println("Adding file: " + f.getAbsolutePath());
+        if (f.exists()) {
+            System.out.println("File exists");
+            SeedManager.getInstance().addSeed(f, 64);
+        }
+    }
+
+    public void removeFile() {
+        String fileName = file.getText();
+        SeedManager.getInstance().removeSeedFromName(fileName);
+        System.out.println("File : " + fileName);
+    }
+
+    public void removeFile(String fileName) {
+        SeedManager.getInstance().removeSeedFromName(fileName);
+        System.out.println("Removed file : " + fileName);
+    }
+
+    public void findSeeds(){
+        SeedManager.getInstance().findSeeds("seeds/");
     }
 }
