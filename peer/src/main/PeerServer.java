@@ -6,9 +6,10 @@ import java.net.*;
 // Server to listen for connections from peers
 public class PeerServer extends Thread {
     private ServerSocket serverSocket;
-
-    public PeerServer(int port) throws IOException {
+    private Peer peer;
+    public PeerServer(int port, Peer peer) throws IOException {
         serverSocket = new ServerSocket(port);
+        this.peer = peer;
     }
 
     @Override
@@ -17,7 +18,7 @@ public class PeerServer extends Thread {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 Logger.log(getClass().getSimpleName(), "Peer connected");
-                new ClientHandler(clientSocket).start();
+                new ClientHandler(clientSocket, peer).start();
             }
         } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), e.getMessage());

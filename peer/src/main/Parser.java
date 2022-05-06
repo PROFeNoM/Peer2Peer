@@ -200,7 +200,7 @@ class Parser {
                 String ip = args[2];
                 String portString = args[3];
                 //Logger.log(Parser.class.getSimpleName(), "Looking for " + criterion + " with ttl " + ttl + " and ip " + ip + " and port " + portString);
-                clientHandler.acceptLook(ip, portString);
+                clientHandler.acceptLook(criterion, ttl, ip, portString);
                 break;
             case "file":
                 System.out.println("> " + request);

@@ -99,6 +99,15 @@ public class SeedManager {
         return null;
     }
 
+    public Seed getSeedFromName(String name) {
+        for (Seed seed : seeds) {
+            if (seed.getName().equals(name)) {
+                return seed;
+            }
+        }
+        return null;
+    }
+
     // Write pieces to file
     public void writePieces(String key, Map<Integer, byte[]> pieces) {
         Seed seed = getSeedFromKey(key);

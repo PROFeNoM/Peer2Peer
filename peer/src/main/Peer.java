@@ -33,7 +33,7 @@ public class Peer {
         }
 
         try {
-            peerServer = new PeerServer(port);
+            peerServer = new PeerServer(port, this);
             peerServer.start();
             Logger.log(getClass().getSimpleName(), "Peer Server started on port " + port);
         } catch (IOException e) {
@@ -119,7 +119,7 @@ public class Peer {
         for (int neighbourPort : neighborsPort) {
             try {
                 Socket socketToPeer = new Socket(Peer.HOST, neighbourPort);
-                ClientHandler clientHandler = new ClientHandler(socketToPeer);
+                ClientHandler clientHandler = new ClientHandler(socketToPeer, this);
                 clientHandler.start();
                 this.addNeighbour(neighbourPort, clientHandler);
                 clientHandler.announce(port);
@@ -154,5 +154,13 @@ public class Peer {
 
     void addNeighbour(int port, ClientHandler neighbour) {
         neighborsHandler.put(port, neighbour);
+    }
+
+    MulticastPeerServer getMulticastPeerServer() {
+        return multicastPeerServer;
+    }
+
+    Map<Integer, ClientHandler> getNeighborsHandler() {
+        return neighborsHandler;
     }
 }

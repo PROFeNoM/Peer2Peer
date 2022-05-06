@@ -2,6 +2,7 @@ package peer.src.main;
 
 import peer.src.main.util.FileHandler;
 import java.io.*;
+import java.util.ArrayList;
 
 // Class representing a file to seed
 public class Seed {
@@ -12,6 +13,9 @@ public class Seed {
     int pieceSize; // Size of each chunk
     int size; // Size of the file
 
+    ArrayList<String> seeders; // List of seeders
+    ArrayList<String> leechers; // List of leechers
+
     // Create a seed from an existing file
     public Seed(File file, int pieceSize) {
         this.file = file;
@@ -20,6 +24,9 @@ public class Seed {
         this.pieceSize = pieceSize;
         this.size = (int) file.length();
         this.bufferMap = new BufferMap(size, pieceSize, true);
+
+        seeders = new ArrayList<>();
+        leechers = new ArrayList<>();
     }
 
     // Create a seed entry from info
@@ -31,6 +38,9 @@ public class Seed {
         this.pieceSize = pieceSize;
         this.size = fileSize;
         this.bufferMap = new BufferMap(size, pieceSize, false);
+
+        seeders = new ArrayList<>();
+        leechers = new ArrayList<>();
     }
 
     public String getName() {
@@ -93,6 +103,14 @@ public class Seed {
         }
 
         Logger.log(getClass().getSimpleName(), "Wrote piece " + index + " to file " + name);
+    }
+
+    public void addSeeder(String ip, String port) {
+        seeders.add(ip + ":" + port);
+    }
+
+    public void addLeecher(String ip, String port) {
+        leechers.add(ip + ":" + port);
     }
 
     public String toString() {
