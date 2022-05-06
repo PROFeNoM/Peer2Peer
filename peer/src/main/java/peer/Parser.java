@@ -21,11 +21,11 @@ public class Parser {
      * 
      * @param string    The string to parse.
      * @param delimiter The delimiter to use to separate the elements.
-     * @return The array of arguments.
+     * @return String[] The array of arguments.
      */
     static String[] stringToArray(String string, String delimiter) {
         if (string == null || string.isEmpty() || !string.startsWith("[") || !string.endsWith("]")) {
-            System.out.println("Cannot convert string \"" + string + "\" to array");
+            Logger.error("Parser", "Cannot convert string \"" + string + "\" to array");
             return null;
         }
 
@@ -34,7 +34,13 @@ public class Parser {
         return array[0].isEmpty() ? new String[0] : array;
     }
 
-    // Validate an input with its corresponding regex.
+    /**
+     * Validate an input with its corresponding regex.
+     * 
+     * @param input   The input to validate.
+     * @param command The command to validate the input for.
+     * @return true if the input is valid, false otherwise.
+     */
     private static boolean isValidMessage(String input, Command command) {
         return input.matches(Command.getRegex(command));
     }
@@ -42,8 +48,8 @@ public class Parser {
     /**
      * Parse message type and validate it.
      * 
-     * @param input
-     * @return Command
+     * @param input The input to parse.
+     * @return Command The command corresponding to the message type.
      */
     public static Command getMessageType(String input) {
         if (input == null || input.isEmpty()) {
@@ -63,8 +69,8 @@ public class Parser {
      * We assume the input is a valid getfile|peers|interested|getpieces|data|have
      * message.
      * 
-     * @param input
-     * @return
+     * @param input The input to parse.
+     * @return String The key.
      */
     public static String parseKey(String input) {
         String[] tokens = input.split(" ", 3);
@@ -75,8 +81,8 @@ public class Parser {
      * Get search query from message.
      * We assume the input is a valid "look" message.
      * 
-     * @param input
-     * @return
+     * @param input The input to parse.
+     * @return String The search query.
      */
     public static String parseSearchQuery(String input) {
         String[] tokens = input.split(" ", 2);
@@ -87,8 +93,8 @@ public class Parser {
      * Get search results from message.
      * We assume the input is a valid "list" message.
      * 
-     * @param input
-     * @return
+     * @param input The input to parse.
+     * @return String[] The search results.
      */
     public static String[] parseSearchResult(String input) {
         String[] tokens = input.split(" ", 2);
@@ -99,8 +105,8 @@ public class Parser {
      * Get buffermap from message.
      * We assume the input is a valid "have" message.
      * 
-     * @param input
-     * @return
+     * @param input The input to parse.
+     * @return BufferMap The buffermap.
      */
     public static BufferMap parseBufferMap(String input) {
         String[] tokens = input.split(" ", 3);
@@ -111,14 +117,14 @@ public class Parser {
      * Parse peers list from a message.
      * We assume the input is a valid "peers" message.
      * 
-     * @param input
-     * @return
+     * @param input The input to parse.
+     * @return Map<String, ConnectionInfo> The peers list.
      */
     public static ConnectionInfo[] parsePeers(String input) {
         String[] tokens = input.split(" ", 3);
         String[] args = stringToArray(tokens[2], " ");
         ConnectionInfo[] peers = new ConnectionInfo[args.length];
-        
+
         for (int i = 0; i < args.length; i++) {
             tokens = args[i].split(":");
             String ip = tokens[0];
@@ -133,8 +139,8 @@ public class Parser {
      * Parse pieces from a message.
      * We assume the input is a valid "data" message.
      * 
-     * @param input
-     * @return
+     * @param input The input to parse.
+     * @return byte[] The pieces.
      */
     public static Map<Integer, byte[]> parsePieces(String input) {
         String[] tokens = input.split(" ", 3);
@@ -159,8 +165,8 @@ public class Parser {
      * Parse indices from a message.
      * We assume the input is a valid "getpieces" message.
      * 
-     * @param input
-     * @return int[]
+     * @param input The input to parse.
+     * @return int[] The indices.
      **/
     public static int[] parseIndices(String input) {
         String[] tokens = input.split(" ", 3);
