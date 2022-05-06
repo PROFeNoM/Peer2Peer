@@ -23,7 +23,8 @@ public class PeerWindow extends JFrame {
 
         Peer p = new Peer();
         this.setLayout(new GridLayout(3, 1));
-        this.add(new JLabel("Peer Interface"));
+        JLabel inter = new JLabel("Peer Interface : Not Connected yet");
+        this.add(inter);
         JPanel jl1 = new JPanel();
         JPanel jl2 = new JPanel();
         JPanel jl3 = new JPanel();
@@ -45,8 +46,13 @@ public class PeerWindow extends JFrame {
 
         GridLayout startStop = new GridLayout(1, 3);
         PeerButton check = new PeerButton(p, "Check");
-        PeerButton start = new PeerButton(p, "Start");
-        PeerButton stop = new PeerButton(p, "Stop");
+        PeerButton start = new PeerButton(p, "Start", inter);
+        PeerButton stop = new PeerButton(p, "Stop", inter);
+        start.setBackground(java.awt.Color.GREEN);
+        start.setOpaque(true);
+        stop.setBackground(java.awt.Color.RED);
+        stop.setOpaque(true);
+
         jl3.setLayout(startStop);
         jl3.add(check);
         jl3.add(start);
