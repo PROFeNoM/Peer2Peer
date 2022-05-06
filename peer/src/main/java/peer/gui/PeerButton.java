@@ -5,11 +5,12 @@ import peer.seed.SeedManager;
 
 import java.io.File;
 import javax.swing.JTextField;
+import javax.swing.JLabel;
 import javax.swing.JButton;
 
 public class PeerButton extends JButton {
     private Peer peer;
-    private JTextField file;
+    private JLabel label;
 
     public PeerButton(Peer p, String text) {
         super(text);
@@ -17,10 +18,10 @@ public class PeerButton extends JButton {
         this.addActionListener(new PeerButtonListener(text));
     }
 
-    public PeerButton(Peer p, String text, JTextField fileName) {
+    public PeerButton(Peer p, String text, JLabel label) {
         super(text);
         this.peer = p;
-        this.file = fileName;
+        this.label = label;
         this.addActionListener(new PeerButtonListener(text));
     }
 
@@ -32,16 +33,10 @@ public class PeerButton extends JButton {
         peer.start("127.0.0.1", 1234, 4321);
     }
 
-    public void addFile() {
-        String fileName = "seeds/" + file.getText();
-        File f = new File(fileName);
-        System.out.println("File : " + fileName);
-        System.out.println("Adding file: " + f.getAbsolutePath());
-        if (f.exists()) {
-            System.out.println("File exists");
-            SeedManager.getInstance().addSeed(f, 64);
-        }
+    public void startPeer(String port, String ip) {
+        peer.start(ip, Integer.parseInt(port), 4321);
     }
+
     public void addFile(String fileName) {
         File f = new File("seeds/" + fileName);
         System.out.println("File : " + fileName);
@@ -52,12 +47,6 @@ public class PeerButton extends JButton {
         }
     }
 
-    public void removeFile() {
-        String fileName = file.getText();
-        SeedManager.getInstance().removeSeedFromName(fileName);
-        System.out.println("File : " + fileName);
-    }
-
     public void removeFile(String fileName) {
         SeedManager.getInstance().removeSeedFromName(fileName);
         System.out.println("Removed file : " + fileName);
@@ -65,5 +54,16 @@ public class PeerButton extends JButton {
 
     public void findSeeds(){
         SeedManager.getInstance().findSeeds("seeds/");
+    }
+
+    public void refreshLabel(String status) {
+        label.setText("Peer interface : " + status);
+        if (status.equals("Running")) {
+            label.setBackground(java.awt.Color.GREEN);
+        } else if (status.equals("Stopped")) {
+            label.setBackground(java.awt.Color.RED);
+        }
+        label.setOpaque(true);
+        label.repaint();
     }
 }
