@@ -208,6 +208,8 @@ class Parser {
             case "ok":
                 System.out.println("> ok");
                 break;
+            case "exit":
+                clientHandler.acceptExit(Integer.parseInt(args[0]));
             default:
                 Logger.error(Parser.class.getSimpleName(), "Received unknown command from peer: " + command);
                 break;

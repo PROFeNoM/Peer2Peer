@@ -12,16 +12,18 @@ public class Peer {
     private MulticastPeerServer multicastPeerServer;
     private PeerServer peerServer;
     private int _peerPort;
+    private int _maxPeers;
     private String _fileShareVersion;
     private ArrayList<Integer> neighborsPort;
     //private ArrayList<ClientHandler> neighbours;
     private Map<Integer, ClientHandler> neighborsHandler;
 
     // Connect and announce to the tracker and start the peer server
-    public void start(int peerPort, String fileShareVersion) {
+    public void start(int peerPort, String fileShareVersion, int maxPeers) {
         startServer(peerPort);
         _fileShareVersion = fileShareVersion;
         _peerPort = peerPort;
+        _maxPeers = maxPeers;
         neighborsPort = new ArrayList<>();
         neighborsHandler = new HashMap<>();
     }
@@ -103,6 +105,14 @@ public class Peer {
         Logger.log(getClass().getSimpleName(), "Stopping peer");
         multicastPeerServer.close();
         peerServer.close();
+        for (Map.Entry<Integer, ClientHandler> entry : neighborsHandler.entrySet()) {
+            ClientHandler handler = entry.getValue();
+            handler.exit();
+            neighborsHandler.remove(entry.getKey());
+            System.out.println("Neighbor " + entry.getKey() + " disconnected");
+            neighborsPort.remove(entry.getKey());
+            System.out.println("Neighbor " + entry.getKey() + " removed");
+        }
     }
 
     void neighboorhood(String version) {
@@ -117,11 +127,18 @@ public class Peer {
         // Iterate over all the neighbours port, create a socket
         // and send the announce message
         for (int neighbourPort : neighborsPort) {
+            if (neighborsHandler.size() >= _maxPeers)  // Can't connect to more than _maxPeers
+                break;
+
+            if (neighborsHandler.containsKey(neighbourPort))  // Already connected to this neighbour
+                continue;
+
             try {
                 Socket socketToPeer = new Socket(Peer.HOST, neighbourPort);
                 ClientHandler clientHandler = new ClientHandler(socketToPeer, this);
-                clientHandler.start();
                 this.addNeighbour(neighbourPort, clientHandler);
+                Logger.log(getClass().getSimpleName(), "Connected to neighbour " + neighbourPort);
+                clientHandler.start();
                 clientHandler.announce(port);
             } catch (IOException e) {
                 Logger.error(getClass().getSimpleName(), "Cannot connect to peer: " + e.getMessage());
@@ -162,5 +179,13 @@ public class Peer {
 
     Map<Integer, ClientHandler> getNeighborsHandler() {
         return neighborsHandler;
+    }
+
+    int getMaxPeers() {
+        return _maxPeers;
+    }
+
+    ArrayList<Integer> getNeighborsPort() {
+        return neighborsPort;
     }
 }

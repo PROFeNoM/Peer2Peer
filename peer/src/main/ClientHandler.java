@@ -16,6 +16,12 @@ public class ClientHandler extends Thread {
 
     @Override
     public void run() {
+        if (peer.getNeighborsHandler().size() > peer.getMaxPeers()) {
+            peerConnection.stop();
+            Logger.log(getClass().getSimpleName(), "Max peers reached");
+            return;
+        }
+
         String input;
         while ((input = peerConnection.getMessage()) != null) {
             if (!input.isEmpty())
@@ -27,6 +33,23 @@ public class ClientHandler extends Thread {
                 break;
             }
         }
+    }
+
+    void exit() {
+        peerConnection.sendMessage("exit" + " " + peer.getPort());
+        peerConnection.stop();
+        this.stop();
+        Logger.log(getClass().getSimpleName(), "Disconnecting from " + peerConnection.socket.getPort());
+    }
+
+    void acceptExit(int port) {
+        peer.getNeighborsHandler().remove(port);
+        System.out.println("Removed " + port + " from neighbors handler");
+        peer.getNeighborsPort().removeIf(p -> (p == port));
+        System.out.println("Removed " + port + " from neighbors port");
+        Logger.log(getClass().getSimpleName(), "Peer " + port + " disconnected");
+        peerConnection.stop();
+        this.stop();
     }
 
     void interested(String key) {
@@ -69,6 +92,8 @@ public class ClientHandler extends Thread {
     }
 
     void acceptAnnounce(int port) {
+        peer.addNeighbour(port, this);
+        Logger.log(getClass().getSimpleName(), "Added " + port + " to neighbors handler");
         peerConnection.sendMessage("ok");
     }
 
