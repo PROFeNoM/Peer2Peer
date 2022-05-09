@@ -118,32 +118,6 @@ class Parser {
         }
     }
 
-    // Parse a response and call the appropriate method
-    public static void parseTrackerResponse(String response, Peer peer) {
-        String[] tokens = response.split("[ \\[\\]]");
-        String command = tokens[0];
-        String[] args = Arrays.copyOfRange(tokens, 1, tokens.length);
-        String key = "";
-
-        switch (command) {
-            case "ok":
-            case "peers":
-                break;
-            case "list":
-                for (int i = 1; i + 3 < args.length; i += 4) {
-                    String fileName = args[i];
-                    int fileLength = Integer.parseInt(args[i + 1]);
-                    int pieceSize = Integer.parseInt(args[i + 2]);
-                    String fileKey = args[i + 3];
-                    SeedManager.getInstance().addSeed(fileKey, fileName, fileLength, pieceSize);
-                }
-                break;
-            default:
-                System.err.println("Received unknown command from tracker: " + command);
-                break;
-        }
-    }
-
     public static BufferMap parseInterested(String response, String key) {
         Logger.log(Parser.class.getSimpleName(), "Parsing remote peer response: " + response);
         String[] tokens = response.split("[ \\[\\]]");
@@ -207,6 +181,16 @@ class Parser {
                 break;
             case "ok":
                 System.out.println("> ok");
+                break;
+            case "nok":
+                Peer currentPeer = clientHandler.getPeer();
+                int _port = Integer.parseInt(args[0]);
+                currentPeer.getNeighborsHandler().remove(_port);
+                currentPeer.getNeighborsPort().removeIf(p -> p == _port);
+                //clientHandler.acceptExit(Integer.parseInt(args[0]));
+                currentPeer.announce(String.valueOf(currentPeer.getPort()));
+                clientHandler.getPeerConnection().stop();
+                clientHandler.stop();
                 break;
             case "exit":
                 clientHandler.acceptExit(Integer.parseInt(args[0]));

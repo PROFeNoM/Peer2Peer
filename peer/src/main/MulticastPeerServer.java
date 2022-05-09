@@ -67,6 +67,7 @@ public class MulticastPeerServer extends Thread {
             multicastSocket.close();
 
             Logger.log(getClass().getSimpleName(), "Closed multicast socket");
+            this.stop();
         } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), "Cannot close server: " + e.getMessage());
         }

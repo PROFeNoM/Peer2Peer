@@ -1,5 +1,6 @@
 package peer.src.main;
 
+import java.io.IOException;
 import java.net.*;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -39,7 +40,6 @@ public class ClientHandler extends Thread {
         peerConnection.sendMessage("exit" + " " + peer.getPort());
         peerConnection.stop();
         this.stop();
-        Logger.log(getClass().getSimpleName(), "Disconnecting from " + peerConnection.socket.getPort());
     }
 
     void acceptExit(int port) {
@@ -92,9 +92,15 @@ public class ClientHandler extends Thread {
     }
 
     void acceptAnnounce(int port) {
-        peer.addNeighbour(port, this);
-        Logger.log(getClass().getSimpleName(), "Added " + port + " to neighbors handler");
-        peerConnection.sendMessage("ok");
+        if (peer.getNeighborsHandler().size() >= peer.getMaxPeers()) {
+            System.out.println("Rejected " + port + " because max peers reached");
+            peerConnection.sendMessage("nok " + peer.getPort());
+        } else {
+            System.out.println("Current number of peers : " + peer.getNeighborsHandler().size() + " / " + peer.getMaxPeers() + " /// " + peer.getPort());
+            peer.addNeighbour(port, this);
+            Logger.log(getClass().getSimpleName(), "Added " + port + " to neighbors handler");
+            peerConnection.sendMessage("ok");
+        }
     }
 
     void look(String criterion, String ttl, String ip, String port) {
@@ -123,7 +129,7 @@ public class ClientHandler extends Thread {
             }
         } else {
             String seederIp = peerConnection.socket.getInetAddress().getHostAddress();
-            String seederPort = Integer.toString(peerConnection.socket.getLocalPort());
+            String seederPort = String.valueOf(peer.getPort());
             String seeder = seederIp + ":" + seederPort;
             if (!seed.seeders.contains(seeder)) {
                 seed.seeders.add(seeder);
@@ -148,7 +154,29 @@ public class ClientHandler extends Thread {
                 message.deleteCharAt(message.length() - 1);
                 message.append("]");
             }
+            System.out.println(message);
         }
-        peerConnection.sendMessage(message.toString());
+
+        if (peer.getNeighborsHandler().containsKey(Integer.parseInt(port))) {
+            ClientHandler clientHandler = peer.getNeighborsHandler().get(Integer.parseInt(port));
+            clientHandler.peerConnection.sendMessage(message.toString());
+        } else {
+            try {
+                Socket socketToPeer = new Socket(Peer.HOST, Integer.parseInt(port));
+                ClientHandler clientHandler = new ClientHandler(socketToPeer, peer);
+                peer.addNeighbour(Integer.parseInt(port), clientHandler);
+                clientHandler.peerConnection.sendMessage(message.toString());
+            } catch (IOException e) {
+                Logger.error(getClass().getSimpleName(), "Cannot connect to peer: " + e.getMessage());
+            }
+        }
+    }
+
+    Peer getPeer() {
+        return peer;
+    }
+
+    PeerConnection getPeerConnection() {
+        return peerConnection;
     }
 }

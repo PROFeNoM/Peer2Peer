@@ -108,10 +108,6 @@ public class Peer {
         for (Map.Entry<Integer, ClientHandler> entry : neighborsHandler.entrySet()) {
             ClientHandler handler = entry.getValue();
             handler.exit();
-            neighborsHandler.remove(entry.getKey());
-            System.out.println("Neighbor " + entry.getKey() + " disconnected");
-            neighborsPort.remove(entry.getKey());
-            System.out.println("Neighbor " + entry.getKey() + " removed");
         }
     }
 
@@ -124,9 +120,13 @@ public class Peer {
     }
 
     void announce(String port) {
-        // Iterate over all the neighbours port, create a socket
+        // Iterate randomly over all the neighbours port, create a socket
         // and send the announce message
-        for (int neighbourPort : neighborsPort) {
+        List<Integer> _neighborsPort = new ArrayList<>(neighborsPort);
+        Collections.shuffle(_neighborsPort);
+        Logger.log(getClass().getSimpleName(), "Sending announce message to " + _neighborsPort.size() + " neighbors");
+        for (int neighbourPort : _neighborsPort) {
+            System.out.println("Sending announce message to " + neighbourPort);
             if (neighborsHandler.size() >= _maxPeers)  // Can't connect to more than _maxPeers
                 break;
 
