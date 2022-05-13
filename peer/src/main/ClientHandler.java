@@ -2,6 +2,7 @@ package peer.src.main;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -169,6 +170,24 @@ public class ClientHandler extends Thread {
             } catch (IOException e) {
                 Logger.error(getClass().getSimpleName(), "Cannot connect to peer: " + e.getMessage());
             }
+        }
+    }
+
+    void acceptFileAt(String ip, String port, String fileName, String length, String pieceSize, String key,
+                      ArrayList<String> seeders, ArrayList<String> leechers) {
+        Map<String, ArrayList<String>> keysToSeeders = peer.getKeysToSeeders();
+        if (!keysToSeeders.containsKey(key)) {
+            keysToSeeders.put(key, seeders);
+        } else {
+            ArrayList<String> _seeders = keysToSeeders.get(key);
+            for (String _s : seeders) {
+                if (!_seeders.contains(_s)) {
+                    _seeders.add(_s);
+                }
+            }
+        }
+        for (String s : keysToSeeders.get(key)) {
+            Logger.log(getClass().getSimpleName(), "Seeder: " + s);
         }
     }
 

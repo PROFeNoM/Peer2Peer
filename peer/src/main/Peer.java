@@ -17,6 +17,7 @@ public class Peer {
     private ArrayList<Integer> neighborsPort;
     //private ArrayList<ClientHandler> neighbours;
     private Map<Integer, ClientHandler> neighborsHandler;
+    private Map<String, ArrayList<String>> keysToSeeders;
 
     // Connect and announce to the tracker and start the peer server
     public void start(int peerPort, String fileShareVersion, int maxPeers) {
@@ -26,6 +27,7 @@ public class Peer {
         _maxPeers = maxPeers;
         neighborsPort = new ArrayList<>();
         neighborsHandler = new HashMap<>();
+        keysToSeeders = new HashMap<>();
     }
 
     void _startPeerServer(int port) {
@@ -187,5 +189,9 @@ public class Peer {
 
     ArrayList<Integer> getNeighborsPort() {
         return neighborsPort;
+    }
+
+    Map<String, ArrayList<String>> getKeysToSeeders() {
+        return keysToSeeders;
     }
 }

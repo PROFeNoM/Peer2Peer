@@ -1,5 +1,6 @@
 package peer.src.main;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -177,6 +178,17 @@ class Parser {
                 clientHandler.acceptLook(criterion, ttl, ip, portString);
                 break;
             case "file":
+                Map<String, Object> fileInfo = parseFileAt(args);
+                ip = (String) fileInfo.get("ip");
+                portString = (String) fileInfo.get("port");
+                String fileName = (String) fileInfo.get("fileName");
+                String length = (String) fileInfo.get("length");
+                String pieceSize = (String) fileInfo.get("pieceSize");
+                key = (String) fileInfo.get("key");
+                ArrayList<String> seeders = (ArrayList<String>) fileInfo.get("seeders");
+                ArrayList<String> leechers = (ArrayList<String>) fileInfo.get("leechers");
+                clientHandler.acceptFileAt(ip, portString, fileName, length, pieceSize, key, seeders, leechers);
+
                 System.out.println("> " + request);
                 break;
             case "ok":
@@ -198,6 +210,67 @@ class Parser {
                 Logger.error(Parser.class.getSimpleName(), "Received unknown command from peer: " + command);
                 break;
         }
+    }
+
+    private static Map<String, Object> parseFileAt(String[] tokens) {
+        int processing_at = 0;
+        int processing_have = 0;
+        int processing_seeders = 0;
+        int processing_leechers = 0;
+
+        Map<String, Object> file = new HashMap<>();
+
+        for (int i = 0; i < tokens.length; i++) {
+            if (tokens[i].equals("at")) {
+                processing_at = 1;
+                processing_have = processing_seeders = processing_leechers = 0;
+                continue;
+            } else if (tokens[i].equals("have")) {
+                processing_have = 1;
+                processing_at = processing_seeders = processing_leechers = 0;
+                continue;
+            } else if (tokens[i].equals("seeders")) {
+                processing_seeders = 1;
+                processing_at = processing_have = processing_leechers = 0;
+                continue;
+            } else if (tokens[i].equals("leechers")) {
+                processing_leechers = 1;
+                processing_at = processing_have = processing_seeders = 0;
+                continue;
+            }
+
+            if (processing_at == 1) {
+                String[] ipPort = tokens[i].split(":");
+                file.put("ip", ipPort[0]);
+                file.put("port", ipPort[1]);
+            } else if (processing_have == 1) {
+                String fileName = tokens[i];
+                String length = tokens[i+1];
+                String pieceSize = tokens[i+2];
+                String key = tokens[i+3];
+                file.put("fileName", fileName);
+                file.put("length", length);
+                file.put("pieceSize", pieceSize);
+                file.put("key", key);
+                i += 3;
+            } else if (processing_seeders == 1) {
+                ArrayList<String> seeders = new ArrayList<>();
+                while (i < tokens.length && tokens[i].contains(":")) {
+                    seeders.add(tokens[i]);
+                    i++;
+                }
+                file.put("seeders", seeders);
+            } else if (processing_leechers == 1) {
+                ArrayList<String> leechers = new ArrayList<>();
+                while (i < tokens.length && tokens[i].contains(":")) {
+                    leechers.add(tokens[i]);
+                    i++;
+                }
+                file.put("leechers", leechers);
+            }
+        }
+
+        return file;
     }
 
     public static Map<Integer, byte[]> parsePieces(String response, String key, BufferMap bufferMap) {
