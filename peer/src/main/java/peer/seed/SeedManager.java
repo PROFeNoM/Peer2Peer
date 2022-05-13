@@ -19,34 +19,6 @@ public class SeedManager {
     private static ArrayList<Seed> leechs = new ArrayList<Seed>();
     private static int pieceSize = 3; // Default piece size
 
-    public static void saveLeechs() throws Exception {
-        for (Seed leech : leechs) {
-            try {
-                PrintWriter writer = new PrintWriter("../../db/leechs.txt", "UTF-8");
-                writer.println(leech.name + " : " + leech.size + " : " + leech.pieceSize + " : " + leech.key + " : " + leech.bufferMap);
-                writer.close();
-            } catch (IOException e) {
-            Logger.error(e.getMessage());
-            }
-        }
-    }
-
-    public static void restoreLeechs() throws Exception {
-        try {
-            File file = new File("../../db/leechs/txt");
-            Scanner sc = new Scanner(file);
-            String line;
-
-            while (sc.hasNextLine()) {
-                line = sc.nextLine();
-                String [] tokens = line.split(" : ");
-                leechs.add(new Seed(tokens[3], tokens[0], Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]), new BufferMap(Integer.parseInt(tokens[4]))));
-            }
-            sc.close();
-        } catch (IOException e) {
-            Logger.error(e.getMessage());
-        }
-    }
 
     public static SeedManager getInstance() {
         if (instance == null) {
@@ -128,7 +100,36 @@ public class SeedManager {
     }
 
     public String leechesToString() {
-        return "[]";
+        return "[" + leechs.stream().map(Seed::toString).collect(Collectors.joining(" ")) + "]";
+    }
+
+    public static void saveLeechs() throws Exception {
+        for (Seed leech : leechs) {
+            try {
+                PrintWriter writer = new PrintWriter("../../db/leechs.txt", "UTF-8");
+                writer.println(leech.name + " : " + leech.size + " : " + leech.pieceSize + " : " + leech.key + " : " + leech.bufferMap);
+                writer.close();
+            } catch (IOException e) {
+            Logger.error(e.getMessage());
+            }
+        }
+    }
+
+    public static void restoreLeechs() throws Exception {
+        try {
+            File file = new File("../../db/leechs/txt");
+            Scanner sc = new Scanner(file);
+            String line;
+
+            while (sc.hasNextLine()) {
+                line = sc.nextLine();
+                String [] tokens = line.split(" : ");
+                leechs.add(new Seed(tokens[3], tokens[0], Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]), new BufferMap(Integer.parseInt(tokens[4]))));
+            }
+            sc.close();
+        } catch (IOException e) {
+            Logger.error(e.getMessage());
+        }
     }
 
     public boolean hasSeed(String key) {
