@@ -53,15 +53,24 @@ public class PeerButtonListener implements ActionListener {
                     else {
                         JOptionPane.showMessageDialog(jframe, "Cannot process your request with invalid input data");
                     }
-
                 }
             } else if (result == JOptionPane.CANCEL_OPTION) {
                 pb.refreshLabel("Stopped");
             }
         } else if (e.getActionCommand().equals("Remove file(s)")) {
             System.out.println("Removing file");
-            JOptionPane pane = new JOptionPane();
-            pb.removeFile(pane.showInputDialog("Enter file name you want to remove"));
+            File f = new File("seeds");
+            String[] files = f.list();
+            String FileToRemove = (String) JOptionPane.showInputDialog(
+                null,
+                "What file do you want to remove ?",
+                "Choose file",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                files,
+                null);
+            pb.removeFile(FileToRemove);
+            System.out.println("File removed");
         } else if (e.getActionCommand().equals("Add file(s)")) {
             System.out.println("Opening files");
             JFileChooser fc = new JFileChooser();
