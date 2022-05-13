@@ -4,15 +4,13 @@ import peer.util.Configuration;
 import peer.util.Logger;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
-// TODO method save to save the leech when stopping
-// TODO method restore to have the previous leech when connecting
-// TODO store those leech in leechs
 
 public class SeedManager {
     private static SeedManager instance;
@@ -21,17 +19,34 @@ public class SeedManager {
     private static ArrayList<Seed> leechs = new ArrayList<Seed>();
     private static int pieceSize = 3; // Default piece size
 
-    // public static void saveLeechs() throws Exception {
-    //     for (Seed leech : leechs) {
-    //         FileOutputStream fos = new FileOutputStream("../../db/leechs.txt");
-            
-    //     }
-    //     System.out.println("ok");
-    // }
+    public static void saveLeechs() throws Exception {
+        for (Seed leech : leechs) {
+            try {
+                PrintWriter writer = new PrintWriter("../../db/leechs.txt", "UTF-8");
+                writer.println(leech.name + " : " + leech.size + " : " + leech.pieceSize + " : " + leech.key + " : " + leech.bufferMap);
+                writer.close();
+            } catch (IOException e) {
+            Logger.error(e.getMessage());
+            }
+        }
+    }
 
-    // public static void restoreLeechs() {
-    //     System.out.println("ok");
-    // }
+    public static void restoreLeechs() throws Exception {
+        try {
+            File file = new File("../../db/leechs/txt");
+            Scanner sc = new Scanner(file);
+            String line;
+
+            while (sc.hasNextLine()) {
+                line = sc.nextLine();
+                String [] tokens = line.split(" : ");
+                leechs.add(new Seed(tokens[3], tokens[0], Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]), new BufferMap(Integer.parseInt(tokens[4]))));
+            }
+            sc.close();
+        } catch (IOException e) {
+            Logger.error(e.getMessage());
+        }
+    }
 
     public static SeedManager getInstance() {
         if (instance == null) {
@@ -86,7 +101,12 @@ public class SeedManager {
 
     // Add a seed from info
     public void addSeed(String key, String fileName, int fileSize, int pieceSize) {
-        seeds.add(new Seed(key, seedFolder + "/" + fileName, fileSize, pieceSize));
+        seeds.add(new Seed(key, seedFolder + "/" + fileName, fileSize, pieceSize, null));
+    }
+
+    // Add a leech from info
+    public void addLeech(String key, String fileName, int fileSize, int pieceSize, BufferMap bufferMap) {
+        leechs.add(new Seed(key, seedFolder + "/" + fileName, fileSize, pieceSize, bufferMap));
     }
 
     // Remove a seed given its key
