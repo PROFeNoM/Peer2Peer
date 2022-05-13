@@ -54,12 +54,22 @@ public class ClientHandler extends Thread {
     }
 
     void interested(String key) {
+        String message = "interested " + key;
+        peerConnection.sendMessage(message);
+    }
+
+    void acceptInterested(String key) {
         Seed seed = SeedManager.getInstance().getSeedFromKey(key);
         if (seed == null) {
             peerConnection.sendMessage("have " + key + " 0");
         } else {
             peerConnection.sendMessage("have " + key + " " + seed.getBuffermap().toString());
         }
+    }
+
+    void getpieces(String key, BufferMap buffermap) {
+        Map<Integer, byte[]> pieces = peerConnection.getPieces(key, buffermap);
+        SeedManager.getInstance().writePieces(key, pieces);
     }
 
     void sendPieces(String key, int[] indices) {
@@ -175,6 +185,12 @@ public class ClientHandler extends Thread {
 
     void acceptFileAt(String ip, String port, String fileName, String length, String pieceSize, String key,
                       ArrayList<String> seeders, ArrayList<String> leechers) {
+        Seed seed = SeedManager.getInstance().getSeedFromKey(key);
+        if (seed == null) {
+            SeedManager.getInstance().addSeed(key, fileName, Integer.parseInt(length), Integer.parseInt(pieceSize));
+            Logger.log(getClass().getSimpleName(), "New file: " + fileName + " " + length + " " + pieceSize);
+        }
+
         Map<String, ArrayList<String>> keysToSeeders = peer.getKeysToSeeders();
         if (!keysToSeeders.containsKey(key)) {
             keysToSeeders.put(key, seeders);

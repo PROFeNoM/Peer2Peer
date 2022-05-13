@@ -40,6 +40,13 @@ class Parser {
                 String ip = ipPortTokens[0];
                 String portString = ipPortTokens[1];
                 return new String[] { "look", criterion, ttl, ip, portString };
+            case "interested":
+                if (tokens.length < 2) {
+                    Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
+                    return null;
+                }
+                String key = tokens[1];
+                return new String[] { "interested", key };
             case "exit":
                 return new String[] { "exit" };
             default:
@@ -155,7 +162,7 @@ class Parser {
         switch (command) {
             case "interested":
                 String key = args[0];
-                clientHandler.interested(key);
+                clientHandler.acceptInterested(key);
                 break;
             case "getpieces":
                 key = args[0];
@@ -203,6 +210,11 @@ class Parser {
                 currentPeer.announce(String.valueOf(currentPeer.getPort()));
                 clientHandler.getPeerConnection().stop();
                 clientHandler.stop();
+                break;
+            case "have":
+                key = args[0];
+                BufferMap bufferMap = new BufferMap(Integer.parseInt(args[1]));
+                clientHandler.getpieces(key, bufferMap);
                 break;
             case "exit":
                 clientHandler.acceptExit(Integer.parseInt(args[0]));

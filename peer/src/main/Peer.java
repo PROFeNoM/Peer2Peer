@@ -92,6 +92,9 @@ public class Peer {
                     case "look":
                         look(command[1], command[2], command[3], command[4]);
                         break;
+                    case "interested":
+                        interested(command[1]);
+                        break;
                     case "exit":
                         System.out.println("Good bye");
                         in.close();
@@ -152,6 +155,21 @@ public class Peer {
         for (Map.Entry<Integer, ClientHandler> entry : neighborsHandler.entrySet()) {
             ClientHandler clientHandler = entry.getValue();
             clientHandler.look(criterion, ttl, ip, port);
+        }
+    }
+
+    void interested(String key) {
+        if (keysToSeeders.containsKey(key)) {
+            ArrayList<String> seeders = keysToSeeders.get(key);
+            for (String seeder : seeders) {
+                String[] seederInfo = seeder.split(":");
+                int seederPort = Integer.parseInt(seederInfo[1]);
+                if (neighborsHandler.containsKey(seederPort)) {
+                    ClientHandler clientHandler = neighborsHandler.get(seederPort);
+                    clientHandler.interested(key);
+                    break;
+                }
+            }
         }
     }
 
