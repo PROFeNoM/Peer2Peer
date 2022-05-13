@@ -4,15 +4,34 @@ import peer.util.Configuration;
 import peer.util.Logger;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+// TODO method save to save the leech when stopping
+// TODO method restore to have the previous leech when connecting
+// TODO store those leech in leechs
 
 public class SeedManager {
     private static SeedManager instance;
     private static String seedFolder;
     private static ArrayList<Seed> seeds = new ArrayList<Seed>();
+    private static ArrayList<Seed> leechs = new ArrayList<Seed>();
     private static int pieceSize = 3; // Default piece size
+
+    // public static void saveLeechs() throws Exception {
+    //     for (Seed leech : leechs) {
+    //         FileOutputStream fos = new FileOutputStream("../../db/leechs.txt");
+            
+    //     }
+    //     System.out.println("ok");
+    // }
+
+    // public static void restoreLeechs() {
+    //     System.out.println("ok");
+    // }
 
     public static SeedManager getInstance() {
         if (instance == null) {
