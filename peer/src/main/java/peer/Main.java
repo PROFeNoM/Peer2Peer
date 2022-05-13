@@ -5,13 +5,13 @@ import peer.util.Configuration;
 /**
  * Main class of the application.
  * It launches the user peer with the command-line arguments
- * or the parameters in the configuration file if not parameters are provided.
+ * or the parameters in the configuration file if no parameters are provided.
  */
 public class Main {
     public static void main(String[] args) {
-        String trackerIp;
-        int trackerPort;
-        int peerPort;
+        final String trackerIp;
+        final int trackerPort;
+        final int peerPort;
 
         for (String arg : args) {
             if (arg.equals("-h")) {

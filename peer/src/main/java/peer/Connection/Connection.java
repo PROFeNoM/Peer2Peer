@@ -54,6 +54,24 @@ class Connection {
     }
 
     /**
+     * Returns the connection state of the socket.
+     * 
+     * @return True if the socket is connected, false otherwise.
+     */
+    public boolean isConnected() {
+        return socket.isConnected();
+    }
+
+    /**
+     * Returns the closed state of the socket.
+     * 
+     * @return True if the connection is closed, false otherwise.
+     */
+    public boolean isClosed() {
+        return socket.isClosed();
+    }
+
+    /**
      * Send a message to the connection.
      * TODO: make it protected and handle by child ?
      * @param message Message to send.

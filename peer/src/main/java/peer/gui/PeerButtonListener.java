@@ -4,6 +4,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+
 import java.io.File;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -40,8 +42,19 @@ public class PeerButtonListener implements ActionListener {
             dialog.add(ip);
             int result = JOptionPane.showConfirmDialog(null, dialog, "Enter the server infos", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
-                pb.refreshLabel("Running");
-                pb.startPeer(port.getText(), ip.getText());
+                try {
+                    pb.startPeer(port.getText(), ip.getText());
+                    pb.refreshLabel("Running");
+                } catch (Exception NumberFormatException) {
+                    JFrame jframe = new JFrame();
+                    if ((port.getText().isEmpty()) || (ip.getText().isEmpty())) {
+                        JOptionPane.showMessageDialog(jframe, "Cannot process your request with no input data");
+                    }
+                    else {
+                        JOptionPane.showMessageDialog(jframe, "Cannot process your request with invalid input data");
+                    }
+
+                }
             } else if (result == JOptionPane.CANCEL_OPTION) {
                 pb.refreshLabel("Stopped");
             }
