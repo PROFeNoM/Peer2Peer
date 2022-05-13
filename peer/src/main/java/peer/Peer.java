@@ -22,7 +22,14 @@ import java.util.Scanner;
  * (getfile).
  */
 public class Peer {
+    /**
+     * Object used to talk to the tracker.
+     */
     private TrackerConnection tracker;
+
+    /**
+     * Peer server to receive connections from other peers.
+     */
     private PeerServer peerServer;
 
     /**
@@ -219,6 +226,11 @@ public class Peer {
             }
 
             SeedManager.getInstance().writePieces(key, pieces);
+
+            if (seed.getBufferMap().isFull()) {
+                Logger.log("File downloaded");
+                return;
+            }
         }
     }
 }
