@@ -30,18 +30,22 @@ public class PeerButtonListener implements ActionListener {
         } else if (e.getActionCommand().equals("Start")) {
             System.out.println("Starting peer");
             JPanel dialog = new JPanel();
-            GridLayout gd = new GridLayout(3, 2);
-            JTextField port = new JTextField();
-            JTextField ip = new JTextField();
+            GridLayout gd = new GridLayout(3, 3);
+            JTextField portPeer = new JTextField();
+            JTextField ipTracker = new JTextField();
+            JTextField portTracker = new JTextField();
             dialog.setLayout(gd);
-            dialog.add(new JLabel("Port number"));
-            dialog.add(port);
-            dialog.add(new JLabel("IP address"));
-            dialog.add(ip);
-            int result = JOptionPane.showConfirmDialog(null, dialog, "Enter the server infos", JOptionPane.OK_CANCEL_OPTION);
+            dialog.add(new JLabel("Port peer"));
+            dialog.add(portPeer);
+            dialog.add(new JLabel("IP Tracker"));
+            dialog.add(ipTracker);
+            dialog.add(new JLabel("Port Tracker"));
+            dialog.add(portTracker);
+            int result = JOptionPane.showConfirmDialog(null, dialog, "Enter the tracker infos", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
                 pb.refreshLabel("Running");
-                pb.startPeer(port.getText(), ip.getText());
+                // ip tracker, port tracker, port peer
+                pb.startPeer(ipTracker.getText(), Integer.parseInt(portTracker.getText()), Integer.parseInt(portPeer.getText()));
             } else if (result == JOptionPane.CANCEL_OPTION) {
                 pb.refreshLabel("Stopped");
             }
@@ -64,6 +68,8 @@ public class PeerButtonListener implements ActionListener {
             System.out.println("Checking seeds");
             
             pb.findSeeds();
+        } else if (e.getActionCommand().equals("Swap")) {
+            
         } else {
             System.out.println("Unknown button pressed");
         }

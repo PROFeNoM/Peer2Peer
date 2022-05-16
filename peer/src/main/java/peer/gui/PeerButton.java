@@ -33,8 +33,8 @@ public class PeerButton extends JButton {
         peer.start("127.0.0.1", 1234, 4321);
     }
 
-    public void startPeer(String port, String ip) {
-        peer.start(ip, Integer.parseInt(port), 4321);
+    public void startPeer(String ipTracker, int portTracker, int portPeer) {
+        peer.start(ipTracker, portTracker, portPeer);
     }
 
     public void addFile(String fileName) {
