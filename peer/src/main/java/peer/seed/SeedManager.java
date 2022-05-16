@@ -55,9 +55,9 @@ public class SeedManager {
                 continue;
             }
 
-            // Seed already exists in database
+            // Seed already exists in database as a leech
             String key = FileUtils.getMD5Hash(file);
-            if (hasSeed(key)) {
+            if (isLeech(key)) {
                 continue;
             }
             addSeed(file, pieceSize);
@@ -103,7 +103,7 @@ public class SeedManager {
         return "[" + leechs.stream().map(Seed::toString).collect(Collectors.joining(" ")) + "]";
     }
 
-    public static void saveLeechs() throws Exception {
+    public void saveLeechs() throws Exception {
         for (Seed leech : leechs) {
             try {
                 PrintWriter writer = new PrintWriter("../../db/leechs.txt", "UTF-8");
@@ -115,7 +115,7 @@ public class SeedManager {
         }
     }
 
-    public static void restoreLeechs() throws Exception {
+    public void restoreLeechs() throws Exception {
         try {
             File file = new File("../../db/leechs/txt");
             Scanner sc = new Scanner(file);
@@ -130,6 +130,19 @@ public class SeedManager {
         } catch (IOException e) {
             Logger.error(e.getMessage());
         }
+    }
+
+    public boolean isLeech(String key) {
+        return getLeechFromKey(key) != null;
+    }
+
+    public Seed getLeechFromKey(String key) {
+        for (Seed leech : leechs) {
+            if (leech.getKey().equals(key)) {
+                return leech;
+            }
+        }
+        return null;
     }
 
     public boolean hasSeed(String key) {

@@ -42,6 +42,7 @@ public class Peer {
     public void start(String trackerIp, int trackerPort, int peerPort) {
         try {
             tracker = new TrackerConnection(trackerIp, trackerPort);
+            SeedManager.getInstance().restoreLeechs();
             tracker.announce(peerPort);
         } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), "Failed to connect to tracker: " + e.getMessage());
@@ -109,6 +110,8 @@ public class Peer {
      */
     public void stop() {
         Logger.log(getClass().getSimpleName(), "Stopping application");
+
+        SeedManager.getInstance().saveLeechs();
 
         try {
             tracker.stop();
