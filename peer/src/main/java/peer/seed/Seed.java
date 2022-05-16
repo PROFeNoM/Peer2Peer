@@ -47,14 +47,17 @@ public class Seed {
     }
 
     // Create a seed entry from info
-    public Seed(String key, String name, int fileSize, int pieceSize) {
+    public Seed(String key, String name, int fileSize, int pieceSize, BufferMap bufferMap) {
         // TODO: Check if file exists
         this.file = new File(name);
         this.key = key;
         this.name = name;
         this.pieceSize = pieceSize;
         this.size = fileSize;
-        this.bufferMap = new BufferMap(size, pieceSize, false);
+        if (bufferMap == null)
+            this.bufferMap = new BufferMap(size, pieceSize, false);
+        else
+            this.bufferMap = bufferMap;
     }
 
     public String getName() {

@@ -22,15 +22,22 @@ import java.util.Scanner;
  * (getfile).
  */
 public class Peer {
+    /**
+     * Object used to talk to the tracker.
+     */
     private TrackerConnection tracker;
+
+    /**
+     * Peer server to receive connections from other peers.
+     */
     private PeerServer peerServer;
 
     /**
      * Connect and announce to the tracker and start the peer server.
      * 
-     * @param trackerIp
-     * @param trackerPort
-     * @param peerPort
+     * @param trackerIp   The tracker's ip.
+     * @param trackerPort The tracker's port.
+     * @param peerPort    The port to listen to.
      */
     public void start(String trackerIp, int trackerPort, int peerPort) {
         try {
@@ -91,7 +98,7 @@ public class Peer {
                     return;
                 default:
                     Logger.warn(getClass().getSimpleName(),
-                            "Unknown command: " + command + ", available commands: look, getfile, exit");
+                            command + ", available commands: look, getfile, exit");
                     break;
             }
         }
@@ -219,6 +226,11 @@ public class Peer {
             }
 
             SeedManager.getInstance().writePieces(key, pieces);
+
+            if (seed.getBufferMap().isFull()) {
+                Logger.log("File downloaded");
+                return;
+            }
         }
     }
 }

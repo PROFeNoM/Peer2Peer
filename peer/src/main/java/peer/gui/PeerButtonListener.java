@@ -4,6 +4,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+
 import java.io.File;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -43,16 +45,35 @@ public class PeerButtonListener implements ActionListener {
             dialog.add(portTracker);
             int result = JOptionPane.showConfirmDialog(null, dialog, "Enter the tracker infos", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
-                pb.refreshLabel("Running");
-                // ip tracker, port tracker, port peer
-                pb.startPeer(ipTracker.getText(), Integer.parseInt(portTracker.getText()), Integer.parseInt(portPeer.getText()));
+                try {
+                    pb.startPeer(port.getText(), ip.getText());
+                    pb.refreshLabel("Running");
+                } catch (Exception NumberFormatException) {
+                    JFrame jframe = new JFrame();
+                    if ((port.getText().isEmpty()) || (ip.getText().isEmpty())) {
+                        JOptionPane.showMessageDialog(jframe, "Cannot process your request with no input data");
+                    }
+                    else {
+                        JOptionPane.showMessageDialog(jframe, "Cannot process your request with invalid input data");
+                    }
+                }
             } else if (result == JOptionPane.CANCEL_OPTION) {
                 pb.refreshLabel("Stopped");
             }
         } else if (e.getActionCommand().equals("Remove file(s)")) {
             System.out.println("Removing file");
-            JOptionPane pane = new JOptionPane();
-            pb.removeFile(pane.showInputDialog("Enter file name you want to remove"));
+            File f = new File("seeds");
+            String[] files = f.list();
+            String FileToRemove = (String) JOptionPane.showInputDialog(
+                null,
+                "What file do you want to remove ?",
+                "Choose file",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                files,
+                null);
+            pb.removeFile(FileToRemove);
+            System.out.println("File removed");
         } else if (e.getActionCommand().equals("Add file(s)")) {
             System.out.println("Opening files");
             JFileChooser fc = new JFileChooser();
