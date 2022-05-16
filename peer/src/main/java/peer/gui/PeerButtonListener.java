@@ -46,11 +46,11 @@ public class PeerButtonListener implements ActionListener {
             int result = JOptionPane.showConfirmDialog(null, dialog, "Enter the tracker infos", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
                 try {
-                    pb.startPeer(port.getText(), ip.getText());
+                    pb.startPeer(ipTracker.getText(), Integer.parseInt(portTracker.getText()), Integer.parseInt(portPeer.getText()));
                     pb.refreshLabel("Running");
                 } catch (Exception NumberFormatException) {
                     JFrame jframe = new JFrame();
-                    if ((port.getText().isEmpty()) || (ip.getText().isEmpty())) {
+                    if ((portPeer.getText().isEmpty()) || (ipTracker.getText().isEmpty() || (portTracker.getText().isEmpty()))) {
                         JOptionPane.showMessageDialog(jframe, "Cannot process your request with no input data");
                     }
                     else {
