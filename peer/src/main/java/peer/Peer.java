@@ -138,7 +138,7 @@ public class Peer {
      * 
      * @param searchQuery The message containing the search request.
      */
-    private void look(String searchQuery) {
+    public void look(String searchQuery) {
         String[] filesInfo = tracker.look(searchQuery);
         for (int i = 0; i + 3 < filesInfo.length; i += 4) {
             String fileName = filesInfo[i];
