@@ -4,6 +4,7 @@ import peer.util.Configuration;
 import peer.util.Logger;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -31,6 +32,9 @@ public class SeedManager {
     }
 
     private SeedManager(String folderPath) {
+        try {
+         restoreLeechs();
+        } catch (Exception e) {}
         findSeeds(folderPath);
     }
 
@@ -56,8 +60,9 @@ public class SeedManager {
             }
 
             // Seed already exists in database as a leech
-            String key = FileUtils.getMD5Hash(file);
-            if (isLeech(key)) {
+            System.out.println(file.getName());
+            if (isLeech(file.getName())) {
+                System.out.println(file.getName() + " is a leech");
                 continue;
             }
             addSeed(file, pieceSize);
@@ -73,12 +78,12 @@ public class SeedManager {
 
     // Add a seed from info
     public void addSeed(String key, String fileName, int fileSize, int pieceSize) {
-        seeds.add(new Seed(key, seedFolder + "/" + fileName, fileSize, pieceSize, null));
+        seeds.add(new Seed(key, seedFolder, fileName, fileSize, pieceSize, null));
     }
 
     // Add a leech from info
-    public void addLeech(String key, String fileName, int fileSize, int pieceSize, BufferMap bufferMap) {
-        leechs.add(new Seed(key, seedFolder + "/" + fileName, fileSize, pieceSize, bufferMap));
+    public void addLeech(String key, String fileName, int fileSize, int pieceSize) {
+        leechs.add(new Seed(key, seedFolder, fileName, fileSize, pieceSize, null));
     }
 
     // Remove a seed given its key
@@ -91,6 +96,11 @@ public class SeedManager {
         seeds.removeIf(seed -> seed.getName().equals(fileName));
     }
 
+    // Remove a seed given its key
+    public void removeLeech(String key) {
+        leechs.removeIf(leech -> leech.getKey().equals(key));
+    }
+
     public ArrayList<Seed> getSeeds() {
         return seeds;
     }
@@ -100,16 +110,20 @@ public class SeedManager {
     }
 
     public String leechesToString() {
-        return "[" + leechs.stream().map(Seed::toString).collect(Collectors.joining(" ")) + "]";
+        return "[" + leechs.stream().map(seed->seed.key).collect(Collectors.joining(" ")) + "]";
     }
 
     public void saveLeechs() throws Exception {
         for (Seed leech : leechs) {
             try {
-                PrintWriter writer = new PrintWriter("../../db/leechs.txt", "UTF-8");
+                File file = new File("db/leechs.txt");
+                if (!file.exists())
+                    file.createNewFile();
+                //TODO check if file is not created
+                PrintWriter writer = new PrintWriter(file, "UTF-8");
                 writer.println(leech.name + " : " + leech.size + " : " + leech.pieceSize + " : " + leech.key + " : " + leech.bufferMap);
                 writer.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
             Logger.error(e.getMessage());
             }
         }
@@ -117,23 +131,33 @@ public class SeedManager {
 
     public void restoreLeechs() throws Exception {
         try {
-            File file = new File("../../db/leechs/txt");
+            File file = new File("db/leechs.txt");
             Scanner sc = new Scanner(file);
             String line;
 
             while (sc.hasNextLine()) {
                 line = sc.nextLine();
                 String [] tokens = line.split(" : ");
-                leechs.add(new Seed(tokens[3], tokens[0], Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]), new BufferMap(Integer.parseInt(tokens[4]))));
+                leechs.add(new Seed(tokens[3], seedFolder, tokens[0], Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]), new BufferMap(Integer.parseInt(tokens[4]))));
             }
             sc.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             Logger.error(e.getMessage());
         }
     }
 
-    public boolean isLeech(String key) {
-        return getLeechFromKey(key) != null;
+    public boolean isLeech(String name) {
+        return getLeechFromName(name) != null;
+    }
+
+    public Seed getLeechFromName(String name) {
+        for (Seed leech : leechs) {
+            System.out.println(leech.getName());
+            if (leech.getName().equals(name)) {
+                return leech;
+            }
+        }
+        return null;
     }
 
     public Seed getLeechFromKey(String key) {
@@ -161,17 +185,22 @@ public class SeedManager {
 
     // Write pieces to file
     public void writePieces(String key, Map<Integer, byte[]> pieces) {
-        Seed seed = getSeedFromKey(key);
-        // Ensure we know the seed
-        if (seed == null) {
-            Logger.error(getClass().getSimpleName(), "No seed registered for key " + key);
+        Seed leech = getLeechFromKey(key);
+        // Ensure we know the leech
+        if (leech == null) {
+            Logger.error(getClass().getSimpleName(), "No leech registered for key " + key);
             return;
         } else {
-            Logger.log(getClass().getSimpleName(), "Writing pieces to file " + seed.getName());
+            Logger.log(getClass().getSimpleName(), "Writing pieces to file " + leech.getName());
         }
 
         for (Map.Entry<Integer, byte[]> piece : pieces.entrySet()) {
-            seed.writePiece(piece.getKey(), piece.getValue());
+            leech.writePiece(piece.getKey(), piece.getValue());
         }
+    }
+
+    public void leechToSeed(Seed leech) {
+        removeLeech(leech.key);
+        seeds.add(leech);
     }
 }

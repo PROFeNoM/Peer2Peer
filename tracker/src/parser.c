@@ -8,7 +8,7 @@
 #include "include/utils.h"
 
 #define KNOWN_REQUEST_REGEX "^(announce|look|getfile|update).*"
-#define ANNOUNCE_REQUEST_REGEX "^announce listen [0-9]*\\( seed \\[\\(.* [0-9]\\+ [0-9]\\+ \\w\\+\\s\\?\\)\\+\\]\\)\\?\\( leech \\[.*\\]\\)\\?\\s*$"
+#define ANNOUNCE_REQUEST_REGEX "^announce listen [0-9]*\\( seed \\[\\(.* [0-9]\\+ [0-9]\\+ \\w\\+\\s\\?\\)*\\]\\)\\?\\( leech \\[.*\\]\\)\\?\\s*$"
 #define LOOK_REQUEST_REGEX "^look \\[.*\\]\\s*$"
 #define GETFILE_REQUEST_REGEX "^getfile \\w\\+\\s*$"
 #define UPDATE_REQUEST_REGEX "^update seed \\[.*\\] leech \\[.*\\]\\s*$"

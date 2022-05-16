@@ -67,7 +67,7 @@ public class ClientHandler extends Thread {
         if (seed == null) {
             peer.sendMessage("have " + key + " 0");
         } else {
-            peer.sendMessage("have " + key + " " + seed.getBufferMap().toString());
+            peer.sendMessage("have " + key + " " + 1);
         }
     }
 

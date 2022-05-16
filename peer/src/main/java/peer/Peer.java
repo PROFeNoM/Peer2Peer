@@ -42,15 +42,15 @@ public class Peer {
     public void start(String trackerIp, int trackerPort, int peerPort) {
         try {
             tracker = new TrackerConnection(trackerIp, trackerPort);
-            SeedManager.getInstance().restoreLeechs();
             tracker.announce(peerPort);
-        } catch (IOException e) {
+        } catch (Exception e) {
             Logger.error(getClass().getSimpleName(), "Failed to connect to tracker: " + e.getMessage());
             System.exit(1);
-        } catch (RuntimeException e) {
-            Logger.error(getClass().getSimpleName(), "Failed to announce to tracker: " + e.getMessage());
-            System.exit(1);
-        }
+        } 
+         //catch (RuntimeException e) {
+        //     Logger.error(getClass().getSimpleName(), "Failed to announce to tracker: " + e.getMessage());
+        //     System.exit(1);
+        // }
 
         Logger.log(getClass().getSimpleName(), "Announced to tracker");
 
@@ -111,11 +111,11 @@ public class Peer {
     public void stop() {
         Logger.log(getClass().getSimpleName(), "Stopping application");
 
-        SeedManager.getInstance().saveLeechs();
 
         try {
+            SeedManager.getInstance().saveLeechs();
             tracker.stop();
-        } catch (IOException e) {
+        } catch (Exception e) {
             Logger.error(getClass().getSimpleName(),
                     "Error while stopping connection to the tracker: " + e.getMessage());
         }
@@ -155,7 +155,10 @@ public class Peer {
             int fileLength = Integer.parseInt(filesInfo[i + 1]);
             int pieceSize = Integer.parseInt(filesInfo[i + 2]);
             String fileKey = filesInfo[i + 3];
-            SeedManager.getInstance().addSeed(fileKey, fileName, fileLength, pieceSize);
+            if (SeedManager.getInstance().hasSeed(fileKey)) {
+                continue;
+            }
+            SeedManager.getInstance().addLeech(fileKey, fileName, fileLength, pieceSize);
         }
     }
 
@@ -170,6 +173,8 @@ public class Peer {
      */
     private void getFile(String key) {
         Seed seed = SeedManager.getInstance().getSeedFromKey(key);
+        if (seed == null)
+            seed = SeedManager.getInstance().getLeechFromKey(key);
 
         if (seed == null) {
             Logger.error(getClass().getSimpleName(), "Unknown file key: " + key);
@@ -231,6 +236,7 @@ public class Peer {
             SeedManager.getInstance().writePieces(key, pieces);
 
             if (seed.getBufferMap().isFull()) {
+                SeedManager.getInstance().leechToSeed(seed);
                 Logger.log("File downloaded");
                 return;
             }
