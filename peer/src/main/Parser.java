@@ -161,6 +161,7 @@ class Parser {
 
         switch (command) {
             case "interested":
+                Logger.log(Parser.class.getSimpleName(), "Received interested request");
                 String key = args[0];
                 clientHandler.acceptInterested(key);
                 break;
@@ -214,7 +215,8 @@ class Parser {
             case "have":
                 key = args[0];
                 BufferMap bufferMap = new BufferMap(Integer.parseInt(args[1]));
-                clientHandler.getpieces(key, bufferMap);
+                if (!bufferMap.isEmpty())
+                    clientHandler.getpieces(key, bufferMap);
                 break;
             case "exit":
                 clientHandler.acceptExit(Integer.parseInt(args[0]));

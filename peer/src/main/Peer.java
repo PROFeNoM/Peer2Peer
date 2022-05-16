@@ -154,7 +154,7 @@ public class Peer {
     void look(String criterion, String ttl, String ip, String port) {
         for (Map.Entry<Integer, ClientHandler> entry : neighborsHandler.entrySet()) {
             ClientHandler clientHandler = entry.getValue();
-            clientHandler.look(criterion, ttl, ip, port);
+            clientHandler.look(criterion, String.valueOf(Integer.parseInt(ttl) - 1), ip, port);
         }
     }
 

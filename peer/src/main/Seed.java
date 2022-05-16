@@ -1,5 +1,6 @@
 package peer.src.main;
 
+import peer.src.main.util.Configuration;
 import peer.src.main.util.FileHandler;
 import java.io.*;
 import java.util.ArrayList;
@@ -32,7 +33,9 @@ public class Seed {
     // Create a seed entry from info
     public Seed(String key, String name, int fileSize, int pieceSize) {
         // TODO: Check if file exists
-        this.file = new File(name);
+        String seedFolder = System.getProperty("seedsFolder") != null ? System.getProperty("seedsFolder")
+                : Configuration.getInstance().getSeedsFolder();
+        this.file = new File(seedFolder + "/" + name);
         this.key = key;
         this.name = name;
         this.pieceSize = pieceSize;

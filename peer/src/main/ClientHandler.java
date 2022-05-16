@@ -18,11 +18,13 @@ public class ClientHandler extends Thread {
 
     @Override
     public void run() {
-        if (peer.getNeighborsHandler().size() > peer.getMaxPeers()) {
+        /*if (peer.getNeighborsHandler().size() > peer.getMaxPeers()) {
             peerConnection.stop();
             Logger.log(getClass().getSimpleName(), "Max peers reached");
+            Logger.log(getClass().getSimpleName(), "Peer " + peer.getPort() + " disconnected");
+            Logger.log(getClass().getSimpleName(), "Peer " + peerConnection.socket.getPort() + " disconnected");
             return;
-        }
+        }*/
 
         String input;
         while ((input = peerConnection.getMessage()) != null) {
@@ -60,9 +62,11 @@ public class ClientHandler extends Thread {
 
     void acceptInterested(String key) {
         Seed seed = SeedManager.getInstance().getSeedFromKey(key);
-        if (seed == null) {
+        if (seed == null || !SeedManager.getInstance().fileExists(seed)) {
+            Logger.log(getClass().getSimpleName(), "Seed " + key + " not found");
             peerConnection.sendMessage("have " + key + " 0");
         } else {
+            Logger.log(getClass().getSimpleName(), "Seed " + key + " found");
             peerConnection.sendMessage("have " + key + " " + seed.getBuffermap().toString());
         }
     }
@@ -122,23 +126,7 @@ public class ClientHandler extends Thread {
     void acceptLook(String criterion, String ttl, String ip, String port) {
         StringBuilder message;
         Seed seed = SeedManager.getInstance().getSeedFromName(criterion);
-        if (Integer.parseInt(ttl) < 1) {
-            message = new StringBuilder("file at " + ip + ":" + port);
-        } else if (seed == null) {
-            int sent = 0;
-            for (Map.Entry<Integer, ClientHandler> entry : peer.getNeighborsHandler().entrySet()) {
-                ClientHandler clientHandler = entry.getValue();
-                if (entry.getKey() != Integer.parseInt(port)) {
-                    sent++;
-                    clientHandler.look(criterion, String.valueOf(Integer.parseInt(ttl) - 1), ip, port);
-                }
-            }
-            if (sent == 0) {
-                message = new StringBuilder("file at " + ip + ":" + port);
-            } else {
-                return;
-            }
-        } else {
+        if (seed != null && SeedManager.getInstance().fileExists(seed)) {
             String seederIp = peerConnection.socket.getInetAddress().getHostAddress();
             String seederPort = String.valueOf(peer.getPort());
             String seeder = seederIp + ":" + seederPort;
@@ -166,6 +154,22 @@ public class ClientHandler extends Thread {
                 message.append("]");
             }
             System.out.println(message);
+        } else if (Integer.parseInt(ttl) < 1) {
+            message = new StringBuilder("file at " + ip + ":" + port);
+        } else {
+            int sent = 0;
+            for (Map.Entry<Integer, ClientHandler> entry : peer.getNeighborsHandler().entrySet()) {
+                ClientHandler clientHandler = entry.getValue();
+                if (entry.getKey() != Integer.parseInt(port)) {
+                    sent++;
+                    clientHandler.look(criterion, String.valueOf(Integer.parseInt(ttl) - 1), ip, port);
+                }
+            }
+            if (sent == 0) {
+                message = new StringBuilder("file at " + ip + ":" + port);
+            } else {
+                return;
+            }
         }
 
         if (peer.getNeighborsHandler().containsKey(Integer.parseInt(port))) {
@@ -185,7 +189,7 @@ public class ClientHandler extends Thread {
 
     void acceptFileAt(String ip, String port, String fileName, String length, String pieceSize, String key,
                       ArrayList<String> seeders, ArrayList<String> leechers) {
-        if (fileName == null && length == null && pieceSize == null && key == null) {
+        if (fileName == null || length == null || pieceSize == null || key == null) {
             Logger.log(getClass().getSimpleName(), "File not found");
             return;
         }
@@ -208,6 +212,18 @@ public class ClientHandler extends Thread {
         }
         for (String s : keysToSeeders.get(key)) {
             Logger.log(getClass().getSimpleName(), "Seeder: " + s);
+        }
+
+        if (!peer.getNeighborsHandler().containsKey(Integer.parseInt(port))) {
+            try {
+                Socket socketToPeer = new Socket(ip, Integer.parseInt(port));
+                ClientHandler clientHandler = new ClientHandler(socketToPeer, peer);
+                clientHandler.start();
+                peer.addNeighbour(Integer.parseInt(port), clientHandler);
+                Logger.log(getClass().getSimpleName(), "Connected to peer: " + ip + ":" + port);
+            } catch (IOException e) {
+                Logger.error(getClass().getSimpleName(), "Cannot connect to peer: " + e.getMessage());
+            }
         }
     }
 

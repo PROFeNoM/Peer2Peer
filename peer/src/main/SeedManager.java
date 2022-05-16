@@ -90,6 +90,19 @@ public class SeedManager {
         return getSeedFromKey(key) != null;
     }
 
+    public boolean fileExists(Seed seed) {
+        String fileName = seed.getName();
+        String filePath = System.getProperty("seedsFolder") != null ? System.getProperty("seedsFolder")
+                : Configuration.getInstance().getSeedsFolder();
+        // Check if file exists
+        File file = new File(filePath + File.separator + fileName);
+        if (!file.exists()) {
+            Logger.log(getClass().getSimpleName(), "Seed file is registered but does not exist: " + fileName);
+            return false;
+        }
+        return true;
+    }
+
     public Seed getSeedFromKey(String key) {
         for (Seed seed : seeds) {
             if (seed.getKey().equals(key)) {
