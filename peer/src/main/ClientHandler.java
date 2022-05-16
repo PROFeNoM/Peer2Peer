@@ -185,6 +185,10 @@ public class ClientHandler extends Thread {
 
     void acceptFileAt(String ip, String port, String fileName, String length, String pieceSize, String key,
                       ArrayList<String> seeders, ArrayList<String> leechers) {
+        if (fileName == null && length == null && pieceSize == null && key == null) {
+            Logger.log(getClass().getSimpleName(), "File not found");
+            return;
+        }
         Seed seed = SeedManager.getInstance().getSeedFromKey(key);
         if (seed == null) {
             SeedManager.getInstance().addSeed(key, fileName, Integer.parseInt(length), Integer.parseInt(pieceSize));
