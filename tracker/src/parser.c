@@ -341,6 +341,9 @@ char* parse_look(char* request)
 	if (filename_on && filesize_on) files = get_files_with_name_and_size(filename, filesize, operator, &files_size);
 	else if (filename_on && !filesize_on) files = get_files_with_name(filename, &files_size);
 	else if (!filename_on && filesize_on) files = get_files_with_size(filesize, operator, &files_size);
+	else {
+		files = get_all_files(&files_size);
+	}
 
 	char* message = malloc(sizeof(char) * MAX_MESSAGE_SIZE);
 	strcpy(message, "list [");

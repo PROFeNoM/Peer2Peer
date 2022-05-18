@@ -106,4 +106,10 @@ struct file_t** get_files_with_name_and_size(char* name, unsigned int size, char
  */
 void free_lists();
 
+/**
+ * Print the list of files.
+ */
+struct file_t** get_all_files(unsigned int* nb_files);
+
+
 #endif //_DATA_H

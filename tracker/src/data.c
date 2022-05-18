@@ -459,4 +459,29 @@ void free_lists()
 		peer = next_peer;
 	}
 
+
+}
+
+int count_files()
+{
+    int count = 0;
+    for (struct file_t* file = files_list.tqh_first; file != NULL; file = file->next_file.tqe_next)
+    {
+        count++;
+    }
+    return count;
+}
+
+struct file_t** get_all_files(unsigned int* nb_files)
+{
+    *nb_files = count_files();
+    struct file_t** files = malloc(sizeof(struct file_t*) * (*nb_files));
+
+    int files_idx = 0;
+    for (struct file_t* file = files_list.tqh_first; file != NULL; file = file->next_file.tqe_next)
+    {
+        files[files_idx++] = file;
+    }
+
+    return files;
 }
