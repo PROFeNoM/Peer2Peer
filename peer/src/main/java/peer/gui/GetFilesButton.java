@@ -31,7 +31,7 @@ public class GetFilesButton extends JButton {
         super(text);
         this.peer = p;
         this.filePanel = filePanel;
-        this.addActionListener(new GetFilesListener(text));
+        this.addActionListener(new GetFilesListener(text, filePanel));
     }
     
     // Add a file from the seeds folder

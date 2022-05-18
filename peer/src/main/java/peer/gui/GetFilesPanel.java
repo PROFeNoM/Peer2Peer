@@ -22,22 +22,24 @@ import java.awt.FlowLayout;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import java.awt.Color;
 
 public class GetFilesPanel extends JPanel {
-    ArrayList<String> files;
-    Peer peer;
+    public ArrayList<String> files;
+    private Peer peer;
 
  
-    public GetFilesPanel() {
+    public GetFilesPanel(Peer p) {
         super();
+        this.peer = p;
         this.files = new ArrayList<String>();
         ArrayList<Seed> seeds = SeedManager.getInstance().getSeeds();
         for (Seed s : seeds) {
             this.files.add(s.getName());
-        }
-        for (String file : files) {
             JPanel jl = new JPanel();
-            jl.add(new JLabel(file));
+            FileLabel lab = new FileLabel(s.getName(), s.getKey());
+            jl.add(lab);
+            lab.addMouseListener(new PanelListener(lab, peer));
             this.add(jl);
         }
     }
@@ -77,13 +79,9 @@ public class GetFilesPanel extends JPanel {
             jl.add(new JLabel(file));
             dialog.add(jl);
         }
-        int result = JOptionPane.showConfirmDialog(null, dialog, "Seeds : ", JOptionPane.OK_CANCEL_OPTION);
-        
-
-
-        System.out.println("Refreshed files");
-        this.repaint();
+        this.setBackground(Color.GREEN);
+        this.setOpaque(true);
         this.revalidate();
-
+        this.repaint();
     }
 }

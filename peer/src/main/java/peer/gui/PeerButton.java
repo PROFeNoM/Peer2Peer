@@ -25,6 +25,13 @@ public class PeerButton extends JButton {
         this.addActionListener(new PeerButtonListener(text));
     }
 
+    public PeerButton(Peer p, String text, ConnectedPanel cp) {
+        super(text);
+        this.peer = p;
+        this.label = label;
+        this.addActionListener(new PeerButtonListener(text, cp));
+    }
+
     public void stopPeer() {
         peer.stop();
     }

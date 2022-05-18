@@ -17,12 +17,12 @@ import java.awt.FlowLayout;
 import javax.swing.JPanel;
 
 public class PeerPanel extends JPanel {
-    Peer p = null;
+    Peer p;
 
-    public PeerPanel() {
+    public PeerPanel(Peer p, ConnectedPanel connectedPanel) {
         super();
+        this.p = p;
         // First layout : Connection panel
-        this.p = new Peer();
         this.setLayout(new GridLayout(3, 1));
         JLabel inter = new JLabel("Peer Interface : Not Connected yet");
         this.add(inter);
@@ -38,7 +38,9 @@ public class PeerPanel extends JPanel {
         jl1.setLayout(border);
         jl1.add(new JLabel("Add a file from the seeds folder"), BorderLayout.NORTH);
         panel1_1.setLayout(add);
-        PeerButton addFileButton = new PeerButton(p, "Add file(s)");
+
+        // TODO : add a copy file to the seed folder
+        PeerButton addFileButton = new PeerButton(p, "Add file(s)", connectedPanel);
         PeerButton removeFileButton = new PeerButton(p, "Remove file(s)");
         panel1_1.add(addFileButton);
         panel1_1.add(removeFileButton);

@@ -26,16 +26,21 @@ import java.awt.event.*;
 
 public class GetFilesListener implements ActionListener {
     private String text;
+    private GetFilesPanel filePanel;
 
     public GetFilesListener(String text) {
         this.text = text;
+    }
+
+    public GetFilesListener(String text, GetFilesPanel filePanel) {
+        this.text = text;
+        this.filePanel = filePanel;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         GetFilesButton pb = (GetFilesButton) e.getSource();
         if (text.equals("Look")) {
-            System.out.println("Look");
             Peer p = pb.getPeer();
             // Besoin de criterions (fileName, fileSize)
             JPanel dialog = new JPanel();
@@ -47,7 +52,7 @@ public class GetFilesListener implements ActionListener {
             dialog.add(fileName);
             dialog.add(new JLabel("File size:"));
             dialog.add(fileSize);
-            int result = JOptionPane.showConfirmDialog(null, dialog, "Enter the tracker infos", JOptionPane.OK_CANCEL_OPTION);
+            int result = JOptionPane.showConfirmDialog(null, dialog, "Enter the seed infos", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
                 String fileNameString = fileName.getText();
                 String fileSizeString = fileSize.getText();
@@ -65,6 +70,27 @@ public class GetFilesListener implements ActionListener {
                     pb.addFileToPanel(fileNameString);
                 }
             }
+        } else if (text.equals("Look for all seeds")) {
+            Peer p = pb.getPeer();
+            p.look("[]");
+            for (Seed s : SeedManager.getInstance().getSeeds()) {
+                System.out.println("Seed: " + s.getName() + " " + s.getSize());
+            }
+        } else if (text.equals("Refresh")) {
+            System.out.println("Refresh");
+            filePanel.refresh();
+        } else if (text.equals("Download")) {
+            Peer peer = pb.getPeer();
+            ArrayList<String> files = new ArrayList<String>();
+            ArrayList<Seed> seeds = SeedManager.getInstance().getSeeds();
+            JPanel dialog = new JPanel();
+            for (Seed s : seeds) {
+                files.add(s.getName());
+                FileLabel lab = new FileLabel(s.getName(), s.getKey());
+                dialog.add(lab);
+                lab.addMouseListener(new PanelListener(lab, peer));
+            }
+            int result = JOptionPane.showConfirmDialog(null, dialog, "Choose a file to download", JOptionPane.OK_CANCEL_OPTION);           
         }
     }
 }

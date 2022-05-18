@@ -17,9 +17,15 @@ import java.awt.event.ActionEvent;
 
 public class PeerButtonListener implements ActionListener {
     private String text;
+    private ConnectedPanel connectedPanel;
 
     public PeerButtonListener(String text) {
         this.text = text;
+    }
+
+    public PeerButtonListener(String text, ConnectedPanel connectedPanel) {
+        this.text = text;
+        this.connectedPanel = connectedPanel;
     }
 
     @Override
@@ -34,8 +40,8 @@ public class PeerButtonListener implements ActionListener {
             JPanel dialog = new JPanel();
             GridLayout gd = new GridLayout(3, 3);
             JTextField portPeer = new JTextField();
-            JTextField ipTracker = new JTextField();
-            JTextField portTracker = new JTextField();
+            JTextField ipTracker = new JTextField("127.0.0.1");
+            JTextField portTracker = new JTextField("1234");
             dialog.setLayout(gd);
             dialog.add(new JLabel("Port peer"));
             dialog.add(portPeer);
@@ -75,16 +81,15 @@ public class PeerButtonListener implements ActionListener {
             pb.removeFile(FileToRemove);
             System.out.println("File removed");
         } else if (e.getActionCommand().equals("Add file(s)")) {
-            System.out.println("Opening files");
             JFileChooser fc = new JFileChooser();
             fc.setMultiSelectionEnabled(true);
             fc.setCurrentDirectory(new File("seeds"));
             fc.showDialog(pb.getParent(), "Add file(s)");
             File[] files = fc.getSelectedFiles();
             for (File f : files) {
-                System.out.println("File : " + f.getName());
                 pb.addFile(f.getName());
             }
+            // connectedPanel.refresh();
         } else if (e.getActionCommand().equals("Check")) {
             System.out.println("Checking seeds");
             

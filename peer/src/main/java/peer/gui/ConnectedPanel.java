@@ -1,6 +1,7 @@
 package peer.gui;
 
 import peer.Peer;
+import peer.seed.SeedManager;
 
 import java.io.File;
 import java.util.GregorianCalendar;
@@ -17,13 +18,11 @@ import java.awt.GridLayout;
 import java.awt.FlowLayout;
 
 public class ConnectedPanel extends JPanel {
-    private PeerPanel peerPanel;
     private Peer peer;
 
-    public ConnectedPanel(PeerPanel pp) {
+    public ConnectedPanel(Peer p) {
         super();
-        this.peerPanel = pp;
-        this.peer = pp.getPeer();
+        this.peer = p;
 
         // Second layout : Connected panel
         this.setLayout(new BorderLayout());
@@ -35,22 +34,32 @@ public class ConnectedPanel extends JPanel {
         topPanel.add(connected);
 
         // The panel where the looked files will be listed
-        GetFilesPanel filesPanel = new GetFilesPanel();
-        JPanel files = new JPanel();
-        filesPanel.setLayout(new FlowLayout());
-        filesPanel.add(files);
 
 
-        GetFilesPanel getFilePanel = new GetFilesPanel();
+        GetFilesPanel getFilePanel = new GetFilesPanel(this.peer);
         JPanel lookPanel = new JPanel();
-        GetFilesButton look = new GetFilesButton(peerPanel.getPeer(), "Look", getFilePanel);
+        GetFilesButton look = new GetFilesButton(p, "Look", getFilePanel);
         lookPanel.add(look);
+        GetFilesButton lookAll = new GetFilesButton(p, "Look for all seeds", getFilePanel);
+        lookPanel.add(lookAll);
+        GetFilesButton downloadButton = new GetFilesButton(p, "Download", getFilePanel);
 
         getFilePanel.setLayout(new FlowLayout());
 
         
         this.add(topPanel, BorderLayout.NORTH);
-        this.add(filesPanel);
+        this.add(getFilePanel);
         this.add(lookPanel, BorderLayout.SOUTH);
+        this.add(downloadButton, BorderLayout.EAST);
+    }
+
+    public void addFile(String fileName) {
+        File f = new File("seeds/" + fileName);
+        System.out.println("File : " + fileName);
+        System.out.println("Adding file: " + f.getAbsolutePath());
+        if (f.exists()) {
+            System.out.println("File exists");
+            SeedManager.getInstance().addSeed(f, 64);
+        }
     }
 }

@@ -165,7 +165,7 @@ public class Peer {
      * 
      * @param key The key of the file to get.
      */
-    private void getFile(String key) {
+    public void getFile(String key) {
         Seed seed = SeedManager.getInstance().getSeedFromKey(key);
 
         if (seed == null) {
