@@ -91,10 +91,10 @@ public class Seed {
 
     // Write the piece at index `index` from the given buffer
     public void writePiece(int index, byte[] piece) {
-        if (bufferMap.has(index)) {
+        /*if (bufferMap.has(index)) {
             Logger.error(getClass().getSimpleName(), "Trying to write a piece that is already present (piece " + index + ")");
             return;
-        }
+        }*/
 
         try {
             RandomAccessFile raf = new RandomAccessFile(file, "rw");

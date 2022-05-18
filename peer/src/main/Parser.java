@@ -1,5 +1,6 @@
 package peer.src.main;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -244,6 +245,11 @@ class Parser {
                 BufferMap bufferMap = new BufferMap(Integer.parseInt(args[1]));
                 if (!bufferMap.isEmpty())
                     clientHandler.getpieces(key, bufferMap);
+                else {
+                    ArrayList<String> haveSeeders = clientHandler.getPeer().getKeysToSeeders().get(key);
+                    haveSeeders.remove(0);
+                    clientHandler.getPeer().interested(key);
+                }
                 break;
             case "exit":
                 clientHandler.acceptExit(Integer.parseInt(args[0]));
