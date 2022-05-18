@@ -87,10 +87,19 @@ public class Peer {
                         neighboorhood(command[2]);
                         break;
                     case "announce":
-                        announce(command[2]);
+                        if (Integer.parseInt(command[2]) == _peerPort)
+                            announce(command[2]);
+                        else
+                            Logger.log(getClass().getSimpleName(), "You can't announce another peer");
                         break;
                     case "look":
-                        look(command[1], command[2], command[3], command[4]);
+                        if (!Peer.HOST.equals(command[3])) {
+                            Logger.log(getClass().getSimpleName(), "Wrong IP. You can't look for another peer");
+                        } else if (!String.valueOf(_peerPort).equals(command[4])) {
+                            Logger.log(getClass().getSimpleName(), "Wrong port. You can't look for another peer");
+                        } else {
+                            look(command[1], command[2], command[3], command[4]);
+                        }
                         break;
                     case "interested":
                         interested(command[1]);

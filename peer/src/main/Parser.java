@@ -18,6 +18,11 @@ class Parser {
                     Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
                     return null;
                 }
+                String app = tokens[1];
+                if (!app.equals("FileShare")) {
+                    Logger.error(Parser.class.getSimpleName(), "Invalid application: " + app);
+                    return null;
+                }
                 String version = tokens[2];
                 return new String[] { "neighbourhood", "FileShare", version };
             case "announce":
@@ -25,7 +30,17 @@ class Parser {
                     Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
                     return null;
                 }
+                if (!tokens[1].equals("listen")) {
+                    Logger.error(Parser.class.getSimpleName(), "Invalid command: " + input);
+                    return null;
+                }
                 String port = tokens[2];
+                try {
+                    Integer.parseInt(port);
+                } catch (NumberFormatException e) {
+                    Logger.error(Parser.class.getSimpleName(), "Invalid port: " + port);
+                    return null;
+                }
                 return new String[] { "announce", "listen", port };
             case "look":
                 if (tokens.length < 4) {
@@ -34,11 +49,23 @@ class Parser {
                 }
                 String criterion = tokens[1];
                 String ttl = tokens[2];
+                try {
+                    Integer.parseInt(ttl);
+                } catch (NumberFormatException e) {
+                    Logger.error(Parser.class.getSimpleName(), "Invalid TTL: " + ttl);
+                    return null;
+                }
                 String ipPort = tokens[3];
                 // Split ip:port
                 String[] ipPortTokens = ipPort.split(":");
                 String ip = ipPortTokens[0];
                 String portString = ipPortTokens[1];
+                try {
+                    Integer.parseInt(portString);
+                } catch (NumberFormatException e) {
+                    Logger.error(Parser.class.getSimpleName(), "Invalid port: " + portString);
+                    return null;
+                }
                 return new String[] { "look", criterion, ttl, ip, portString };
             case "interested":
                 if (tokens.length < 2) {
