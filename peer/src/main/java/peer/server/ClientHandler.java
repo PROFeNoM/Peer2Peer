@@ -41,6 +41,7 @@ public class ClientHandler extends Thread {
                     key = Parser.parseKey(input);
                     int[] indices = Parser.parseIndices(input);
                     sendPieces(key, indices);
+                    break;
                 case EXIT:
                     try {
                         peer.stop();
@@ -67,7 +68,7 @@ public class ClientHandler extends Thread {
         if (seed == null) {
             peer.sendMessage("have " + key + " 0");
         } else {
-            peer.sendMessage("have " + key + " " + 1);
+            peer.sendMessage("have " + key + " " + seed.getBufferMap());
         }
     }
 

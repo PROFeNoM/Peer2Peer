@@ -21,7 +21,7 @@ public class PeerServer extends Thread {
      * @throws IOException If the server socket cannot be created.
      */
     public PeerServer(int port) throws IOException {
-        serverSocket = new ServerSocket(port);
+        serverSocket = new ServerSocket(port, 0, InetAddress.getByName("localhost")); // TODO: Use general IP address
     }
 
     /**
