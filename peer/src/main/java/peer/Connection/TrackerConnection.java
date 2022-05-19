@@ -46,6 +46,22 @@ public class TrackerConnection extends Connection {
     }
 
     /**
+     * Update the tracker with the current state of the peer.
+     */
+    public void update() {
+        String message = "update";
+        message += " seed " + SeedManager.getInstance().seedsToString();
+        message += " leech " + SeedManager.getInstance().leechesToString();
+        
+        sendMessage(message);
+        String response = getMessage();
+
+        if (Parser.getMessageType(response) != Command.OK) {
+            throw new RuntimeException("Failed to update tracker: " + response);
+        }
+    }
+
+    /**
      * Send a request to the tracker to get all peers that have the file of the given key.
      * 
      * @param key Key of the file to get the peers of.

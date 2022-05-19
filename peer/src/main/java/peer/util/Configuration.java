@@ -89,7 +89,7 @@ public class Configuration {
      * @return The value of "peer-max" in the configuration file.
      */
     public int getMaxPeerToConnect() {
-        return Integer.parseInt(System.getProperty("peers-max", prop.getProperty("peers-max")));
+        return Integer.parseInt(System.getProperty("max-peers", prop.getProperty("max-peers")));
     }
 
     /**
@@ -97,15 +97,23 @@ public class Configuration {
      * @return The value of "pieces-max" in the configuration file.
      */
     public int getMaxPieces() {
-        return Integer.parseInt(System.getProperty("pieces-max", prop.getProperty("pieces-max")));
+        return Integer.parseInt(System.getProperty("max-pieces", prop.getProperty("max-pieces")));
     }
 
     /**
-     * Get the path to the folder containing the file to seed.
+     * Get the path to the folder containing the files to seed.
      * @return The value of "seed-folder" in the configuration file.
      */
     public String getStoragePath() {
         return System.getProperty("storage-path", prop.getProperty("storage-path"));
+    }
+
+        /**
+     * Get the path to the folder containing the file to seed.
+     * @return The value of "seed-folder" in the configuration file.
+     */
+    public int getUpdateInterval() {
+        return Integer.parseInt(System.getProperty("update-interval", prop.getProperty("update-interval")));
     }
 }
 

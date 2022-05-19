@@ -14,6 +14,8 @@ import java.io.*;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * The Peer class is the main class of the peer.
@@ -34,12 +36,19 @@ public class Peer {
     private PeerServer peerServer;
 
     /**
+     * Timer setting the updater to update the tracker with the current state of the
+     * peer.
+     */
+    private Timer timer;
+
+    /**
      * Maximum number of pieces to ask for at a time.
      */
     private static final int MAX_PIECES = Configuration.getInstance().getMaxPieces();
 
     /**
-     * Connect and announce to the tracker and start the peer server.
+     * Connect and announce to the tracker, set the updater and start the peer
+     * server.
      * 
      * @param trackerIp   The tracker's ip.
      * @param trackerPort The tracker's port.
@@ -59,6 +68,8 @@ public class Peer {
         }
 
         Logger.log(getClass().getSimpleName(), "Announced to tracker");
+
+        startUpdater();
 
         try {
             startServer(peerPort);
@@ -117,6 +128,8 @@ public class Peer {
     public void stop() {
         Logger.log(getClass().getSimpleName(), "Stopping application");
 
+        timer.cancel();
+
         try {
             SeedManager.getInstance().saveLeechs();
             tracker.stop();
@@ -146,6 +159,20 @@ public class Peer {
 
         peerServer = new PeerServer(port);
         peerServer.start();
+    }
+
+    /**
+     * Start the updater to update the tracker with the current state of the peer.
+     * The update interval is set in the configuration file.
+     */
+    private void startUpdater() {
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                tracker.update();
+            }
+        }, 0, Configuration.getInstance().getUpdateInterval() * 1000);
     }
 
     /**
@@ -230,7 +257,7 @@ public class Peer {
 
                 SeedManager.getInstance().writePieces(key, pieces);
             }
-             
+
             try {
                 peer.stop();
             } catch (IOException e) {
