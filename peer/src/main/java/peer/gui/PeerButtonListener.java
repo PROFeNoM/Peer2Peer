@@ -103,14 +103,13 @@ public class PeerButtonListener implements ActionListener {
         } else if (e.getActionCommand().equals("Add file(s)")) {
             JFileChooser fc = new JFileChooser();
             fc.setMultiSelectionEnabled(true);
-            // TODO : uncomment when théo pushed
             fc.setCurrentDirectory(new File(Configuration.getInstance().getStoragePath()));
             fc.showDialog(pb.getParent(), "Add file(s)");
             File[] files = fc.getSelectedFiles();
             for (File file : files) {
 
                 System.out.println("Selected file : " + file.getAbsolutePath());
-                File tmp = new File(Configuration.getInstance().getStoragePath() + file.getName())
+                File tmp = new File(Configuration.getInstance().getStoragePath() + file.getName());
                 if (tmp.exists())
                     System.out.println("File already exists in directory");
                 else {
