@@ -1,6 +1,7 @@
-JAVAC 	?= javac
-JAVA 	?= java
-PORT 	?= 8080
+JAVAC 			?= javac
+JAVA 			?= java
+PORT 			?= 8080
+STORAGE_PATH 	?= storage
 
 PACKAGE = peer
 SRC_PACKAGE = $(PACKAGE)
@@ -66,7 +67,7 @@ build-tests: build $(JAVA_TEST_FILES)
 ############################## INSTALL RULES ##############################
 
 peer: build
-	$(JAVA) -cp $(CLASS_PATH) $(MAIN_CLASS)
+	$(JAVA) -Dpeer-port=$(PORT) -Dstorage-path=$(STORAGE_PATH) -cp $(CLASS_PATH) $(MAIN_CLASS)
 
 ############################## TESTS RULES ##############################
 
