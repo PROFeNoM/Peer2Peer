@@ -12,7 +12,7 @@ public class Seed {
     BufferMap bufferMap; // Buffermap representing the list of chunks in the file
     File file; // File
     int pieceSize; // Size of each chunk
-    int size; // Size of the file
+    long size; // Size of the file
 
     ArrayList<String> seeders; // List of seeders
     ArrayList<String> leechers; // List of leechers
@@ -23,7 +23,7 @@ public class Seed {
         this.key = FileHandler.getHash(file);
         this.name = file.getName();
         this.pieceSize = pieceSize;
-        this.size = (int) file.length();
+        this.size = file.length();
         this.bufferMap = new BufferMap(size, pieceSize, true);
 
         seeders = new ArrayList<>();
@@ -31,7 +31,7 @@ public class Seed {
     }
 
     // Create a seed entry from info
-    public Seed(String key, String name, int fileSize, int pieceSize) {
+    public Seed(String key, String name, long fileSize, int pieceSize) {
         // TODO: Check if file exists
         String seedFolder = System.getProperty("seedsFolder") != null ? System.getProperty("seedsFolder")
                 : Configuration.getInstance().getSeedsFolder();
@@ -62,7 +62,7 @@ public class Seed {
         return bufferMap;
     }
 
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
@@ -77,7 +77,7 @@ public class Seed {
         int byteRead = 0;
         try {
             RandomAccessFile raf = new RandomAccessFile(file, "r");
-            raf.seek(index * pieceSize);
+            raf.seek((long) index * pieceSize);
             byteRead = raf.read(piece);
             raf.close();
         } catch (IOException e) {
@@ -98,7 +98,7 @@ public class Seed {
 
         try {
             RandomAccessFile raf = new RandomAccessFile(file, "rw");
-            raf.seek(index * pieceSize);
+            raf.seek((long) index * pieceSize);
             raf.write(piece, 0, piece.length);
             raf.close();
         } catch (IOException e) {

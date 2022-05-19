@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 public class SeedManager {
     ArrayList<Seed> seeds = new ArrayList<Seed>();
     private static SeedManager instance;
-    private static int pieceSize = 10000; // Default piece size
+    private static int pieceSize = 1000000; // Default piece size
 
     public static SeedManager getInstance() {
         if (instance == null) {

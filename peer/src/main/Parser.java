@@ -176,7 +176,7 @@ class Parser {
             return null;
         }
 
-        return new BufferMap(Integer.parseInt(args[1]));
+        return new BufferMap(Long.parseLong(args[1]));
     }
 
     // Parse a request and call the appropriate method
@@ -241,7 +241,7 @@ class Parser {
                 break;
             case "have":
                 key = args[0];
-                BufferMap bufferMap = new BufferMap(Integer.parseInt(args[1]));
+                BufferMap bufferMap = new BufferMap(Long.parseLong(args[1]));
                 if (!bufferMap.isEmpty())
                     clientHandler.getpieces(key, bufferMap);
                 else {
