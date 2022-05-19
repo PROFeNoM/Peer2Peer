@@ -94,7 +94,7 @@ public class ClientHandler extends Thread {
             // Convert byte to hexadecimal for sending
             StringBuilder hex = new StringBuilder();
             for (int i = 0; i < byteRead; i++) {
-                hex.append(String.format("%02X", bytes[i]));
+                hex.append(String.format("%02x", bytes[i]));
             }
             pieces.add(index + ":" + hex.toString());
         }

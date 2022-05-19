@@ -79,6 +79,8 @@ public class Seed {
 
     // Read the piece at index `index` in the given buffer
     // Return the number of bytes read
+    // Return -1 if the piece is not available
+    // Indices start at 1
     public int readPiece(int index, byte[] piece) {
         if (!bufferMap.has(index)) {
             Logger.error(getClass().getSimpleName(),
@@ -89,7 +91,7 @@ public class Seed {
         int byteRead = 0;
         try {
             RandomAccessFile raf = new RandomAccessFile(file, "r");
-            raf.seek(index * pieceSize);
+            raf.seek((index - 1) * pieceSize);
             byteRead = raf.read(piece);
             raf.close();
         } catch (IOException e) {
@@ -111,7 +113,7 @@ public class Seed {
 
         try {
             RandomAccessFile raf = new RandomAccessFile(file, "rw");
-            raf.seek(index * pieceSize);
+            raf.seek((index - 1) * pieceSize);
             raf.write(piece, 0, piece.length);
             raf.close();
         } catch (IOException e) {

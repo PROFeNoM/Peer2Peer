@@ -50,26 +50,28 @@ public class BufferMap {
     }
 
     /**
-     *  Check if we have the piece number `index`.
+     * Check if we have the piece number `index`.
+     * Indices start at 1.
      * 
      * @param index Index of the piece to check.
      * @return True if we have the piece number `index`, false otherwise.
      */
     public boolean has(int index) {
-        return (value >> index & 1L) == 1;
+        return (value & (1L << (index - 1))) != 0;
     }
 
     /**
      * Set the piece number `index` to have or not have.
+     * Indices start at 1.
      * 
      * @param index Index of the piece to set.
      * @param have  True if we have the piece number `index`, false otherwise.
      */
     public void set(int index, boolean have) {
         if (have) {
-            value |= 1L << index;
+            value |= (1L << (index - 1));
         } else {
-            value &= ~(1L << index);
+            value &= ~(1L << (index - 1));
         }
     }
 

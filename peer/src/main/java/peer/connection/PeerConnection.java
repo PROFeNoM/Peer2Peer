@@ -69,8 +69,7 @@ public class PeerConnection extends Connection {
     /**
      * Ask peer for the pieces of the file of key `key`
      * in the given buffermap `bufferMap`.
-     * Warning: All the pieces that are in the buffermap might not be 
-     * available, so the peer might send less.
+     * Indices start at 1.
      * 
      * @param key Key of the file to get the pieces of.
      * @param bufferMap Buffermap of the file of key `key`.
@@ -80,7 +79,7 @@ public class PeerConnection extends Connection {
         StringJoiner joiner = new StringJoiner(" ", "[", "]");
         int nbPieces = 0;
 
-        for (int i = 0; i < bufferMap.size() && nbPieces < maxPieces; i++) {
+        for (int i = 1; i <= bufferMap.size() && nbPieces < maxPieces; i++) {
             if (bufferMap.has(i)) {
                 joiner = joiner.add(Integer.toString(i));
                 nbPieces++;

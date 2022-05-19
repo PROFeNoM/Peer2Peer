@@ -145,16 +145,18 @@ public class Parser {
     public static Map<Integer, byte[]> parsePieces(String input) {
         String[] tokens = input.split(" ", 3);
         String[] args = stringToArray(tokens[2], " ");
-
         Map<Integer, byte[]> pieces = new HashMap<Integer, byte[]>();
+
         for (int i = 0; i < args.length; i++) {
             String[] data = args[i].split(":");
             int index = Integer.parseInt(data[0]);
             String hex = data[1];
             byte[] bytes = new byte[hex.length() / 2];
+
             for (int j = 0; j < hex.length(); j += 2) {
                 bytes[j / 2] = (byte) Integer.parseInt(hex.substring(j, j + 2), 16);
             }
+            
             pieces.put(index, bytes);
         }
 
