@@ -46,11 +46,13 @@ public class PeerConnection extends Connection {
     public BufferMap getBufferMap(String key) {
         String message = "interested " + key;
         sendMessage(message);
+        Logger.log("< " + message);
         String response = getMessage();
+        Logger.log("> " + response);
 
         Command command = Parser.getMessageType(response);
         if (command != Command.HAVE) {
-            Logger.warn("Received invalid response from peer: " + response);
+            Logger.warn("Received invalid response from peer");
             return null;
         }
 
@@ -74,13 +76,19 @@ public class PeerConnection extends Connection {
      * @param bufferMap Buffermap of the file of key `key`.
      * @return Map<Integer, byte[]> pieces or null if the response is invalid.
      */
-    public Map<Integer, byte[]> getPieces(String key, BufferMap bufferMap) {
+    public Map<Integer, byte[]> getPieces(String key, BufferMap bufferMap, int maxPieces) {
         StringJoiner joiner = new StringJoiner(" ", "[", "]");
-        for (int i = 0; i < bufferMap.size(); i++) {
+        int nbPieces = 0;
+
+        for (int i = 0; i < bufferMap.size() && nbPieces < maxPieces; i++) {
             if (bufferMap.has(i)) {
                 joiner = joiner.add(Integer.toString(i));
+                nbPieces++;
             }
         }
+
+        Logger.log(getClass().getSimpleName(), "Asking for " + nbPieces + " pieces");
+
         String message = "getpieces " + key + " " + joiner.toString();
         sendMessage(message);
         String response = getMessage();

@@ -41,6 +41,7 @@ public class ClientHandler extends Thread {
                     key = Parser.parseKey(input);
                     int[] indices = Parser.parseIndices(input);
                     sendPieces(key, indices);
+                    break;
                 case EXIT:
                     try {
                         peer.stop();
@@ -67,7 +68,7 @@ public class ClientHandler extends Thread {
         if (seed == null) {
             peer.sendMessage("have " + key + " 0");
         } else {
-            peer.sendMessage("have " + key + " " + seed.getBufferMap().toString());
+            peer.sendMessage("have " + key + " " + seed.getBufferMap());
         }
     }
 
@@ -85,6 +86,11 @@ public class ClientHandler extends Thread {
         for (int index : indices) {
             byte[] bytes = new byte[seed.getPieceSize()];
             int byteRead = seed.readPiece(index, bytes);
+
+            if (byteRead == -1) {
+                continue;
+            }
+
             // Convert byte to hexadecimal for sending
             StringBuilder hex = new StringBuilder();
             for (int i = 0; i < byteRead; i++) {
