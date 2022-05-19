@@ -19,8 +19,7 @@ public class SeedManager {
 
     public static SeedManager getInstance() {
         if (instance == null) {
-            seedFolder = System.getProperty("seedsFolder") != null ? System.getProperty("seedsFolder")
-                    : Configuration.getInstance().getStoragePath();
+            String seedFolder = Configuration.getInstance().getStoragePath();
             instance = new SeedManager(seedFolder);
         }
         return instance;

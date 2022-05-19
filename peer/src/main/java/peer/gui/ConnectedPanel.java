@@ -28,9 +28,7 @@ public class ConnectedPanel extends JPanel {
         this.setLayout(new BorderLayout());
 
         JPanel topPanel = new JPanel();
-        JLabel connected = new JLabel("Peer Interface : Connected");
-        connected.setBackground(java.awt.Color.GREEN);
-        connected.setOpaque(true);
+        JLabel connected = new JLabel("Peer Interface when Connected");
         topPanel.add(connected);
 
         // The panel where the looked files will be listed

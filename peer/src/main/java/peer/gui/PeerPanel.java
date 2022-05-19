@@ -1,4 +1,5 @@
 package peer.gui;
+
 import peer.Peer;
 
 import java.io.File;
@@ -47,8 +48,7 @@ public class PeerPanel extends JPanel {
         jl1.add(panel1_1, BorderLayout.CENTER);
         this.add(jl1);
 
-        GridLayout startStop = new GridLayout(1, 3);
-        PeerButton swap = new PeerButton(p, "Check");
+        GridLayout startStop = new GridLayout(1, 2);
         PeerButton start = new PeerButton(p, "Start", inter);
         PeerButton stop = new PeerButton(p, "Stop", inter);
         start.setBackground(java.awt.Color.GREEN);
@@ -57,7 +57,6 @@ public class PeerPanel extends JPanel {
         stop.setOpaque(true);
 
         jl3.setLayout(startStop);
-        jl3.add(swap);
         jl3.add(start);
         jl3.add(stop);
         this.add(jl3);
@@ -66,6 +65,5 @@ public class PeerPanel extends JPanel {
     public Peer getPeer() {
         return this.p;
     }
-
 
 }

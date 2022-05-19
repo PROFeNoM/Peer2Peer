@@ -59,7 +59,7 @@ public class PeerButton extends JButton {
         System.out.println("Removed file : " + fileName);
     }
 
-    public void findSeeds(){
+    public void findSeeds() {
         SeedManager.getInstance().findSeeds("seeds/");
     }
 
