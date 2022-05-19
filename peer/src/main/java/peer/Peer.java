@@ -47,6 +47,7 @@ public class Peer {
             Logger.error(getClass().getSimpleName(), "Failed to connect to tracker: " + e.getMessage());
             System.exit(1);
         } catch (RuntimeException e) {
+            e.printStackTrace();
             Logger.error(getClass().getSimpleName(), "Failed to announce to tracker: " + e.getMessage());
             System.exit(1);
         }
