@@ -7,7 +7,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
 import java.io.File;
-import java.lang.module.Configuration;
+import peer.util.Configuration;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -104,17 +104,19 @@ public class PeerButtonListener implements ActionListener {
             JFileChooser fc = new JFileChooser();
             fc.setMultiSelectionEnabled(true);
             // TODO : uncomment when théo pushed
-            // String dir = Configuration.getInstance.getStoragePath();
-            // fc.setCurrentDirectory(new File(dir));
+            fc.setCurrentDirectory(new File(Configuration.getInstance().getStoragePath()));
+            fc.showDialog(pb.getParent(), "Add file(s)");
             File[] files = fc.getSelectedFiles();
             for (File file : files) {
 
-                // TODO : Suppr when théo pushed
-                fc.setCurrentDirectory(new File("seeds"));
-                fc.showDialog(pb.getParent(), "Add file(s)");
-
-                pb.addFile(file.getName());
-
+                System.out.println("Selected file : " + file.getAbsolutePath());
+                File tmp = new File(Configuration.getInstance().getStoragePath() + file.getName())
+                if (tmp.exists())
+                    System.out.println("File already exists in directory");
+                else {
+                    // copy the file to the correct cirectory
+                    pb.addFile(file.getName());
+                }
             }
             // connectedPanel.refresh();
         } else if (e.getActionCommand().equals("Swap"))
