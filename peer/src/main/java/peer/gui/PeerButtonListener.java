@@ -2,15 +2,12 @@ package peer.gui;
 
 import java.awt.event.ActionListener;
 
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
 import java.io.File;
 import peer.util.Configuration;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import java.awt.GridLayout;
@@ -24,26 +21,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import static java.nio.file.StandardCopyOption.*;
-import static java.nio.file.LinkOption.*;
-
 import java.awt.event.ActionEvent;
 
 public class PeerButtonListener implements ActionListener {
     private String text;
-    private ConnectedPanel connectedPanel;
 
     public PeerButtonListener(String text) {
         this.text = text;
-    }
-
-    public PeerButtonListener(String text, ConnectedPanel connectedPanel) {
-        this.text = text;
-        this.connectedPanel = connectedPanel;
     }
 
     @Override
@@ -142,7 +126,6 @@ public class PeerButtonListener implements ActionListener {
                     pb.addFile(file.getName());
                 }
             }
-            // connectedPanel.refresh();
         } else if (e.getActionCommand().equals("Swap"))
 
         {

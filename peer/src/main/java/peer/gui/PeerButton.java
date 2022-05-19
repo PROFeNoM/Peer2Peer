@@ -4,7 +4,6 @@ import peer.Peer;
 import peer.seed.SeedManager;
 
 import java.io.File;
-import javax.swing.JTextField;
 import javax.swing.JLabel;
 import javax.swing.JButton;
 
@@ -28,8 +27,7 @@ public class PeerButton extends JButton {
     public PeerButton(Peer p, String text, ConnectedPanel cp) {
         super(text);
         this.peer = p;
-        this.label = label;
-        this.addActionListener(new PeerButtonListener(text, cp));
+        this.addActionListener(new PeerButtonListener(text));
     }
 
     public void stopPeer() {

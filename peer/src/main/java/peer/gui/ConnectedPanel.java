@@ -4,17 +4,11 @@ import peer.Peer;
 import peer.seed.SeedManager;
 
 import java.io.File;
-import java.util.GregorianCalendar;
 
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.JLayeredPane;
 
 import java.awt.BorderLayout;
-import java.awt.GridLayout;
 import java.awt.FlowLayout;
 
 public class ConnectedPanel extends JPanel {
@@ -33,7 +27,6 @@ public class ConnectedPanel extends JPanel {
 
         // The panel where the looked files will be listed
 
-
         GetFilesPanel getFilePanel = new GetFilesPanel(this.peer);
         JPanel lookPanel = new JPanel();
         GetFilesButton look = new GetFilesButton(p, "Look", getFilePanel);
@@ -44,7 +37,6 @@ public class ConnectedPanel extends JPanel {
 
         getFilePanel.setLayout(new FlowLayout());
 
-        
         this.add(topPanel, BorderLayout.NORTH);
         this.add(getFilePanel);
         this.add(lookPanel, BorderLayout.SOUTH);

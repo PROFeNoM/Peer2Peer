@@ -4,31 +4,18 @@ import peer.Peer;
 import peer.seed.SeedManager;
 import peer.seed.Seed;
 
-import java.io.File;
-import java.util.GregorianCalendar;
+import java.util.ArrayList;
 
-import java.util.ArrayList; 
-
-
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
-
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.FlowLayout;
 
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import java.awt.Color;
 
 public class GetFilesPanel extends JPanel {
     public ArrayList<String> files;
     private Peer peer;
 
- 
     public GetFilesPanel(Peer p) {
         super();
         this.peer = p;
@@ -45,7 +32,6 @@ public class GetFilesPanel extends JPanel {
     }
 
     public void addFile(String fileName) {
-        // TODO Auto-generated method stub
         System.out.println("Previous files : " + files);
         if (!files.contains(fileName)) {
             files.add(fileName);
@@ -55,7 +41,6 @@ public class GetFilesPanel extends JPanel {
     }
 
     public void removeFile(String fileName) {
-        // TODO Auto-generated method stub
         if (files.contains(fileName)) {
             files.remove(fileName);
         } else {
@@ -64,7 +49,6 @@ public class GetFilesPanel extends JPanel {
     }
 
     public void refresh() {
-        // TODO Auto-generated method stub
         SeedManager seedManager = SeedManager.getInstance();
         ArrayList<Seed> tmpFiles = seedManager.getSeeds();
         for (Seed seed : tmpFiles) {
