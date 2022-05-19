@@ -86,6 +86,11 @@ public class ClientHandler extends Thread {
         for (int index : indices) {
             byte[] bytes = new byte[seed.getPieceSize()];
             int byteRead = seed.readPiece(index, bytes);
+
+            if (byteRead == -1) {
+                continue;
+            }
+
             // Convert byte to hexadecimal for sending
             String hex = "";
             for (int i = 0; i < byteRead; i++) {
