@@ -10,14 +10,12 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
-
 public class SeedManager {
     private static SeedManager instance;
     private static String seedFolder;
     private static ArrayList<Seed> seeds = new ArrayList<Seed>();
     private static ArrayList<Seed> leechs = new ArrayList<Seed>();
     private static int pieceSize = 3; // Default piece size
-
 
     public static SeedManager getInstance() {
         if (instance == null) {
@@ -30,8 +28,9 @@ public class SeedManager {
 
     private SeedManager(String folderPath) {
         try {
-         restoreLeechs();
-        } catch (Exception e) {}
+            restoreLeechs();
+        } catch (Exception e) {
+        }
         findSeeds(folderPath);
     }
 
@@ -40,14 +39,14 @@ public class SeedManager {
         File folder = new File(folderPath);
 
         if (!folder.exists()) {
-            Logger.error(SeedManager.class.getSimpleName(), "Seeds folder does not exist: " + folderPath);
+            Logger.error(SeedManager.class.getSimpleName(), "Storage folder does not exist: " + folderPath);
             System.exit(1);
         }
 
         File[] listOfFiles = folder.listFiles();
 
         if (listOfFiles == null) {
-            Logger.log(getClass().getSimpleName(), "Seeds folder is not a valid directory: " + folderPath);
+            Logger.log(getClass().getSimpleName(), "Storage folder is not a valid directory: " + folderPath);
             System.exit(1);
         }
 
@@ -60,7 +59,7 @@ public class SeedManager {
             if (isLeech(file.getName())) {
                 continue;
             }
-            
+
             addSeed(file, pieceSize);
         }
 
@@ -106,23 +105,28 @@ public class SeedManager {
     }
 
     public String leechesToString() {
-        return "[" + leechs.stream().map(seed->seed.key).collect(Collectors.joining(" ")) + "]";
+        return "[" + leechs.stream().map(seed -> seed.key).collect(Collectors.joining(" ")) + "]";
     }
 
     public void saveLeechs() throws Exception {
-        for (Seed leech : leechs) {
-            try {
-                File file = new File("db/leechs.txt");
-                if (!file.exists())
-                    file.createNewFile();
-                //TODO check if file is not created
-                PrintWriter writer = new PrintWriter(file, "UTF-8");
-                writer.println(leech.name + " : " + leech.size + " : " + leech.pieceSize + " : " + leech.key + " : " + leech.bufferMap);
-                writer.close();
-            } catch (Exception e) {
-            Logger.error(e.getMessage());
-            }
+        File file = new File("db/leechs.txt");
+
+        if (file.exists()) {
+            file.delete();
         }
+        
+        if (!file.createNewFile()) {
+           throw new Exception("Could not create leechs file");
+        }
+
+        PrintWriter writer = new PrintWriter(file, "UTF-8");
+
+        for (Seed leech : leechs) {
+            writer.println(leech.name + " : " + leech.size + " : " + leech.pieceSize + " : " + leech.key + " : "
+                    + leech.bufferMap);
+        }
+
+        writer.close();
     }
 
     public void restoreLeechs() throws Exception {
@@ -133,8 +137,14 @@ public class SeedManager {
 
             while (sc.hasNextLine()) {
                 line = sc.nextLine();
-                String [] tokens = line.split(" : ");
-                leechs.add(new Seed(tokens[3], seedFolder, tokens[0], Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]), new BufferMap(Integer.parseInt(tokens[4]))));
+                String[] tokens = line.split(" : ");
+                String name = tokens[0];
+                long size = Long.parseLong(tokens[1]);
+                int pieceSize = Integer.parseInt(tokens[2]);
+                String key = tokens[3];
+                int bufferMapValue = Integer.parseInt(tokens[4]);
+                BufferMap bufferMap = new BufferMap(size, pieceSize, bufferMapValue);
+                leechs.add(new Seed(key, seedFolder, name, size, pieceSize, bufferMap));
             }
             sc.close();
         } catch (Exception e) {
@@ -148,7 +158,6 @@ public class SeedManager {
 
     public Seed getLeechFromName(String name) {
         for (Seed leech : leechs) {
-            System.out.println(leech.getName());
             if (leech.getName().equals(name)) {
                 return leech;
             }
