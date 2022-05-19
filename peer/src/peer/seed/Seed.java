@@ -1,7 +1,8 @@
-package peer.src.main;
+package peer.seed;
 
-import peer.src.main.util.Configuration;
-import peer.src.main.util.FileHandler;
+import peer.util.Configuration;
+import peer.util.Logger;
+
 import java.io.*;
 import java.util.ArrayList;
 
@@ -14,13 +15,13 @@ public class Seed {
     int pieceSize; // Size of each chunk
     long size; // Size of the file
 
-    ArrayList<String> seeders; // List of seeders
-    ArrayList<String> leechers; // List of leechers
+    public ArrayList<String> seeders; // List of seeders
+    public ArrayList<String> leechers; // List of leechers
 
     // Create a seed from an existing file
     public Seed(File file, int pieceSize) {
         this.file = file;
-        this.key = FileHandler.getHash(file);
+        this.key = FileUtils.getHash(file);
         this.name = file.getName();
         this.pieceSize = pieceSize;
         this.size = file.length();
@@ -106,14 +107,6 @@ public class Seed {
         }
 
         Logger.log(getClass().getSimpleName(), "Wrote piece " + index + " to file " + name);
-    }
-
-    public void addSeeder(String ip, String port) {
-        seeders.add(ip + ":" + port);
-    }
-
-    public void addLeecher(String ip, String port) {
-        leechers.add(ip + ":" + port);
     }
 
     public String toString() {

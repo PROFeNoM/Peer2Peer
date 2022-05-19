@@ -1,4 +1,9 @@
-package peer.src.main;
+package peer;
+
+import peer.server.ClientHandler;
+import peer.server.MulticastPeerServer;
+import peer.server.PeerServer;
+import peer.util.Logger;
 
 import java.io.*;
 import java.net.*;
@@ -121,7 +126,7 @@ public class Peer {
         peerServer.close();
         for (Map.Entry<Integer, ClientHandler> entry : neighborsHandler.entrySet()) {
             ClientHandler handler = entry.getValue();
-            handler.exit();
+            handler.exitHandler();
         }
     }
 
@@ -186,7 +191,7 @@ public class Peer {
         return _fileShareVersion;
     }
 
-    int getPort() {
+    public int getPort() {
         return _peerPort;
     }
 
@@ -194,31 +199,23 @@ public class Peer {
         neighborsPort.add(port);
     }
 
-    boolean isNeighbourPort(int port) {
-        return neighborsPort.contains(port);
-    }
-
-    void addNeighbour(int port, ClientHandler neighbour) {
+    public void addNeighbour(int port, ClientHandler neighbour) {
         neighborsHandler.put(port, neighbour);
     }
 
-    MulticastPeerServer getMulticastPeerServer() {
-        return multicastPeerServer;
-    }
-
-    Map<Integer, ClientHandler> getNeighborsHandler() {
+    public Map<Integer, ClientHandler> getNeighborsHandler() {
         return neighborsHandler;
     }
 
-    int getMaxPeers() {
+    public int getMaxPeers() {
         return _maxPeers;
     }
 
-    ArrayList<Integer> getNeighborsPort() {
+    public ArrayList<Integer> getNeighborsPort() {
         return neighborsPort;
     }
 
-    Map<String, ArrayList<String>> getKeysToSeeders() {
+    public Map<String, ArrayList<String>> getKeysToSeeders() {
         return keysToSeeders;
     }
 }

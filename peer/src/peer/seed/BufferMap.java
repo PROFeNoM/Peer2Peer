@@ -1,9 +1,9 @@
-package peer.src.main;
+package peer.seed;
 
 // Class representing a list of chunks in a file
 public class BufferMap {
-    private long value;
-    private int size;
+    private final long value;
+    private final int size;
 
     // We assume that we have all the pieces
     // TODO: We should just store the pieces we have

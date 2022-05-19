@@ -1,6 +1,4 @@
-package peer.src.main.util;
-
-import peer.src.main.Logger;
+package peer.util;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

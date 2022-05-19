@@ -1,17 +1,17 @@
-package peer.src.main;
+package peer.seed;
 
-import peer.src.main.util.FileHandler;
-import peer.src.main.util.Configuration;
+
+import peer.util.Configuration;
+import peer.util.Logger;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class SeedManager {
-    ArrayList<Seed> seeds = new ArrayList<Seed>();
+    ArrayList<Seed> seeds = new ArrayList<>();
     private static SeedManager instance;
-    private static int pieceSize = 1000000; // Default piece size
+    private final static int pieceSize = 1000000; // Default piece size
 
     public static SeedManager getInstance() {
         if (instance == null) {
@@ -49,7 +49,7 @@ public class SeedManager {
             }
 
             // Seed already exists in database
-            String key = FileHandler.getHash(file);
+            String key = FileUtils.getHash(file);
             if (hasSeed(key)) {
                 continue;
             }
@@ -67,23 +67,6 @@ public class SeedManager {
     // Add a seed from info
     public void addSeed(String key, String fileName, int fileSize, int pieceSize) {
         seeds.add(new Seed(key, fileName, fileSize, pieceSize));
-    }
-
-    // Remove a seed given its key
-    public void removeSeed(String key) {
-        seeds.removeIf(seed -> seed.getKey().equals(key));
-    }
-
-    public ArrayList<Seed> getSeeds() {
-        return seeds;
-    }
-
-    public String seedsToString() {
-        return "[" + seeds.stream().map(Seed::toString).collect(Collectors.joining(" ")) + "]";
-    }
-
-    public String leechesToString() {
-        return "[]";
     }
 
     public boolean hasSeed(String key) {

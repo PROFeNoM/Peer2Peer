@@ -1,4 +1,8 @@
-package peer.src.main;
+package peer.connection;
+
+import peer.seed.BufferMap;
+import peer.util.Logger;
+import peer.Parser;
 
 import java.net.*;
 import java.util.Map;
@@ -7,7 +11,7 @@ import java.io.*;
 
 // Class to talk to another peer
 public class PeerConnection {
-    Socket socket;
+    public Socket socket;
     BufferedReader in;
     PrintWriter out;
 
@@ -19,12 +23,6 @@ public class PeerConnection {
         } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), e.getMessage());
         }
-    }
-
-    public PeerConnection(String ip, int port) throws IOException {
-        socket = new Socket(ip, port);
-        out = new PrintWriter(socket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
 
     public void stop() {
@@ -51,29 +49,18 @@ public class PeerConnection {
         return message;
     }
 
-    // Ask peer for his buffermap of the file with key `key`
-    // Return the buffermap or null if the peer doesn't have the file
-    public BufferMap interested(String key) {
-        String message = "interested " + key;
-        sendMessage(message);
-        String response = getMessage();
-        BufferMap bufferMap = Parser.parseInterested(response, key);
-        return bufferMap;
-    }
-
     // Ask the remote peer for the pieces of the file of key `key`
     // in the given buffermap `bufferMap`
-    Map<Integer, byte[]> getPieces(String key, BufferMap bufferMap) {
+    public Map<Integer, byte[]> getPieces(String key, BufferMap bufferMap) {
         StringJoiner joiner = new StringJoiner(" ", "[", "]");
         for (int i = 0; i < bufferMap.size(); i++) {
             if (bufferMap.has(i)) {
                 joiner.add(Integer.toString(i));
             }
         }
-        String message = "getpieces " + key + " " + joiner.toString();
+        String message = "getpieces " + key + " " + joiner;
         sendMessage(message);
         String response = getMessage();
-        Map<Integer, byte[]> pieces = Parser.parsePieces(response, key, bufferMap);
-        return pieces;
+        return Parser.parsePieces(response, key, bufferMap);
     }
 }

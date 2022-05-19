@@ -1,6 +1,6 @@
-package peer.src.main;
+package peer;
 
-import peer.src.main.util.Configuration;
+import peer.util.Configuration;
 
 public class Main {
     public static void main(String[] args) {

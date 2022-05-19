@@ -1,4 +1,8 @@
-package peer.src.main;
+package peer.server;
+
+import peer.Parser;
+import peer.Peer;
+import peer.util.Logger;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -71,7 +75,7 @@ public class MulticastPeerServer extends Thread {
         //Logger.log(getClass().getSimpleName(), "Sent message: " + message);
     }
 
-    Peer getPeer() {
+    public Peer getPeer() {
         return _peer;
     }
 }

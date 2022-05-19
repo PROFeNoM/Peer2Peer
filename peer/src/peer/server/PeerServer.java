@@ -1,12 +1,15 @@
-package peer.src.main;
+package peer.server;
+
+import peer.Peer;
+import peer.util.Logger;
 
 import java.io.*;
 import java.net.*;
 
 // Server to listen for connections from peers
 public class PeerServer extends Thread {
-    private ServerSocket serverSocket;
-    private Peer peer;
+    private final ServerSocket serverSocket;
+    private final Peer peer;
     public PeerServer(int port, Peer peer) throws IOException {
         serverSocket = new ServerSocket(port);
         this.peer = peer;
