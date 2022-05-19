@@ -45,8 +45,8 @@ public class Configuration {
         Logger.log(getClass().getSimpleName(), "Tracker port: " + getTrackerPort());
         Logger.log(getClass().getSimpleName(), "Peer port: " + getPeerPort());
         Logger.log(getClass().getSimpleName(), "Storage path: " + getStoragePath());
-        Logger.log(getClass().getSimpleName(), "Max seeds: " + getMaxPieces());
         Logger.log(getClass().getSimpleName(), "Max pieces: " + getMaxPieces());
+        Logger.log(getClass().getSimpleName(), "Max peers to connect: " + getMaxPeerToConnect());
         }
 
     /** 
@@ -89,7 +89,7 @@ public class Configuration {
      * @return The value of "peer-max" in the configuration file.
      */
     public int getMaxPeerToConnect() {
-        return Integer.parseInt(System.getProperty("peer-max", prop.getProperty("peer-max")));
+        return Integer.parseInt(System.getProperty("peers-max", prop.getProperty("peers-max")));
     }
 
     /**
