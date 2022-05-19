@@ -34,7 +34,7 @@ public class SeedManager {
         File folder = new File(storagePath);
 
         if (!folder.exists()) {
-            if(!folder.mkdir()) {
+            if (!folder.mkdir()) {
                 Logger.error(SeedManager.class.getSimpleName(), "Could not create storage folder: " + storagePath);
                 System.exit(1);
             }
@@ -123,9 +123,9 @@ public class SeedManager {
         if (file.exists()) {
             file.delete();
         }
-        
+
         if (!file.createNewFile()) {
-           throw new Exception("Could not create leechs file");
+            throw new Exception("Could not create leechs file");
         }
 
         PrintWriter writer = new PrintWriter(file, "UTF-8");
@@ -181,6 +181,10 @@ public class SeedManager {
             }
         }
         return null;
+    }
+
+    public ArrayList<Seed> getLeeches() {
+        return leechs;
     }
 
     public boolean hasSeed(String key) {

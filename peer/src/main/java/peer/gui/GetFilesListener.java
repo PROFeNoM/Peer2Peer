@@ -6,8 +6,7 @@ import peer.seed.*;
 import java.io.File;
 import java.util.GregorianCalendar;
 
-import java.util.ArrayList; 
-
+import java.util.ArrayList;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -22,7 +21,6 @@ import java.awt.FlowLayout;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.event.*;
-
 
 public class GetFilesListener implements ActionListener {
     private String text;
@@ -52,12 +50,14 @@ public class GetFilesListener implements ActionListener {
             dialog.add(fileName);
             dialog.add(new JLabel("File size:"));
             dialog.add(fileSize);
-            int result = JOptionPane.showConfirmDialog(null, dialog, "Enter the seed infos", JOptionPane.OK_CANCEL_OPTION);
+            int result = JOptionPane.showConfirmDialog(null, dialog, "Enter the seed infos",
+                    JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
                 String fileNameString = fileName.getText();
                 String fileSizeString = fileSize.getText();
                 if (fileNameString.equals("") || fileSizeString.equals("")) {
-                    JOptionPane.showMessageDialog(null, "Please enter a file name and a file size", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Please enter a file name and a file size", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 } else {
                     int fileSizeInt = Integer.parseInt(fileSizeString);
                     String query = "[filename=" + fileNameString + " filesize=" + fileSizeInt + "]";
@@ -74,6 +74,7 @@ public class GetFilesListener implements ActionListener {
             Peer p = pb.getPeer();
             p.look("[]");
             for (Seed s : SeedManager.getInstance().getSeeds()) {
+                System.out.println();
                 System.out.println("Seed: " + s.getName() + " " + s.getSize());
             }
         } else if (text.equals("Refresh")) {
@@ -82,7 +83,7 @@ public class GetFilesListener implements ActionListener {
         } else if (text.equals("Download")) {
             Peer peer = pb.getPeer();
             ArrayList<String> files = new ArrayList<String>();
-            ArrayList<Seed> seeds = SeedManager.getInstance().getSeeds();
+            ArrayList<Seed> seeds = SeedManager.getInstance().getLeeches();
             JPanel dialog = new JPanel();
             for (Seed s : seeds) {
                 files.add(s.getName());
@@ -90,7 +91,8 @@ public class GetFilesListener implements ActionListener {
                 dialog.add(lab);
                 lab.addMouseListener(new PanelListener(lab, peer));
             }
-            int result = JOptionPane.showConfirmDialog(null, dialog, "Choose a file to download", JOptionPane.OK_CANCEL_OPTION);           
+            int result = JOptionPane.showConfirmDialog(null, dialog, "Choose a file to download",
+                    JOptionPane.OK_CANCEL_OPTION);
         }
     }
 }

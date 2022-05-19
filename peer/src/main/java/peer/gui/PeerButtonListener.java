@@ -107,13 +107,38 @@ public class PeerButtonListener implements ActionListener {
             fc.showDialog(pb.getParent(), "Add file(s)");
             File[] files = fc.getSelectedFiles();
             for (File file : files) {
-
                 System.out.println("Selected file : " + file.getAbsolutePath());
-                File tmp = new File(Configuration.getInstance().getStoragePath() + file.getName());
+                File tmp = new File(Configuration.getInstance().getStoragePath() + "/" + file.getName());
+                System.out.println("Tmp file : " + tmp.getAbsolutePath());
                 if (tmp.exists())
                     System.out.println("File already exists in directory");
                 else {
+
                     // copy the file to the correct cirectory
+                    InputStream is = null;
+                    OutputStream os = null;
+                    try {
+                        is = new FileInputStream(file);
+                        os = new FileOutputStream(Configuration.getInstance().getStoragePath() + "/" + file.getName());
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = is.read(buffer)) > 0) {
+                            os.write(buffer, 0, length);
+                        }
+                        System.out.println("Copied file");
+                    } catch (FileNotFoundException e1) {
+                        e1.printStackTrace();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    } finally {
+                        try {
+                            is.close();
+                            os.close();
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+
                     pb.addFile(file.getName());
                 }
             }
