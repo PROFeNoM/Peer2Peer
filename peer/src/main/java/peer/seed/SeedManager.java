@@ -12,25 +12,35 @@ import java.util.stream.Collectors;
 
 public class SeedManager {
     private static SeedManager instance;
-    private static String seedFolder;
+    private final static String storagePath = Configuration.getInstance().getStoragePath();
     private static ArrayList<Seed> seeds = new ArrayList<Seed>();
     private static ArrayList<Seed> leechs = new ArrayList<Seed>();
     private static int pieceSize = 1000000; // Default piece size (1 MB)
 
     public static SeedManager getInstance() {
         if (instance == null) {
-            String seedFolder = Configuration.getInstance().getStoragePath();
-            instance = new SeedManager(seedFolder);
+            instance = new SeedManager();
         }
         return instance;
     }
 
-    private SeedManager(String folderPath) {
+    private SeedManager() {
         try {
             restoreLeechs();
         } catch (Exception e) {
+            Logger.log("Could not restore leechs " + e.getMessage());
         }
-        findSeeds(folderPath);
+
+        File folder = new File(storagePath);
+
+        if (!folder.exists()) {
+            if(!folder.mkdir()) {
+                Logger.error(SeedManager.class.getSimpleName(), "Could not create storage folder: " + storagePath);
+                System.exit(1);
+            }
+        }
+
+        findSeeds(storagePath);
     }
 
     // Find seeded files from the given folder
@@ -72,12 +82,12 @@ public class SeedManager {
 
     // Add a seed from info
     public void addSeed(String key, String fileName, int fileSize, int pieceSize) {
-        seeds.add(new Seed(key, seedFolder, fileName, fileSize, pieceSize, null));
+        seeds.add(new Seed(key, storagePath, fileName, fileSize, pieceSize, null));
     }
 
     // Add a leech from info
     public void addLeech(String key, String fileName, int fileSize, int pieceSize) {
-        leechs.add(new Seed(key, seedFolder, fileName, fileSize, pieceSize, null));
+        leechs.add(new Seed(key, storagePath, fileName, fileSize, pieceSize, null));
     }
 
     // Remove a seed given its key
@@ -143,7 +153,7 @@ public class SeedManager {
                 String key = tokens[3];
                 int bufferMapValue = Integer.parseInt(tokens[4]);
                 BufferMap bufferMap = new BufferMap(size, pieceSize, bufferMapValue);
-                leechs.add(new Seed(key, seedFolder, name, size, pieceSize, bufferMap));
+                leechs.add(new Seed(key, storagePath, name, size, pieceSize, bufferMap));
             }
             sc.close();
         } catch (Exception e) {
