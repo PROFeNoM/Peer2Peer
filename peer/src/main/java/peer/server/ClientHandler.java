@@ -86,11 +86,11 @@ public class ClientHandler extends Thread {
             byte[] bytes = new byte[seed.getPieceSize()];
             int byteRead = seed.readPiece(index, bytes);
             // Convert byte to hexadecimal for sending
-            String hex = "";
+            StringBuilder hex = new StringBuilder();
             for (int i = 0; i < byteRead; i++) {
-                hex += String.format("%02X", bytes[i]);
+                hex.append(String.format("%02X", bytes[i]));
             }
-            pieces.add(index + ":" + hex);
+            pieces.add(index + ":" + hex.toString());
         }
         String message = "data " + key + " " + pieces.toString();
         peer.sendMessage(message);
