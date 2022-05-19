@@ -39,8 +39,15 @@ public class Configuration {
             Logger.error(getClass().getSimpleName(), "Cannot read config file: " + e.getMessage());
             System.exit(1);
         }
+
         Logger.log(getClass().getSimpleName(), "Configuration file " + CONFIG_FILE + " loaded");
-    }
+        Logger.log(getClass().getSimpleName(), "Tracker IP: " + getTrackerIp());
+        Logger.log(getClass().getSimpleName(), "Tracker port: " + getTrackerPort());
+        Logger.log(getClass().getSimpleName(), "Peer port: " + getPeerPort());
+        Logger.log(getClass().getSimpleName(), "Storage path: " + getStoragePath());
+        Logger.log(getClass().getSimpleName(), "Max seeds: " + getMaxPieces());
+        Logger.log(getClass().getSimpleName(), "Max pieces: " + getMaxPieces());
+        }
 
     /** 
      * Get the unique instance of the class.
@@ -57,7 +64,7 @@ public class Configuration {
      * @return The value of "tracker-ip" in the configuration file.
      */
     public String getTrackerIp() {
-        return prop.getProperty("tracker-ip");
+        return System.getProperty("tracker-ip", prop.getProperty("tracker-ip"));
     }
 
     /**
@@ -65,7 +72,7 @@ public class Configuration {
      * @return The value of "tracker-port" in the configuration file.
      */
     public int getTrackerPort() {
-        return Integer.parseInt(prop.getProperty("tracker-port"));
+        return Integer.parseInt(System.getProperty("tracker-port", prop.getProperty("tracker-port")));
     }
 
     /**
@@ -73,7 +80,7 @@ public class Configuration {
      * @return The value of "peer-port" in the configuration file.
      */
     public int getPeerPort() {
-        return Integer.parseInt(prop.getProperty("peer-port"));
+        return Integer.parseInt(System.getProperty("peer-port", prop.getProperty("peer-port")));
     }
 
     /**
@@ -82,7 +89,7 @@ public class Configuration {
      * @return The value of "peer-max" in the configuration file.
      */
     public int getMaxPeerToConnect() {
-        return Integer.parseInt(prop.getProperty("peer-max"));
+        return Integer.parseInt(System.getProperty("peer-max", prop.getProperty("peer-max")));
     }
 
     /**
@@ -90,14 +97,14 @@ public class Configuration {
      * @return The value of "pieces-max" in the configuration file.
      */
     public int getMaxPieces() {
-        return Integer.parseInt(prop.getProperty("pieces-max"));
+        return Integer.parseInt(System.getProperty("pieces-max", prop.getProperty("pieces-max")));
     }
 
     /**
      * Get the path to the folder containing the file to seed.
      * @return The value of "seed-folder" in the configuration file.
      */
-    public String getSeedsFolder() {
-        return prop.getProperty("seeds-folder");
+    public String getStoragePath() {
+        return System.getProperty("storage-path", prop.getProperty("storage-path"));
     }
 }

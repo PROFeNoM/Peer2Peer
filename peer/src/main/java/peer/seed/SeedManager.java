@@ -4,8 +4,6 @@ import peer.util.Configuration;
 import peer.util.Logger;
 
 import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Map;
@@ -24,8 +22,7 @@ public class SeedManager {
     public static SeedManager getInstance() {
         if (instance == null) {
             seedFolder = System.getProperty("seedsFolder") != null ? System.getProperty("seedsFolder")
-                    : Configuration.getInstance().getSeedsFolder();
-            Logger.log(SeedManager.class.getSimpleName(), "Seeds folder: " + seedFolder);
+                    : Configuration.getInstance().getStoragePath();
             instance = new SeedManager(seedFolder);
         }
         return instance;
@@ -60,11 +57,10 @@ public class SeedManager {
             }
 
             // Seed already exists in database as a leech
-            System.out.println(file.getName());
             if (isLeech(file.getName())) {
-                System.out.println(file.getName() + " is a leech");
                 continue;
             }
+            
             addSeed(file, pieceSize);
         }
 
