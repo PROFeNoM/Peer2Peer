@@ -17,7 +17,7 @@ public class SeedManager {
     private static String seedFolder;
     private static ArrayList<Seed> seeds = new ArrayList<Seed>();
     private static ArrayList<Seed> leechs = new ArrayList<Seed>();
-    private static int pieceSize = 3; // Default piece size
+    private static int pieceSize = 1000000; // Default piece size (1 MB)
 
 
     public static SeedManager getInstance() {
