@@ -7,6 +7,7 @@ import peer.seed.BufferMap;
 import peer.seed.Seed;
 import peer.seed.SeedManager;
 import peer.server.PeerServer;
+import peer.util.Configuration;
 import peer.util.Logger;
 
 import java.io.*;
@@ -33,6 +34,11 @@ public class Peer {
     private PeerServer peerServer;
 
     /**
+     * Maximum number of pieces to ask for at a time.
+     */
+    private static final int MAX_PIECES = Configuration.getInstance().getMaxPieces();
+
+    /**
      * Connect and announce to the tracker and start the peer server.
      * 
      * @param trackerIp   The tracker's ip.
@@ -43,14 +49,15 @@ public class Peer {
         try {
             tracker = new TrackerConnection(trackerIp, trackerPort);
             tracker.announce(peerPort);
-        } catch (Exception e) {
+        } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), "Failed to connect to tracker: " + e.getMessage());
             System.exit(1);
-        } 
-         //catch (RuntimeException e) {
-        //     Logger.error(getClass().getSimpleName(), "Failed to announce to tracker: " + e.getMessage());
-        //     System.exit(1);
-        // }
+        }
+        catch (RuntimeException e) {
+        Logger.error(getClass().getSimpleName(), "Failed to announce to tracker: " +
+        e.getMessage());
+        System.exit(1);
+        }
 
         Logger.log(getClass().getSimpleName(), "Announced to tracker");
 
@@ -110,7 +117,6 @@ public class Peer {
      */
     public void stop() {
         Logger.log(getClass().getSimpleName(), "Stopping application");
-
 
         try {
             SeedManager.getInstance().saveLeechs();
@@ -200,40 +206,38 @@ public class Peer {
                 continue;
             }
 
-            // Get a buffermap representing the pieces of the file that the peer has and that we don't have yet
-            BufferMap ownedBufferMap = seed.getBufferMap();
-            BufferMap peerBufferMap = peer.getBufferMap(key);
-            BufferMap missingBufferMap = ownedBufferMap.getMissingBufferMap(peerBufferMap);
+            BufferMap ownedBufferMap;
+            BufferMap peerBufferMap;
+            BufferMap missingBufferMap;
 
-            // If there is no piece to ask for, continue
-            if (missingBufferMap.isEmpty()) {
-                Logger.log("No piece to ask for");
-                try {
-                    peer.stop();
-                } catch (IOException e) {
-                    Logger.error(getClass().getSimpleName(),
-                            "Error while stopping connection to peer " + peerInfo.toString() + ": " + e.getMessage());
+            while (true) {
+                // Get a buffermap representing the pieces of the file that the peer has and
+                // that we don't have yet
+                ownedBufferMap = seed.getBufferMap();
+                peerBufferMap = peer.getBufferMap(key);
+                missingBufferMap = ownedBufferMap.getMissingBufferMap(peerBufferMap);
+
+                if (missingBufferMap.isEmpty()) {
+                    // If there is no piece to ask for, continue to the next peer
+                    break;
                 }
-                continue;
+
+                Map<Integer, byte[]> pieces = peer.getPieces(key, missingBufferMap, MAX_PIECES);
+
+                if (pieces == null || pieces.isEmpty()) {
+                    Logger.warn("Failed to get pieces from Peer " + peerInfo.toString());
+                    break;
+                }
+
+                SeedManager.getInstance().writePieces(key, pieces);
             }
-
-            Logger.log("Asking for " + missingBufferMap.size() + " pieces of the file");
-
-            Map<Integer, byte[]> pieces = peer.getPieces(key, missingBufferMap);
-
+             
             try {
                 peer.stop();
             } catch (IOException e) {
                 Logger.error(getClass().getSimpleName(),
                         "Error while stopping connection to peer " + peerInfo.toString() + ": " + e.getMessage());
             }
-
-            if (pieces == null || pieces.isEmpty()) {
-                Logger.warn("Failed to get pieces from Peer " + peerInfo.toString());
-                continue;
-            }
-
-            SeedManager.getInstance().writePieces(key, pieces);
 
             if (seed.getBufferMap().isFull()) {
                 SeedManager.getInstance().leechToSeed(seed);

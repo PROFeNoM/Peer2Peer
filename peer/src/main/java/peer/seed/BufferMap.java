@@ -45,6 +45,16 @@ public class BufferMap {
     }
 
     /**
+     * Create a new buffermap with the given value.
+     * 
+     * @param value Value of the buffermap.
+     */
+    public BufferMap(long fileSize, int pieceSize, int value) {
+        size = (int) Math.ceil(fileSize / (double) pieceSize);
+        this.value = value;
+    }
+
+    /**
      *  Check if we have the piece number `index`.
      * 
      * @param index Index of the piece to check.

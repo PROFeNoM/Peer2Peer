@@ -34,7 +34,7 @@ public class Seed {
     /**
      * Size of the file in bytes.
      */
-    int size;
+    long size;
 
     // Create a seed from an existing file
     public Seed(File file, int pieceSize) {
@@ -47,7 +47,7 @@ public class Seed {
     }
 
     // Create a seed entry from info
-    public Seed(String key, String seedFolder, String name, int fileSize, int pieceSize, BufferMap bufferMap) {
+    public Seed(String key, String seedFolder, String name, long fileSize, int pieceSize, BufferMap bufferMap) {
         // TODO: Check if file exists
         this.file = new File(seedFolder+"/"+name);
         this.key = key;
@@ -76,7 +76,7 @@ public class Seed {
         return bufferMap;
     }
 
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
