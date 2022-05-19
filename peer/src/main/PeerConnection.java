@@ -67,7 +67,7 @@ public class PeerConnection {
         StringJoiner joiner = new StringJoiner(" ", "[", "]");
         for (int i = 0; i < bufferMap.size(); i++) {
             if (bufferMap.has(i)) {
-                joiner = joiner.add(Integer.toString(i));
+                joiner.add(Integer.toString(i));
             }
         }
         String message = "getpieces " + key + " " + joiner.toString();

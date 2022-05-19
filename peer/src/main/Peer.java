@@ -140,7 +140,7 @@ public class Peer {
         Collections.shuffle(_neighborsPort);
         Logger.log(getClass().getSimpleName(), "Sending announce message to " + _neighborsPort.size() + " neighbors");
         for (int neighbourPort : _neighborsPort) {
-            System.out.println("Sending announce message to " + neighbourPort);
+            Logger.log(getClass().getSimpleName(), "Sending announce message to " + neighbourPort);
             if (neighborsHandler.size() >= _maxPeers)  // Can't connect to more than _maxPeers
                 break;
 

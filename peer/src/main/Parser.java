@@ -1,6 +1,5 @@
 package peer.src.main;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -321,7 +320,8 @@ class Parser {
     }
 
     public static Map<Integer, byte[]> parsePieces(String response, String key, BufferMap bufferMap) {
-        Logger.log(Parser.class.getSimpleName(), "Parsing pieces response: " + response);
+        //Logger.log(Parser.class.getSimpleName(), "Parsing pieces response: " + response);
+        Logger.log(Parser.class.getSimpleName(), "Parsing pieces response");
         String[] tokens = response.split("[ \\[\\]]");
         String command = tokens[0];
 

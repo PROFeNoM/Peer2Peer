@@ -1,12 +1,9 @@
 package peer.src.main;
 
-import peer.src.main.ClientHandler;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.Socket;
 
 // Server to listen for incoming connections
 // Multicast UDP
@@ -35,30 +32,6 @@ public class MulticastPeerServer extends Thread {
         } catch (IOException e) {
             Logger.error(getClass().getSimpleName(), "Cannot receive UDP message: " + e.getMessage());
         }
-
-        // Listen for incoming connections
-        // Accept client's socket
-        // Create a corresponding client handler
-        /*
-        try {
-            while (true) {
-                byte[] buffer = new byte[MAX_PACKET_SIZE];
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                multicastSocket.receive(packet);
-
-                InetAddress clientAddress = packet.getAddress();
-                int clientPort = packet.getPort();
-
-                Logger.log(getClass().getSimpleName(), "Received connection request from " + clientAddress + ":" + clientPort);
-                Logger.log(getClass().getSimpleName(), "Message: " + new String(packet.getData()));
-
-                Socket clientSocket = new Socket(clientAddress, clientPort);
-                ClientHandler clientHandler = new ClientHandler(clientSocket);
-                clientHandler.start();
-            }
-        } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), e.getMessage());
-        }*/
     }
 
     public void close() {
