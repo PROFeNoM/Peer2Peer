@@ -110,7 +110,7 @@ public class Parser {
      */
     public static BufferMap parseBufferMap(String input) {
         String[] tokens = input.split(" ", 3);
-        return new BufferMap(Integer.parseInt(tokens[2]));
+        return new BufferMap(Long.parseLong(tokens[2]));
     }
 
     /**

@@ -7,7 +7,7 @@ public class BufferMap {
     /**
      * Value of the buffermap.
      */
-    private int value;
+    private long value;
 
     /**
      * Number of chunks in the file.
@@ -25,13 +25,8 @@ public class BufferMap {
      * @param have Boolean telling if we have all or no pieces.
      */
     public BufferMap(long fileSize, int pieceSize, boolean have) {
-        int nbPieces = (int) Math.ceil(fileSize / (double) pieceSize);
-        size = nbPieces;
-        if (have) {
-            value = (1 << nbPieces) - 1;
-        } else {
-            value = 0;
-        }
+        size = (int) Math.ceil(fileSize / (double) pieceSize);
+        value = have ? (1L << size) - 1 : 0;
     }
 
     /**
@@ -39,9 +34,9 @@ public class BufferMap {
      * 
      * @param value Value of the buffermap.
      */
-    public BufferMap(int value) {
+    public BufferMap(long value) {
         this.value = value;
-        size = value == 0 ? 0 : (int) Math.floor(Math.log(value) / Math.log(2)) + 1;
+        this.size = Long.toBinaryString(value).length();
     }
 
     /**
@@ -51,7 +46,7 @@ public class BufferMap {
      * @return True if we have the piece number `index`, false otherwise.
      */
     public boolean has(int index) {
-        return (value >> index & 1) == 1;
+        return (value >> index & 1L) == 1;
     }
 
     /**
@@ -62,9 +57,9 @@ public class BufferMap {
      */
     public void set(int index, boolean have) {
         if (have) {
-            value |= 1 << index;
+            value |= 1L << index;
         } else {
-            value &= ~(1 << index);
+            value &= ~(1L << index);
         }
     }
 
@@ -116,6 +111,6 @@ public class BufferMap {
      * @return String representation of the buffermap.
      */
     public String toString() {
-        return Integer.toString(value);
+        return Long.toString(value);
     }
 }

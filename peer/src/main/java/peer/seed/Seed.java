@@ -34,7 +34,7 @@ public class Seed {
     /**
      * Size of the file in bytes.
      */
-    int size;
+    long size;
 
     // Create a seed from an existing file
     public Seed(File file, int pieceSize) {
@@ -42,22 +42,19 @@ public class Seed {
         this.key = FileUtils.getMD5Hash(file);
         this.name = file.getName();
         this.pieceSize = pieceSize;
-        this.size = (int) file.length();
+        this.size = file.length();
         this.bufferMap = new BufferMap(size, pieceSize, true);
     }
 
     // Create a seed entry from info
-    public Seed(String key, String name, int fileSize, int pieceSize, BufferMap bufferMap) {
+    public Seed(String key, String name, long fileSize, int pieceSize, BufferMap bufferMap) {
         // TODO: Check if file exists
         this.file = new File(name);
         this.key = key;
         this.name = name;
         this.pieceSize = pieceSize;
         this.size = fileSize;
-        if (bufferMap == null)
-            this.bufferMap = new BufferMap(size, pieceSize, false);
-        else
-            this.bufferMap = bufferMap;
+        this.bufferMap = bufferMap == null ? new BufferMap(size, pieceSize, false) : bufferMap;
     }
 
     public String getName() {
@@ -76,7 +73,7 @@ public class Seed {
         return bufferMap;
     }
 
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
@@ -84,7 +81,8 @@ public class Seed {
     // Return the number of bytes read
     public int readPiece(int index, byte[] piece) {
         if (!bufferMap.has(index)) {
-            Logger.error(getClass().getSimpleName(), "Trying to read a piece that is not present (piece " + index + ")");
+            Logger.error(getClass().getSimpleName(),
+                    "Trying to read a piece that is not present (piece " + index + ")");
             return -1;
         }
 
@@ -106,7 +104,8 @@ public class Seed {
     // Write the piece at index `index` from the given buffer
     public void writePiece(int index, byte[] piece) {
         if (bufferMap.has(index)) {
-            Logger.error(getClass().getSimpleName(), "Trying to write a piece that is already present (piece " + index + ")");
+            Logger.error(getClass().getSimpleName(),
+                    "Trying to write a piece that is already present (piece " + index + ")");
             return;
         }
 
