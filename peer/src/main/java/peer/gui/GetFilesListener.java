@@ -84,7 +84,7 @@ public class GetFilesListener implements ActionListener {
                 dialog.add(lab);
                 lab.addMouseListener(new PanelListener(lab, peer));
             }
-            int result = JOptionPane.showConfirmDialog(null, dialog, "Choose a file to download",
+            JOptionPane.showConfirmDialog(null, dialog, "Choose a file to download",
                     JOptionPane.OK_CANCEL_OPTION);
         }
     }
