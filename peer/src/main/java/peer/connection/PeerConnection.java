@@ -84,7 +84,7 @@ public class PeerConnection extends Connection {
             }
         }
 
-        Logger.log(getClass().getSimpleName(), "Asking for " + nbPieces + " pieces");
+        Logger.debug(getClass().getSimpleName(), "Asking for " + nbPieces + " pieces");
 
         String message = "getpieces " + key + " " + joiner.toString();
         sendMessage(message);

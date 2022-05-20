@@ -59,25 +59,24 @@ public class Peer {
             tracker = new TrackerConnection(trackerIp, trackerPort);
             tracker.announce(peerPort);
         } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), "Failed to connect to tracker: " + e.getMessage());
+            Logger.error("Failed to connect to tracker: " + e.getMessage());
             System.exit(1);
         } catch (RuntimeException e) {
-            e.printStackTrace();
-            Logger.error(getClass().getSimpleName(), "Failed to announce to tracker: " + e.getMessage());
+            Logger.error("Failed to announce to tracker: " + e.getMessage());
             System.exit(1);
         }
 
-        Logger.log(getClass().getSimpleName(), "Announced to tracker");
+        Logger.debug(getClass().getSimpleName(), "Announced to tracker");
 
         startUpdater();
 
         try {
             startServer(peerPort);
         } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), "Cannot start server: " + e.getMessage());
+            Logger.error("Cannot start server: " + e.getMessage());
             System.exit(1);
         }
-        Logger.log(getClass().getSimpleName(), "Server started on port " + peerPort);
+        Logger.debug(getClass().getSimpleName(), "Server started on port " + peerPort);
     }
 
     /**
@@ -115,8 +114,7 @@ public class Peer {
                     in.close();
                     return;
                 default:
-                    Logger.warn(getClass().getSimpleName(),
-                            command + ", available commands: look, getfile, exit");
+                    Logger.warn(command + ", available commands: look, getfile, exit");
                     break;
             }
         }
@@ -126,7 +124,7 @@ public class Peer {
      * Close the connection to the tracker and stop the server.
      */
     public void stop() {
-        Logger.log(getClass().getSimpleName(), "Stopping application");
+        Logger.debug(getClass().getSimpleName(), "Stopping application");
 
         timer.cancel();
 
@@ -210,23 +208,27 @@ public class Peer {
      */
     public void getFile(String key) {
         Seed seed = SeedManager.getInstance().getSeedFromKey(key);
-        if (seed == null)
-            seed = SeedManager.getInstance().getLeechFromKey(key);
 
         if (seed == null) {
-            Logger.error(getClass().getSimpleName(), "Unknown file key: " + key);
+            seed = SeedManager.getInstance().getLeechFromKey(key);
+        }
+
+        if (seed == null) {
+            Logger.error("Unknown file key: " + key);
             return;
         }
 
         if (seed.getBufferMap().isFull()) {
-            Logger.warn(getClass().getSimpleName(), "Already have the full file");
+            Logger.warn("Already have the full file at " + Configuration.getInstance().getStoragePath() + "/" + seed.getName());
             return;
         }
+
+        System.out.println("Getting file " + seed.getName() + "...");
 
         ConnectionInfo[] peers = tracker.getPeers(key);
 
         for (ConnectionInfo peerInfo : peers) {
-            Logger.log("Asking peer " + peerInfo.toString());
+            Logger.debug("Asking peer " + peerInfo.toString());
 
             PeerConnection peer = null;
             try {
@@ -272,7 +274,7 @@ public class Peer {
 
             if (seed.getBufferMap().isFull()) {
                 SeedManager.getInstance().leechToSeed(seed);
-                Logger.log("File downloaded");
+                System.out.println("File downloaded to " + Configuration.getInstance().getStoragePath() + "/" + seed.getName());
                 return;
             }
         }

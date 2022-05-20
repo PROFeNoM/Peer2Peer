@@ -40,13 +40,13 @@ public class Configuration {
             System.exit(1);
         }
 
-        Logger.log(getClass().getSimpleName(), "Configuration file " + CONFIG_FILE + " loaded");
-        Logger.log(getClass().getSimpleName(), "Tracker IP: " + getTrackerIp());
-        Logger.log(getClass().getSimpleName(), "Tracker port: " + getTrackerPort());
-        Logger.log(getClass().getSimpleName(), "Peer port: " + getPeerPort());
-        Logger.log(getClass().getSimpleName(), "Storage path: " + getStoragePath());
-        Logger.log(getClass().getSimpleName(), "Max pieces: " + getMaxPieces());
-        Logger.log(getClass().getSimpleName(), "Max peers to connect: " + getMaxPeerToConnect());
+        System.out.println("Configuration file " + CONFIG_FILE + " loaded");
+        System.out.println("Tracker IP: " + getTrackerIp());
+        System.out.println("Tracker port: " + getTrackerPort());
+        System.out.println("Peer port: " + getPeerPort());
+        System.out.println("Storage path: " + getStoragePath());
+        System.out.println("Max pieces: " + getMaxPieces());
+        System.out.println("Max peers to connect: " + getMaxPeerToConnect());
         }
 
     /** 
@@ -108,12 +108,20 @@ public class Configuration {
         return System.getProperty("storage-path", prop.getProperty("storage-path"));
     }
 
-        /**
+    /**
      * Get the path to the folder containing the file to seed.
      * @return The value of "seed-folder" in the configuration file.
      */
     public int getUpdateInterval() {
         return Integer.parseInt(System.getProperty("update-interval", prop.getProperty("update-interval")));
+    }
+
+    /**
+     * Tell if debug mode is enabled.
+     * @return True if debug mode is enabled, false otherwise.
+     */
+    public boolean isDebug() {
+        return Boolean.parseBoolean(System.getProperty("verbose", prop.getProperty("verbose")));
     }
 }
 

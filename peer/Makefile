@@ -73,5 +73,5 @@ gui: build
 
 ############################## TESTS RULES ##############################
 
-tests: build-tests
+test: build-tests
 	$(JAVA) -jar $(JUNIT_PATH) -cp $(CLASS_PATH) -p $(PACKAGE)

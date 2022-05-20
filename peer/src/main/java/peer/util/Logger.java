@@ -1,14 +1,23 @@
 package peer.util;
 
+/**
+ * Class to print messages to the console.
+ * It can be used to print debug messages (only if debug mode is enabled), error messages and warning messages.
+ */
 public class Logger {
-    public static void log(String message) {
-        System.out.println("[DEBUG] " + message);
+    private static void log(String message) {
+        if (Configuration.getInstance().isDebug()) {
+            System.out.println(message);
+        }
     }
 
-    public static void log(String name, String message) {
-        System.out.println("[DEBUG][" + name + "] " + message);
+    public static void debug(String message) {
+        log("[DEBUG] " + message);
     }
 
+    public static void debug(String name, String message) {
+        log("[DEBUG][" + name + "] " + message);
+    }
 
     public static void warn(String message) {
         System.out.println("[WARN] " + message);

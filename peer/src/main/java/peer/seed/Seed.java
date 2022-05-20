@@ -95,10 +95,10 @@ public class Seed {
             byteRead = raf.read(piece);
             raf.close();
         } catch (IOException e) {
-            Logger.error(getClass().getSimpleName(), "Error reading piece from file: " + e.getMessage());
+            Logger.error("Error reading piece from file: " + e.getMessage());
         }
 
-        Logger.log(getClass().getSimpleName(), "Read piece " + index + " from file " + name);
+        Logger.debug(getClass().getSimpleName(), "Read piece " + index + " from file " + name);
 
         return byteRead;
     }
@@ -106,8 +106,7 @@ public class Seed {
     // Write the piece at index `index` from the given buffer
     public void writePiece(int index, byte[] piece) {
         if (bufferMap.has(index)) {
-            Logger.error(getClass().getSimpleName(),
-                    "Trying to write a piece that is already present (piece " + index + ")");
+            Logger.error("Trying to write a piece that is already present (piece " + index + ")");
             return;
         }
 
@@ -122,7 +121,7 @@ public class Seed {
 
         bufferMap.set(index, true);
 
-        Logger.log(getClass().getSimpleName(), "Wrote piece " + index + " to file " + name);
+        Logger.debug(getClass().getSimpleName(), "Wrote piece " + index + " to file " + name);
     }
 
     public String toString() {

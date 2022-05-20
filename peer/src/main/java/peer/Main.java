@@ -10,7 +10,7 @@ import peer.util.Configuration;
 public class Main {
     public static void main(String[] args) {
         String asciiArt =
-        "______ _      _    ___   _____ _                     \n" +
+        " ______ _      _    ___   _____ _                     \n" +
         "|  ____(_)    | |  |__ \\ / ____| |                   \n" +
         "| |__   _ _ __| |__   ) | (___ | |__   __ _ _ __ ___ \n" +
         "|  __| | | '__| '_ \\ / / \\___ \\| '_ \\ / _` | '__/ _ \\\n" +

@@ -28,7 +28,7 @@ public class SeedManager {
         try {
             restoreLeechs();
         } catch (Exception e) {
-            Logger.log("Could not restore leechs " + e.getMessage());
+            Logger.warn("Could not restore leechs " + e.getMessage());
         }
 
         File folder = new File(storagePath);
@@ -55,7 +55,7 @@ public class SeedManager {
         File[] listOfFiles = folder.listFiles();
 
         if (listOfFiles == null) {
-            Logger.log(getClass().getSimpleName(), "Storage folder is not a valid directory: " + folderPath);
+            Logger.error(getClass().getSimpleName(), "Storage folder is not a valid directory: " + folderPath);
             System.exit(1);
         }
 
@@ -72,7 +72,7 @@ public class SeedManager {
             addSeed(file, pieceSize);
         }
 
-        Logger.log(getClass().getSimpleName(), "Seeds found: " + seeds.size());
+        Logger.debug(getClass().getSimpleName(), "Seeds found: " + seeds.size());
     }
 
     // Add a seed from file
@@ -217,7 +217,7 @@ public class SeedManager {
             Logger.error(getClass().getSimpleName(), "No leech registered for key " + key);
             return;
         } else {
-            Logger.log(getClass().getSimpleName(), "Writing pieces to file " + leech.getName());
+            Logger.debug(getClass().getSimpleName(), "Writing pieces to file " + leech.getName());
         }
 
         for (Map.Entry<Integer, byte[]> piece : pieces.entrySet()) {
