@@ -17,7 +17,7 @@ public class Main {
         for (String arg : args) {
             System.out.println(arg);
             if (arg.equals("-h")) {
-                System.out.println("Usage: java [-D peerPort=<peerPort>] [-D peerMax=<peerMax>] peer.src.main.Main [-h]");
+                System.out.println("Usage: java [-D peerPort=<peerPort>] [-D peerMax=<peerMax>] peer.Main [-h]");
                 System.exit(0);
             }
         }

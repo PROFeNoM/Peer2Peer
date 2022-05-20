@@ -1,6 +1,6 @@
 # How to compile
 
-Go to the root of the tracker repository and run
+Go to the root of the tracker directory and run
 
 ```shell
 $ make install
@@ -8,7 +8,7 @@ $ make install
 
 # How to run the tracker
 
-After compilation, go to the root of the tracker repository. Running the tracker uses the following syntax
+After compilation, go to the root of the tracker directory. Running the tracker uses the following syntax
 
 ```shell
 $ ./install/tracker [p]
@@ -28,7 +28,7 @@ $ ./install/tracker 6666
 
 0. Compile the project as explained previously
 
-1. At the root of the tracker repository, run
+1. At the root of the tracker directory, run
 
 ```shell
 $ ./install/alltests
