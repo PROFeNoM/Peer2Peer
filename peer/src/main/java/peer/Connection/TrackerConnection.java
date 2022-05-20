@@ -48,7 +48,7 @@ public class TrackerConnection extends Connection {
     /**
      * Update the tracker with the current state of the peer.
      */
-    public void update() {
+    public void update() throws RuntimeException {
         String message = "update";
         message += " seed " + SeedManager.getInstance().seedsToString();
         message += " leech " + SeedManager.getInstance().leechesToString();

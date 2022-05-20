@@ -170,7 +170,12 @@ public class Peer {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                try {
                 tracker.update();
+                } catch (RuntimeException e) {
+                    Logger.error(getClass().getSimpleName(),
+                            "Error while updating tracker: " + e.getMessage());
+                }
             }
         }, 0, Configuration.getInstance().getUpdateInterval() * 1000);
     }
