@@ -6,6 +6,7 @@ SRC_PACKAGE = $(PACKAGE)
 TEST_PACKAGE = $(PACKAGE)
 
 MAIN_CLASS	= $(SRC_PACKAGE).Main
+MAIN_GUI_CLASS	= $(SRC_PACKAGE).gui.MainWindow
 
 SRC_DIR		= src/main
 TST_DIR		= src/test
@@ -66,6 +67,9 @@ build-tests: build $(JAVA_TEST_FILES)
 
 peer: build
 	$(JAVA) -cp $(CLASS_PATH) $(MAIN_CLASS)
+
+gui: build
+	$(JAVA) -cp $(CLASS_PATH) $(MAIN_GUI_CLASS)
 
 ############################## TESTS RULES ##############################
 
