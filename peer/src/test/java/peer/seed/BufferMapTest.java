@@ -9,7 +9,7 @@ public class BufferMapTest {
         BufferMap bufferMap = new BufferMap(0);
 
         assertTrue(bufferMap.isEmpty(), "Empty BufferMap should be empty");
-        assertEquals(0, bufferMap.size(), "Empty BufferMap should have a size of 0");
+        assertEquals(1, bufferMap.size(), "Empty BufferMap should have a size of 1");
         assertFalse(bufferMap.has(0) || bufferMap.has(5), "Empty BufferMap should not have any piece");
     }
 }

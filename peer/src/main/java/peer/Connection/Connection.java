@@ -73,7 +73,6 @@ class Connection {
 
     /**
      * Send a message to the connection.
-     * TODO: make it protected and handle by child ?
      * @param message Message to send.
      */
     public void sendMessage(String message) {
@@ -82,7 +81,6 @@ class Connection {
 
     /**
      * Get a message from the connection.
-     * TODO: make it protected and handle by child ?
      * @return The message received or an empty string if an error occurred.
      */
     public String getMessage() {
