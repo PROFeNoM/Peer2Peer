@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 	// Read file config.ini
 
 	FILE* fptr;
-	fptr = fopen("./install/config.ini", "r");
+	fptr = fopen("./config.ini", "r");
 	if (fptr == NULL)
 	{
 		error("Couldn't open config.ini");
@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
 			port = atoi(tokens[i][2]);
 			debug_log("[TRACKER_LOG] port: %d\n", port);
 		}
-		else if (!strcmp("tracker-address", tokens[i][0]))
+		else if (!strcmp("tracker-ip", tokens[i][0]))
 		{
 			strcpy(address, tokens[i][2]);
 			debug_log("[TRACKER_LOG] adresse: %s", address);

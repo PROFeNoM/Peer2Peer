@@ -25,7 +25,7 @@ public class Main {
 
         for (String arg : args) {
             if (arg.equals("-h")) {
-                System.out.println("Usage: java [-D tracker-ip=<trackerIp>] [-D tracker-port=<trackerPort>] [-D peer-port=<peerPort>] peer.src.main.Main [-h]");
+                System.out.println("Usage: java [-Dtracker-ip=<trackerIp>] [-Dtracker-port=<trackerPort>] [-Dpeer-port=<peerPort>] peer.src.main.Main [-h]");
                 System.exit(0);
             }
         }

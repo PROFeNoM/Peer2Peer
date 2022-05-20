@@ -40,6 +40,7 @@ build: BUILD_start $(BUILD_DIR) $(TRACKER_BIN) $(TESTS_BIN) BUILD_end
 install: INSTALL_start build $(INSTALL_BIN) INSTALL_end
 
 test: TESTS_start $(TESTS_BIN) TESTS_end
+	$(TESTS_BIN)
 
 clean:
 	rm -rf ./build $(INSTALL_BIN) *.gcno *.gcda
