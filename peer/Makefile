@@ -1,6 +1,5 @@
 JAVAC 			?= javac
 JAVA 			?= java
-STORAGE_PATH 	?= storage
 
 PACKAGE = peer
 SRC_PACKAGE = $(PACKAGE)
@@ -66,7 +65,7 @@ build-tests: build $(JAVA_TEST_FILES)
 ############################## INSTALL RULES ##############################
 
 peer: build
-	$(JAVA) -Dstorage-path=$(STORAGE_PATH) -cp $(CLASS_PATH) $(MAIN_CLASS)
+	$(JAVA) -cp $(CLASS_PATH) $(MAIN_CLASS)
 
 ############################## TESTS RULES ##############################
 
