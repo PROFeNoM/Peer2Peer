@@ -46,9 +46,7 @@ public class PeerConnection extends Connection {
     public BufferMap getBufferMap(String key) {
         String message = "interested " + key;
         sendMessage(message);
-        Logger.log("< " + message);
         String response = getMessage();
-        Logger.log("> " + response);
 
         Command command = Parser.getMessageType(response);
         if (command != Command.HAVE) {

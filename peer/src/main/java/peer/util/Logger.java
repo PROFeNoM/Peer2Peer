@@ -2,11 +2,11 @@ package peer.util;
 
 public class Logger {
     public static void log(String message) {
-        System.out.println("[LOG] " + message);
+        System.out.println("[DEBUG] " + message);
     }
 
     public static void log(String name, String message) {
-        System.out.println("[LOG][" + name + "] " + message);
+        System.out.println("[DEBUG][" + name + "] " + message);
     }
 
 

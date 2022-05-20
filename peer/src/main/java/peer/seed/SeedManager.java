@@ -145,6 +145,11 @@ public class SeedManager {
     public void restoreLeechs() throws Exception {
         try {
             File file = new File("db/leechs.txt");
+
+            if (!file.exists()) {
+                return;
+            }
+
             Scanner sc = new Scanner(file);
             String line;
 

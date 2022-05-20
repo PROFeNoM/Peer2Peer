@@ -36,7 +36,6 @@ public class TrackerConnection extends Connection {
         message += " seed " + SeedManager.getInstance().seedsToString();
         message += " leech " + SeedManager.getInstance().leechesToString();
         
-        Logger.log("< " + message);
         sendMessage(message);
         String response = getMessage();
 
