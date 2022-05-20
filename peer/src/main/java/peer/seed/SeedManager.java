@@ -131,6 +131,10 @@ public class SeedManager {
         PrintWriter writer = new PrintWriter(file, "UTF-8");
 
         for (Seed leech : leechs) {
+            if (leech.getBufferMap().isEmpty()) {
+                continue;
+            }
+            
             writer.println(leech.name + " : " + leech.size + " : " + leech.pieceSize + " : " + leech.key + " : "
                     + leech.bufferMap);
         }
@@ -188,7 +192,6 @@ public class SeedManager {
     }
 
     public boolean hasSeed(String key) {
-        // TODO: optimize
         return getSeedFromKey(key) != null;
     }
 
